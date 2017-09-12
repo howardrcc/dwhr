@@ -1,0 +1,1 @@
+Dit is een simpel dashboard met 1 dimensie 'periode' en 1 fact-table met random data. De periode-dimensie is hier uitgewerkt als een columnChart. Naar boven navigeren gaat via het kruimelpad. Inzoomen gaat via ctrl-klik op de betreffende kolom. zie de help-pagina van betreffende functies voor details

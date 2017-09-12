@@ -1,0 +1,51 @@
+#loading-content {
+position: absolute;
+background-image: url('dwhRs/bia.jpg');
+background-repeat: no-repeat;
+background-position: center;
+background-color: #00AFDC;
+opacity: 0.9;
+z-index: 100;
+left: 0;
+right: 0;
+height: 100%;
+text-align: center;
+color: #FFFFFF;
+}
+
+.tooltip-inner {
+background-color: #fefefe;
+color: black;
+border: 3px solid #41b6c4;
+}
+
+.disable-pointer{
+pointer-events: none !important;
+}
+
+table.db-header {
+border-bottom-style:solid;
+border-width:thin;
+}
+
+h3.db-header {
+padding: 0;
+margin: 0;
+}
+
+td.db-header {
+vertical-align: middle;
+text-align:left;
+overflow: hidden;
+}
+
+.hide-db {
+position: absolute !important;
+top: -9999px;
+left: -9999px;
+width: 97%;
+}
+
+.underline-on-hover:hover {
+    text-decoration: underline;
+}

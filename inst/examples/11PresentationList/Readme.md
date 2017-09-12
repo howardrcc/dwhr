@@ -1,0 +1,1 @@
+Dit is een simpel dashboard met 1 dimensie 'periode' en 1 fact-table met random data. De periode-dimensie is hier uitgewerkt als een columnChart maar via een dropdown ook als een datatable. Deze verschillende presentaties van dezelfde data hebben hetzelfde uiId en nemen dezelfde ruimte in op het scherm. zie de help-pagina van betreffende functies voor details

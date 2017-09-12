@@ -1,0 +1,1 @@
+Dit is een simpel dashboard met 1 dimensie 'periode' en 1 fact-table met random data. Dit voorbeeld illustreert de diverse style opties zoals die voor een datatable toegepast kunnen worden. zie de help-pagina van betreffende functies voor details
