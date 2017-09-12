@@ -32,4 +32,3 @@ changeFormatMeasure(env, dim, as, format)
 Pas het format aan van een meetwaarde uit een dimView. Er wordt gerefereerd naar de meetwaarde via de 
 gepresenteerde naam (as).
 }
-

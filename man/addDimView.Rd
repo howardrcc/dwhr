@@ -88,4 +88,3 @@ meetwaarden uit de feiten-tabel. Het dimView object kan meerdere nivo's hebben. 
 2. Na het toevoegen van een dimView-object aan het sterschema kunnen er meetwaarden (via \code{\link{addMeasure}}) en 
 afgeleide meetwaarden (via \code{\link{addMeasureDerrived}}) toegevoegd worden.
 }
-

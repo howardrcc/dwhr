@@ -27,4 +27,3 @@ setOrdering(env, dim, as, sort, as2 = NULL)
 Pas de sorteer kolommen van dimView aan. Er wordt gerefereerd naar de kolom via de 
 gepresenteerde naam (as).
 }
-

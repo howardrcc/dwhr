@@ -4,8 +4,8 @@
 \alias{addMeasure}
 \alias{addMeasureDerrived}
 \alias{addSortColumn}
-\alias{addTextColumn}
 \alias{addTooltipColumn}
+\alias{addTextColumn}
 \title{Toevoegen van meetwaarden of ander kolom-type aan dimView-object.}
 \usage{
 addMeasure(env, dim, factColumn, fun, as = factColumn, viewColumn = NULL,
@@ -103,4 +103,3 @@ gewijzigd sterschema object.
 Deze functies voegen meetwaarden, afgeleide meetwaarden of een ander type kolom zoals 
 sort-column, tooltip-column of text-column toe aan een bestaand dimView object
 }
-

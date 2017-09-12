@@ -1,5 +1,5 @@
 #' Creeer nieuw sterschema-object
-#' test123
+#' 
 #' Maak een sterschema-object gebaseerd op een feiten-tabel. Aan het resulterende object kunnen dimensie views worden toegevoegd met
 #' \code{\link{addDimView}}. \code{new.star()} moet uitgevoerd worden binnen een shiny-server sessie.
 #'

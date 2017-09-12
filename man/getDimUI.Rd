@@ -20,4 +20,3 @@ getDimUI(dim, useWellPanel = FALSE, maxHeight = NULL,
 \description{
 Create html for dimView object in the shiny app's UI.
 }
-

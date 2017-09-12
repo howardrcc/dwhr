@@ -9,4 +9,3 @@ dwhrInit()
 \description{
 This function must be called first from within the shiny app's UI
 }
-

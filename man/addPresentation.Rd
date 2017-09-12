@@ -91,4 +91,3 @@ gewijzigd sterschema object.
 \description{
 presentaties zijn nodig om gegevens te tonen en om interactie mogelijk te maken met eindgebruiker.
 }
-
