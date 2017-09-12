@@ -611,7 +611,7 @@ renderDataTableDim <- function(env,dim,input,output) {
                 cursor <- isNa(isNull(meas$cursor[meas$as == fc],'default'),'default')
                 valueColumn <- meas$bgStyle.valueColumn[meas$as == fc]
                 
-                if(is.null(valueColumn)) {
+                if(is.null(valueColumn) || is.na(valueColumn)) {
                     valueColumn <- paste0(fc,'_org')
                 } else {
                     if (paste0(meas$as[meas$viewColumn == valueColumn],'_org') %in% names(prep$tab))
@@ -659,7 +659,7 @@ renderDataTableDim <- function(env,dim,input,output) {
                 cursor <- isNa(isNull(meas$cursor[meas$as == fc],'default'),'default')
                 valueColumn <- meas$fgStyle.valueColumn[meas$as == fc]
                 
-                if(is.null(valueColumn)) {
+                if(is.null(valueColumn) || is.na(valueColumn)) {
                     valueColumn <- paste0(fc,'_org')
                 } else {
                     if (paste0(meas$as[meas$viewColumn == valueColumn],'_org') %in% names(prep$tab))
