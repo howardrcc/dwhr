@@ -2,10 +2,7 @@
 % Please edit documentation in R/dwhr.R
 \name{new.star}
 \alias{new.star}
-\title{Creeer nieuw sterschema-object
-test123
-Maak een sterschema-object gebaseerd op een feiten-tabel. Aan het resulterende object kunnen dimensie views worden toegevoegd met
-\code{\link{addDimView}}. \code{new.star()} moet uitgevoerd worden binnen een shiny-server sessie.}
+\title{Creeer nieuw sterschema-object}
 \usage{
 new.star(id, session, facts, caching = FALSE, foreignKeyCheck = TRUE)
 }
@@ -28,8 +25,6 @@ resultaat een sterschema-object van klasse 'star'. Resultaat is een environment 
     }  .
 }
 \description{
-Creeer nieuw sterschema-object
-test123
 Maak een sterschema-object gebaseerd op een feiten-tabel. Aan het resulterende object kunnen dimensie views worden toegevoegd met
 \code{\link{addDimView}}. \code{new.star()} moet uitgevoerd worden binnen een shiny-server sessie.
 }

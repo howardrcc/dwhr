@@ -33,6 +33,7 @@ new.star <- function(id, session, facts, caching = FALSE, foreignKeyCheck = TRUE
         }
 
         if (!exists('starList',envir = ses)) {
+            ses$queryStringSet = FALSE
             ses$starList <- list()
         } else {
             id %in% ses$starList && stop(paste0('star-object with id: ', id, 'already exists'))
@@ -498,6 +499,7 @@ addDimView <- function(
             clickCount = 0,
             clickViewColumn = '',
             clickMember = '',
+            clickMemberKey = '',
             value = NA
         )
     )

@@ -95,9 +95,9 @@ authenticate <- function(session) {
 
     sql <- paste0("exec R.dbo.check_hash '",user,"','",pkg.env$dashboardName,"','",ts,"','",hash,"','",pkg.env$omg,"'")
     res <- RODBC::sqlQuery(pkg.env$dbhandle, sql)
-
+    
     if (res$status %in% c(3,4,5)) {
-
+        
         if (is.na(res$redir) || res$redir == '') {
             shinyjs::runjs(paste0('window.top.location.replace("',pkg.env$portalUrl,'");'))
         } else {
@@ -107,7 +107,7 @@ authenticate <- function(session) {
         ses$dashUser <- 'none'
         return(FALSE)
     }
-
+    
     ses$authenticated <- TRUE
     ses$dashUser <- user
     return(TRUE)

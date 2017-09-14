@@ -14,7 +14,7 @@ pkg.env <- new.env(parent = emptyenv())
     }
 
     isDefinedGlobal('securityModel','none')
-    isDefinedGlobal('omg','ACC')
+    isDefinedGlobal('omgeving','ACC')
     isDefinedGlobal('hasODBC',FALSE)
     isDefinedGlobal('debug',FALSE)
     isDefinedGlobal('debugDims',NULL)
@@ -29,7 +29,7 @@ pkg.env <- new.env(parent = emptyenv())
 
     # account data (set in global.R?)
 
-    if (pkg.env$omg == 'PRD') {
+    if (pkg.env$omgeving == 'PRD') {
         pkg.env$odbcDsn <- 'PRD1'
         pkg.env$odbcUser <- 'sa'
         pkg.env$odbcPwd <- 'saPRD3'
@@ -40,7 +40,7 @@ pkg.env <- new.env(parent = emptyenv())
     }
 
     if (pkg.env$hasODBC) {
-        sql <- paste0("exec R.dbo.get_startpunt '",pkg.env$omg,"'")
+        sql <- paste0("exec R.dbo.get_startpunt '",pkg.env$omgeving,"'")
         pkg.env$dbhandle <- RODBC::odbcDriverConnect(paste0("DSN=",pkg.env$odbcDsn,";DATABASE=R;UID=",pkg.env$odbcUser,";PWD=",pkg.env$odbcPwd))
         pkg.env$portalUrl <- RODBC::sqlQuery(pkg.env$dbhandle, sql)$startpunt
     } else {

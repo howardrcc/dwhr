@@ -4,6 +4,8 @@ startObserversData <- function(env,dim) {
     dd <- env$dims[[dim]]
     obs <- dd$observers
     inp <- env$session$input
+    userData <- env$session$userData
+    
 
     if (!('levelChange' %in% obs)) {
         shiny::observeEvent(dd$reactive$levelChange,{
@@ -289,6 +291,13 @@ startObserversData <- function(env,dim) {
 
                 }
 
+            } else {
+                if (!userData$queryStringSet) {
+                    updateQueryString('/tst?docId=adslfkjdfklj','push')
+                    userData$queryStringSet = TRUE
+                    browser()
+                }
+                
             }
         })
         obs <- c(obs,'memberChange')
