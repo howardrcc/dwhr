@@ -97,14 +97,15 @@ readyJS <- function(dim) {
 
 getCustomPattern <- function(env,dim,stroke,width) {
     # door base tag in shinyserver-pro werken relatieve urls binnen svg niet -> absolute url gebruiken
-
+    userData <- env$session$userData
+    
     id <- paste0('custom-',dim,'-',gsub('#','',stroke),'-',width)
     env$customPatterns[[dim]][[id]] <- list( id = id
                                   , path = list( d = 'M 0 0 L 10 10 M 9 -1 L 11 1 M -1 9 L 1 11'
                                                , stroke = stroke
                                                , strokeWidth = width))
 
-    paste0('url(',env$baseUrl,'#',id,')')
+    paste0('url(',userData$baseUrl,'#',id,')')
 }
 
 

@@ -33,7 +33,6 @@ new.star <- function(id, session, facts, caching = FALSE, foreignKeyCheck = TRUE
         }
 
         if (!exists('starList',envir = ses)) {
-            ses$queryStringSet = FALSE
             ses$starList <- list()
         } else {
             id %in% ses$starList && stop(paste0('star-object with id: ', id, 'already exists'))
@@ -51,15 +50,6 @@ new.star <- function(id, session, facts, caching = FALSE, foreignKeyCheck = TRUE
     class(env) <- 'star'
 
     env$ce <- parent.frame()    # calling environment
-
-    env$cdata <- session$clientData
-
-    env$baseUrl <- shiny::isolate(paste0(
-        env$cdata$url_protocol,'//',
-        env$cdata$url_hostname,':',
-        env$cdata$url_port,
-        env$cdata$url_pathname,
-        env$cdata$url_search))
 
     env$id <- id
     env$facts <- facts
@@ -623,7 +613,7 @@ addDimView <- function(
     if (nrow(meas) > 0)
         any(sapply(levels,function(x) { bitwAnd(2**x,meas$applyToLevels) %in% 2**x })) &&
             stop('viewColumn already exists for these levels')
-    any(sapply(pkg.env$reservedColumnPatterns,function(x) {length(grep(x,viewColumn)) > 0})) &&
+    any(sapply(glob.env$reservedColumnPatterns,function(x) {length(grep(x,viewColumn)) > 0})) &&
         stop('viewColumn contains reserved names')
 
     viewColumn
@@ -1198,7 +1188,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
         dd <- env$dims[[dim]]
         class(dd) == 'dimView' || stop('dim is not of class dimView')
 
-        uiId %in% pkg.env$dimUiIds || stop('uiId not in UI')
+        uiId %in% glob.env$dimUiIds || stop('uiId not in UI')
         length(useLevels) == 0 || dim != uiId || stop('useLevels not valid for dim == uiId')
 
         assert_is_subset(type,domains[['presType']])
@@ -1635,7 +1625,7 @@ dimChangeState <- function(env, dim, newState) {
 #'
 getFacts <- function(file,col.names, key = NULL, useRDS = TRUE) {
 
-    tmpFactsFile <- paste0(getwd(),'/tmp/',pkg.env$dashboardName,'_',unlist(strsplit(basename(file),'[.]'))[1],'.rds')
+    tmpFactsFile <- paste0(getwd(),'/tmp/',glob.env$dashboardName,'_',unlist(strsplit(basename(file),'[.]'))[1],'.rds')
 
     mtime1 <- file.info(file)$mtime
     mtime2 <- file.info(tmpFactsFile)$mtime
@@ -1707,7 +1697,7 @@ setColumnName <- function(env,dim,colFrom, viewColFrom = NULL,colTo) {
 #' @export
 #'
 setDebug <- function(debug) {
-    pkg.env$debug <- debug
+    glob.env$debug <- debug
 }
 
 

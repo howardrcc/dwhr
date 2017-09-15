@@ -9,7 +9,7 @@ dwhrStop <- function(mes) {
 
 printDebug <- function(env, dim, dumpReactive = NULL, eventIn, eventOut = NULL, info = NULL){
 
-    if (pkg.env$debug && (is.null(pkg.env$debugDims) || dim %in% pkg.env$debugDims))  {
+    if (glob.env$debug && (is.null(glob.env$debugDims) || dim %in% glob.env$debugDims))  {
 
         txt <- paste0(dim, '|eventIn:', eventIn)
 
@@ -21,7 +21,7 @@ printDebug <- function(env, dim, dumpReactive = NULL, eventIn, eventOut = NULL, 
             txt <- paste0(txt,'|', info)
         }
 
-        if (is.null(dumpReactive)) dumpReactive <- pkg.env$debugDumpReactive
+        if (is.null(dumpReactive)) dumpReactive <- glob.env$debugDumpReactive
 
         if (dumpReactive) {
             shiny::isolate({
@@ -130,23 +130,6 @@ cacheFind <- function(env, dim) {
     }
 
     dfl
-
-}
-
-makeSsHash <- function() {
-
-    for (d in sort(filteringDims(env))) {
-        dd <- env$dims[dd]
-
-        for (lvl in 0:dd$maxLevel) {
-
-
-        }
-
-        ss <- rbind(ss,env$dims[[d]]$selected)
-    }
-
-
 
 }
 
@@ -540,31 +523,6 @@ getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL
     res
 }
 
-wrapUp <- function() {
-    pkg.env$sessionCount <- pkg.env$sessionCount - 1
-
-    if (pkg.env$sessionCount == 0) {
-
-        if (!is.null(pkg.env$dbhandle))
-            RODBC::odbcCloseAll()
-
-        if (exists('globalCache', env = pkg.env)) {
-
-            for (id in names(pkg.env$globalCache)) {
-                saveRDS(pkg.env$globalCache[[id]],getCacheFile(id))
-            }
-
-        }
-
-        pkg.env$dimUiIds <- c()
-        pkg.env$globalCache <- list()
-
-    }
-
-    print(paste0('exit: ',pkg.env$sessionCount))
-    stopApp()
-}
-
 
 dimStateSelect <- function(env,states = c('enabled','disabled','hidden')) {
     v <- c()
@@ -818,14 +776,14 @@ isNa <- function(x,y) {
 }
 
 getCacheFile <- function(id) {
-    paste0(getwd(), '/tmp/', pkg.env$dashboardName, '_', id, '_cache.rds')
+    paste0(getwd(), '/tmp/', glob.env$dashboardName, '_', id, '_cache.rds')
 }
 
 getCache <- function(env) {
 
     cacheFile <- getCacheFile(env$id)
 
-    if (pkg.env$sessionCount == 1) {
+    if (glob.env$sessionCount == 1) {
 
         if (is.na(file.info(cacheFile)$mtime)) {
 
@@ -833,7 +791,7 @@ getCache <- function(env) {
 
         } else {
 
-            pkg.env$globalCache[[env$id]] <- readRDS(cacheFile)
+            glob.env$globalCache[[env$id]] <- readRDS(cacheFile)
         }
     }
 

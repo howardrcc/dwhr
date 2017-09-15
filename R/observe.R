@@ -291,14 +291,7 @@ startObserversData <- function(env,dim) {
 
                 }
 
-            } else {
-                if (!userData$queryStringSet) {
-                    updateQueryString('/tst?docId=adslfkjdfklj','push')
-                    userData$queryStringSet = TRUE
-                    browser()
-                }
-                
-            }
+            } 
         })
         obs <- c(obs,'memberChange')
     }

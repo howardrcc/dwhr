@@ -5,8 +5,9 @@
 #'
 #' @export
 dwhrInit <- function() {
+    initGlob()
     shiny::addResourcePath('dwhRs',system.file('www', package = 'dwhr'))
-    pkg.env$dimUiIds <- c()
+    glob.env$dimUiIds <- c()
     shiny::tagList(
         shinyjs::useShinyjs(),
         rintrojs::introjsUI(includeOnly = TRUE),
@@ -56,11 +57,89 @@ getDimUI <- function(dim, useWellPanel = FALSE, maxHeight = NULL, overflowX = 'h
         )
     }
 
-    dim %in% pkg.env$dimUiIds && dwhrStop('duplicate dims')
-    pkg.env$dimUiIds <- c(pkg.env$dimUiIds,dim)
+    dim %in% glob.env$dimUiIds && dwhrStop('duplicate dims')
+    glob.env$dimUiIds <- c(glob.env$dimUiIds,dim)
 
     ui2()
 
+}
+
+wrapUp <- function() {
+    glob.env$sessionCount <- glob.env$sessionCount - 1
+    print(paste0('exit: ',glob.env$sessionCount))    
+    
+    if (glob.env$sessionCount == 0) {
+        
+        if (!is.null(glob.env$dbhandle)) {
+            print('Closing ODBC connections')
+            RODBC::odbcCloseAll()
+        }
+        
+        if (exists('globalCache', env = glob.env)) {
+            for (id in names(glob.env$globalCache)) {
+                saveRDS(glob.env$globalCache[[id]],getCacheFile(id))
+            }
+        }
+        
+        rm(glob.env)
+        stopApp()
+    }
+
+}
+
+initGlob <- function() {
+    
+    options(warnPartialMatchDollar = TRUE)
+    
+    if (!exists('glob.env', envir = .GlobalEnv, inherit = FALSE)) {
+        
+        glob.env <- new.env(parent = emptyenv())
+        .GlobalEnv$glob.env <- glob.env
+        
+        isDefinedGlobal <- function(var,default) {
+            
+            if (exists(var, envir = .GlobalEnv, inherit = FALSE)) {
+                glob.env[[var]] <- .GlobalEnv[[var]]
+            } else {
+                glob.env[[var]] <- default
+            }
+        }
+        
+        isDefinedGlobal('securityModel','none')
+        isDefinedGlobal('omgeving','ACC')
+        isDefinedGlobal('hasODBC',FALSE)
+        isDefinedGlobal('debug',FALSE)
+        isDefinedGlobal('debugDims',NULL)
+        isDefinedGlobal('debugDumpReactive',FALSE)
+        
+        glob.env$dbhandle <- NULL
+        glob.env$sessionCount <- 0
+        glob.env$dashboardName <- basename(getwd())
+        glob.env$dimUiIds <- c()
+        glob.env$globalCache <- list()
+        glob.env$reservedColumnPatterns <- c('*_fc','*_org','*_tooltip','*_text','*_sort')
+        
+        # account data
+        
+        if (glob.env$omgeving == 'PRD') {
+            glob.env$odbcDsn <- 'PRD1'
+            glob.env$odbcUser <- 'sa'
+            glob.env$odbcPwd <- 'saPRD3'
+        } else {
+            glob.env$odbcDsn <- 'ACC1'
+            glob.env$odbcUser <- 'etl'
+            glob.env$odbcPwd <- 'etlACC1'
+        }
+        
+        if (glob.env$hasODBC) {
+            sql <- paste0("exec R.dbo.get_startpunt '",glob.env$omgeving,"'")
+            glob.env$dbhandle <- RODBC::odbcDriverConnect(paste0("DSN=",glob.env$odbcDsn,";DATABASE=R;UID=",glob.env$odbcUser,";PWD=",glob.env$odbcPwd))
+            glob.env$portalUrl <- RODBC::sqlQuery(glob.env$dbhandle, sql)$startpunt
+        } else {
+            glob.env$portalUrl <- 'http://www.example.com'
+        }
+    }
+    
 }
 
 #'
@@ -69,15 +148,20 @@ getDimUI <- function(dim, useWellPanel = FALSE, maxHeight = NULL, overflowX = 'h
 #' @export
 authenticate <- function(session) {
 
-    session$onSessionEnded(wrapUp)
-
-    pkg.env$sessionCount <- pkg.env$sessionCount + 1
-    cdata <- session$clientData
-    urlQuery <- parseQueryString(shiny::isolate(cdata$url_search))
     ses <- session$userData
+    
+    if (exists('authenticated', envir = ses))
+        return(ses$authenticated)
+    
     ses$authenticated <- FALSE
-
-    if (pkg.env$securityModel == 'none' || !pkg.env$hasODBC) {
+    session$onSessionEnded(wrapUp)
+    
+    ses$cdata <- session$clientData
+    ses$urlQuery <- parseQueryString(shiny::isolate(ses$cdata$url_search))
+    
+    glob.env$sessionCount <- glob.env$sessionCount + 1
+    
+    if (glob.env$securityModel == 'none' || !glob.env$hasODBC) {
         ses$authenticated <- TRUE
         ses$dashUser <- 'unknown'
         return(TRUE)
@@ -88,18 +172,18 @@ authenticate <- function(session) {
         hash <- '123456'
         ts <- 0
     } else {
-        user <- urlQuery$u
-        hash <- urlQuery$h
-        ts <- urlQuery$t
+        user <- ses$urlQuery$u
+        hash <- ses$urlQuery$h
+        ts <- ses$urlQuery$t
     }
 
-    sql <- paste0("exec R.dbo.check_hash '",user,"','",pkg.env$dashboardName,"','",ts,"','",hash,"','",pkg.env$omg,"'")
-    res <- RODBC::sqlQuery(pkg.env$dbhandle, sql)
+    sql <- paste0("exec R.dbo.check_hash '",user,"','",glob.env$dashboardName,"','",ts,"','",hash,"','",glob.env$omgeving,"'")
+    res <- RODBC::sqlQuery(glob.env$dbhandle, sql)
     
     if (res$status %in% c(3,4,5)) {
         
         if (is.na(res$redir) || res$redir == '') {
-            shinyjs::runjs(paste0('window.top.location.replace("',pkg.env$portalUrl,'");'))
+            shinyjs::runjs(paste0('window.top.location.replace("',glob.env$portalUrl,'");'))
         } else {
             shinyjs::runjs(paste0('window.top.location.replace("',res$redir,'");'))
         }
@@ -107,6 +191,14 @@ authenticate <- function(session) {
         ses$dashUser <- 'none'
         return(FALSE)
     }
+    
+    ses$baseUrl <- shiny::isolate(paste0(
+        ses$cdata$url_protocol,'//',
+        ses$cdata$url_hostname,':',
+        ses$cdata$url_port,
+        '/boRedir?docId=',res$docId,'&server=',res$server))
+    
+    updateQueryString('/boRedir?docId=',res$docId,'&server=',res$server,'replace')
     
     ses$authenticated <- TRUE
     ses$dashUser <- user
@@ -118,5 +210,5 @@ authenticate <- function(session) {
 #' @export
 #' 
 portalUrl <- function(){
-    pkg.env$portalUrl
+    glob.env$portalUrl
 }

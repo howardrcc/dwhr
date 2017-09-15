@@ -270,7 +270,7 @@ renderDims <- function(env,input,output) {
             })
         }
 
-        if (pkg.env$debug) {
+        if (glob.env$debug) {
             print(paste0(ddim,'|observers: ',paste0(env$dims[[ddim]]$observers,collapse = '|')))
         }
 
