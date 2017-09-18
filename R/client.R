@@ -81,7 +81,7 @@ wrapUp <- function() {
             }
         }
         
-        rm(glob.env)
+        rm(glob.env, envir = .GlobalEnv)
         stopApp()
     }
 
@@ -120,7 +120,7 @@ initGlob <- function() {
         glob.env$reservedColumnPatterns <- c('*_fc','*_org','*_tooltip','*_text','*_sort')
         
         # account data
-        
+
         if (glob.env$omgeving == 'PRD') {
             glob.env$odbcDsn <- 'PRD1'
             glob.env$odbcUser <- 'sa'
@@ -158,6 +158,7 @@ authenticate <- function(session) {
     
     ses$cdata <- session$clientData
     ses$urlQuery <- parseQueryString(shiny::isolate(ses$cdata$url_search))
+    ses$baseUrl <- ''
     
     glob.env$sessionCount <- glob.env$sessionCount + 1
     
@@ -196,9 +197,9 @@ authenticate <- function(session) {
         ses$cdata$url_protocol,'//',
         ses$cdata$url_hostname,':',
         ses$cdata$url_port,
-        '/boRedir?docId=',res$docId,'&server=',res$server))
+        '/boRedir?docId=',res$docid,'&server=',res$server))
     
-    updateQueryString('/boRedir?docId=',res$docId,'&server=',res$server,'replace')
+    updateQueryString(paste0('/boRedir?docId=',res$docid,'&server=',res$server),'replace')
     
     ses$authenticated <- TRUE
     ses$dashUser <- user
