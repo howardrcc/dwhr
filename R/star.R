@@ -49,7 +49,7 @@ isAuthenticated <- function(session) {
 
 domains <- list(
     aggregateFun = c('sum','dcount','median','mean','min','max'),
-    format = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3','hidden'),
+    format = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3'),
     ordering = c('HL','LH','asc','desc'),
     presType = c('dataTable','highCharts','radioButton','selectInput'),
     selectMode = c('single','multi','none'),
@@ -57,6 +57,7 @@ domains <- list(
     dataTableMeasures = c('colorBarColor1','colorBarColor2','viewColumn','format', 'orderable',
                           'bgStyle','fgStyle','width','fontWeight','align','cursor','visible'),
     dataTableStyle = c('cuts','levels','values','valueColumn'),
+    dataTableFormats = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3','hidden','paperclip'),
     fontWeight = c('bold','normal'),
     highChartsOpts = c('chart','tooltip','xAxis', 'yAxis', 'legend', 'series', 'plotOptions', 'title','dashboard','pane'),
     simpleOpts = c('inline'),

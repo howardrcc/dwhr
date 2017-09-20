@@ -1246,6 +1246,11 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 if ('colorBarColor1' %in% names(x) && ('bgStyle' %in% names(x))) {
                     stop('Incorrect combination of measure opts')
                 }
+                
+                if ('format' %in% names(x)) {
+                    assert_is_a_string(x$format)
+                    assert_is_subset(x$format,domains[['dataTableFormats']])
+                }
 
                 if ('bgStyle' %in% names(x)) {
                     dataTableOpts$measures[[i]]$bgStyle <- .setStyle(x$bgStyle)
@@ -1257,7 +1262,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
 
                 if ('fontWeight' %in% names(x)) {
                     assert_is_a_string(x$fontWeight)
-                    assert_is_subset(names(x$fontWeight), domains[['fontWeight']])
+                    assert_is_subset(x$fontWeight, domains[['fontWeight']])
                 }
 
                 if ('width' %in% names(x)) {

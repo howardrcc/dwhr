@@ -120,6 +120,7 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
                         df[rw,paste0(vc,'_fc')] <- switch(
                             format,
                             hidden = '',
+                            paperclip = ifelse(isFooter,'',as.character(shiny::icon('paperclip', lib = 'glyphicon'))),
                             euro = paste0('\U20AC ', formatC(digits = 0, format = 'f', value, big.mark='.',decimal.mark = ',')),
                             euro2 = paste0('\U20AC ', formatC(digits = 2, format = 'f', value, big.mark='.',decimal.mark = ',')),
                             perc = paste0(formatC(digits = 0, format = 'f', value * 100, big.mark='.',decimal.mark = ','),' %'),
@@ -145,7 +146,8 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
 
                     df[,paste0(vc,'_fc')] <- switch(
                         format,
-                        hidden = ifelse(isFooter,'',as.character(shiny::icon('paperclip', lib = 'glyphicon'))),
+                        hidden = '',
+                        paperclip = ifelse(isFooter,'',as.character(shiny::icon('paperclip', lib = 'glyphicon'))),
                         euro = paste0('\U20AC ', formatC(digits = 0, format = 'f', df[[vc]], big.mark='.',decimal.mark = ',')),
                         euro2 = paste0('\U20AC ', formatC(digits = 2, format = 'f', df[[vc]], big.mark='.',decimal.mark = ',')),
                         perc = paste0(formatC(digits = 0, format = 'f', df[[vc]] * 100, big.mark='.',decimal.mark = ','),' %'),
