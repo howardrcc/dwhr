@@ -673,8 +673,8 @@ renderHighchartDim <- function(env, dim, input,output) {
         a
     })
     
-    shiny::outputOptions(output,outputChart,suspendWhenHidden = FALSE)
-    shiny::outputOptions(output,outputChart,priority = 5)
+    # shiny::outputOptions(output,outputChart,suspendWhenHidden = FALSE)
+    # shiny::outputOptions(output,outputChart,priority = 5)
     # 
 
     #

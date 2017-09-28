@@ -39,8 +39,9 @@ colorAsImageInterval <- function (cuts, values) {
 initCompleteJS <- function(dim, row = NULL, pageLength) {
     page <- (row - 1) %/% pageLength
     txt <- paste0("function(settings, json) {
-    var api = this.api(); api.page(",page,").draw(false);
+    var api = this.api(); api.page(",page,").draw('page');
     var number = Math.random();
+debugger;
     $.unblockUI();
     var id = this[0].id
     Shiny.onInputChange('",dim,"_dt_ready',{r: number, id: id} );
@@ -363,9 +364,9 @@ prepDt <- function(env,dim,pres) {
 
     hideCols <- setdiff(0:(length(names(tab))-1),visCols)
 
-    if (lvl == dd$maxLevel || all(tab$zoom == '')) {
-        hideCols <- c(0,hideCols)
-    }
+    # if (lvl == dd$maxLevel || all(tab$zoom == '')) {
+    #     hideCols <- c(0,hideCols)
+    # }
 
     if (!lvl %in% dd$selectableLevels) {
         # if (length(measColNames) > 0) 
@@ -479,6 +480,7 @@ prepDt <- function(env,dim,pres) {
                     # , scrollX = TRUE
                      , pageLength = pageLength
                      , columnDefs = columnDefs
+                     , displayStart = firstRow - 1
                      , language = list( paginate = list('first' = '|<', 'next' = '>','previous' = '<', 'last' = '>|')
                                         , search = 'Zoeken'
                                         , lengthMenu = '_MENU_ regels')
@@ -706,8 +708,8 @@ renderDataTableDim <- function(env,dim,input,output) {
     }
     , server = serverSide)
     
-    shiny::outputOptions(output,outputDim,suspendWhenHidden = FALSE)
-    shiny::outputOptions(output,outputDim,priority = 10)
+   # shiny::outputOptions(output,outputDim,suspendWhenHidden = FALSE)
+   # shiny::outputOptions(output,outputDim,priority = 10)
 
     #
     # observers
