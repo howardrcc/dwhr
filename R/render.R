@@ -258,13 +258,16 @@ renderDims <- function(env,input,output) {
                 })
 
                 # init dims
-
-                lst <- getMembers(env,dim)
-
-                if (!is.null(lst)) {
-                    dd$membersFiltered <- lst$body
-                    dd$footer <- lst$footer
-                    dd$peek <- lst$peek
+                
+                if (dim %in% visibleDims(env)) {
+                    
+                    lst <- getMembers(env,dim)
+                    
+                    if (!is.null(lst)) {
+                        dd$membersFiltered <- lst$body
+                        dd$footer <- lst$footer
+                        dd$peek <- lst$peek
+                    }
                 }
 
             })
