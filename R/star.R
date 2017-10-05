@@ -257,26 +257,21 @@ getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL
         
         cnt1 <- nrow(tmp)
         
-        if(!addSummary) {
+        if(!addSummary) {              
+            
+            parentFilter <- paste0('level', lvl - 1, 'Label == parent')
+            
             if (dd$fixedMembers) {
-                if (lvl == 3) {
-                    tmp <- tmp[data.table::data.table(data)[level2Label == parent], on = keyColumn]
+                if (lvl > 1) {
+                    tmp <- tmp[data.table::data.table(data)[eval(expr = parse(text = parentFilter))], on = keyColumn]
                 } else {
-                    if (lvl == 2) {
-                        tmp <- tmp[data.table::data.table(data)[level1Label == parent], on = keyColumn]
-                    } else {
-                        tmp <- tmp[data.table::data.table(data), on = keyColumn]
-                    }
+                    tmp <- tmp[data.table::data.table(data), on = keyColumn]
                 }
             } else {
-                if (lvl == 3) {
-                    tmp <- tmp[data.table::data.table(data)[level2Label == parent], on = keyColumn, nomatch=0]
+                if (lvl > 1) {
+                    tmp <- tmp[data.table::data.table(data)[eval(expr = parse(text = parentFilter))], on = keyColumn, nomatch=0]
                 } else {
-                    if (lvl == 2) {
-                        tmp <- tmp[data.table::data.table(data)[level1Label == parent], on = keyColumn, nomatch=0]
-                    } else {
-                        tmp <- tmp[data.table::data.table(data), on = keyColumn, nomatch=0]
-                    }
+                    tmp <- tmp[data.table::data.table(data), on = keyColumn, nomatch=0]
                 }
             }
         } else {
@@ -367,32 +362,20 @@ getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL
                 }
 
             } else {
-
-                if (lvl == 1) {
-
-                    body <- tmp[,eval(expr = parse(text = measFun)),by = level1Label]
-
-                    if(lvl %in% dd$footerLevels) {
-                        footer <- tmp[,eval(expr = parse(text = measFun)),by = level0Label]
-                    }
-
-                } else {
+                
+                parentFilter <- paste0('level', lvl - 1, 'Label == parent')
+                byText <- paste0('level',lvl,'Label')
+                
+                body <- tmp[eval(expr = parse(text = parentFilter)),
+                            eval(expr = parse(text = measFun)),
+                            eval(expr = parse(text = byText))]
+                
+                if(lvl %in% dd$footerLevels) {
+                    byText <- paste0('level',lvl - 1,'Label')
                     
-                    if (lvl == 2) {
-                        
-                        body <- tmp[level1Label == parent,eval(expr = parse(text = measFun)),by = level2Label]
-                        
-                        if(lvl %in% dd$footerLevels) {
-                            footer <- tmp[level1Label == parent,eval(expr = parse(text = measFun)),by = level1Label]
-                        }
-                    } else {
-                        
-                        body <- tmp[level2Label == parent,eval(expr = parse(text = measFun)),by = level3Label]
-                        
-                        if(lvl %in% dd$footerLevels) {
-                            footer <- tmp[level2Label == parent,eval(expr = parse(text = measFun)),by = level2Label]
-                        }
-                    }
+                    footer <- tmp[eval(expr = parse(text = parentFilter)),
+                                  eval(expr = parse(text = measFun)),
+                                  eval(expr = parse(text = byText))]
                 }
             }
             

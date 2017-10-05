@@ -465,11 +465,15 @@ startObserversPres <- function(env,dim,pres) {
 
         shiny::observeEvent(dd$reactive$dimRefresh, {
 
+            if (!(dim %in% visibleDims(env))) {   
+                return()
+            }
+            
             req(inp[[dimPres]])
             presList <- dd$presList
             pres <- inp[[dimPres]]
             presType <- presList[[pres]]$type
-
+            
             printDebug(env = env, dim, eventIn = 'dimRefresh', info = paste0('presType: ',presType))
 
             if (presType == 'highCharts') {
@@ -488,6 +492,11 @@ startObserversPres <- function(env,dim,pres) {
     if (!(dimPres %in% obs)) {
 
         shiny::observeEvent(inp[[dimPres]],{
+            
+            if (!(dim %in% visibleDims(env))) {   
+                return()
+            }
+            
             presList <- dd$presList
             pres <- inp[[dimPres]]
             presType <- presList[[pres]]$type

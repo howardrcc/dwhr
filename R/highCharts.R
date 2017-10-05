@@ -580,7 +580,7 @@ renderHighchartDim <- function(env, dim, input,output) {
         presList <- dd$presList
         pres <- isolate(input[[paste0(dim,'Pres')]])
         
-        if (is.null(pres)) {
+        if (is.null(pres) || env$hcRenderers[[dim]]$count == 0) {
             return()
         }
 
@@ -925,7 +925,7 @@ processHighCharts <- function(env,dim,pres){
 
     dd <- env$dims[[dim]]
     chart <- env$hcPrep[[dim]]
-
+    
     if (is.null(chart))
         chart <- prepChart(env,dim,pres)
 
@@ -1008,7 +1008,7 @@ processHighCharts <- function(env,dim,pres){
             }
 
             for (axis in seq_along(l2)) {
-                #browser()
+                
                 shinyjs::js$updateYAxis(
                     dim = dim,
                     axis = axis - 1,

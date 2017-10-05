@@ -45,7 +45,7 @@ renderDims <- function(env,input,output) {
 
                     printDebug(env = env, dim, eventIn = 'renderHeader')
 
-                    pres <- input[[paste0(dim,'Pres')]]
+                    pres <- isolate(input[[paste0(dim,'Pres')]])
                     if(is.null(pres)) {
                         pres <- dd$defPres
                     }
@@ -103,6 +103,8 @@ renderDims <- function(env,input,output) {
                         '</span></td></tr></table>')
 
                     if(!hideBreadCrumb) {
+                        
+                        #browser(expr = {dim == 'kpi'})
 
                         txt <- paste0(txt,'<div style="padding-bottom:4px;" id="',dim, 'Breadcrumb">')
 
@@ -110,25 +112,27 @@ renderDims <- function(env,input,output) {
                             if (level == 0) {
                                 txt <- paste0(txt, 'Top')
                             } else {
-                                txt <- paste0(txt, shiny::actionLink(inputId = paste0(dim,'DimLink0'), label = 'Top'), '&nbsp>&nbsp')
+                                txt <- paste0(txt, shiny::actionLink(inputId = paste0(dim,'DimLink0'), label = 'Top'))
                             }
                         }
 
                         if (level >= 1) {
-                            if (level == 1) {
-                                txt <- paste0(txt,dd$levelNames[2])
-                            } else { 
-                                if (level >= 2) {
-                                    txt <- paste0(txt,shiny::actionLink(inputId = paste0(dim,'DimLink1'), label = dd$levelNames[2]))
-                                    if (level == 2) {
-                                        txt <- paste0(txt,'&nbsp>&nbsp',ancestors[3])
+                            for (lvl in 0:(level - 1)) {
+                                if (lvl == 0) {
+                                    if (!hideAll) 
+                                        txt <- paste0(txt,'&nbsp>&nbsp')
+                                    if (level == 1)
+                                        txt <- paste0(txt,dd$levelNames[2])
+                                    else 
+                                        txt <- paste0(txt,shiny::actionLink(inputId = paste0(dim,'DimLink1'), label = dd$levelNames[2]))    
+                                } else {
+                                    if (lvl == (level - 1)) {
+                                        txt <- paste0(txt,'&nbsp>&nbsp',substr(ancestors[lvl + 2],1,30))
                                     } else {
-                                        txt <- paste0(txt,'&nbsp>&nbsp',shiny::actionLink(inputId = paste0(dim,'DimLink2'), label = dd$levelNames[3]))
-                                        txt <- paste0(txt,'&nbsp>&nbsp',ancestors[4])
-                                    }
+                                        txt <- paste0(txt,'&nbsp>&nbsp',shiny::actionLink(inputId = paste0(dim,'DimLink',lvl + 1), label = substr(ancestors[lvl + 2],1,30)))
+                                    }    
                                 }
                             }
-
                         }
 
                     } else {
@@ -152,9 +156,9 @@ renderDims <- function(env,input,output) {
 
                 output[[outputBody]] <- shiny::renderUI({
 
-                    printDebug(env = env, dim, eventIn = 'renderBody')
-
                     shiny::req(input[[paste0(dim,'Pres')]])
+
+                    printDebug(env = env, dim, eventIn = 'renderBody')
 
                     presList <- dd$presList
 
@@ -206,8 +210,10 @@ renderDims <- function(env,input,output) {
 
                 output[[outputFooter]] <- shiny::renderUI({
 
+                    req(input[[paste0(dim,'Pres')]])
+                    
                     printDebug(env = env, dim, eventIn = 'renderFooter')
-
+                    
                     pres <- input[[paste0(dim,'Pres')]]
                     val <- input[[paste0(dim,'DimMs')]]
 
