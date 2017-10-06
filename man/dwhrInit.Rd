@@ -2,10 +2,10 @@
 % Please edit documentation in R/client.R
 \name{dwhrInit}
 \alias{dwhrInit}
-\title{Initialize dwhr shiny UI}
+\title{Initialiseer dwhr shiny UI}
 \usage{
 dwhrInit()
 }
 \description{
-This function must be called first from within the shiny app's UI
+Deze functie moet als eerste aangeroepen worden binnen de shiny app's UI
 }

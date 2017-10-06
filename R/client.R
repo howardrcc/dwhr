@@ -1,7 +1,7 @@
 #'
-#' Initialize dwhr shiny UI
+#' Initialiseer dwhr shiny UI
 #'
-#' This function must be called first from within the shiny app's UI
+#' Deze functie moet als eerste aangeroepen worden binnen de shiny app's UI
 #'
 #' @export
 dwhrInit <- function() {
@@ -27,40 +27,49 @@ dwhrInit <- function() {
 }
 
 #'
-#' Create dimView object in the UI
+#' Creeer dimView object in the UI
 #'
-#' Create html for dimView object in the shiny app's UI.
+#' Creeer de html voor het dimView object in de shiny app's UI.
 #'
-#' @param dim string, unique id of the dimView. This id should correspond to the parameter \code{dim} in
+#' @param dim string, uniek id van the dimView. Dit id moet overeenkomen met de parameter \code{dim} in
 #' \code{\link{addDimView}}
-#' @param useWellPanel boolean, if TRUE a wellPanel is drawn around the dimView object
-#' @param maxHeight an integer, maxheight in pixels for this dimView
-#' @param overflowX ?
+#' @param useWellPanel boolean, Als TRUE: er wordt een wellPanel om het dimView object getekend
+#' @param maxHeight an integer, maximum hoogte in pixels voor dit dimView object
+#' @param overflowX string, css overflow propery in X richting, bepaalt of er wel of niet een horizontale scrollbar getoond wordt bij overflow. 
 #'
 #' @export
 getDimUI <- function(dim, useWellPanel = FALSE, maxHeight = NULL, overflowX = 'hidden') {
-
-    ui2 <- function() {
-
-        if (!is.null(maxHeight)) {
-            style <- paste0("overflow-x:", overflowX, "; overflow-y:hidden; height: ", maxHeight, "px;")
-            # style <- paste0("overflow-x:", overflowX, "; overflow-y:hidden; max-height = ", maxHeight, "px; min-height: ", maxHeight, "px; height: ", maxHeight, "px;")
-        } else {
-            style <- paste0("overflow-x:", overflowX, "; overflow-y:hidden;")
-        }
-
-        shiny::div(id = paste0(dim,'Dimensie'),
-                   shiny::uiOutput(paste0(dim,"DimHeader")),
-                   shiny::uiOutput(paste0(dim,"DimBody")),
-                   shiny::uiOutput(paste0(dim,'DimFooter')),
-                   style = style
-        )
-    }
-
-    dim %in% glob.env$dimUiIds && dwhrStop('duplicate dims')
+    
+    withCallingHandlers({
+        assert_is_a_string(dim)
+        assert_is_a_bool(useWellPanel)
+        assert_is_a_number(isNull(maxHeight,0))
+        maxHeight <- as.integer(maxHeight)
+        assert_is_a_string(overflowX)
+        assert_is_subset(overflowX,domains[['cssOverflow']])
+    
+        dim %in% glob.env$dimUiIds && stop('duplicate dims')    
+    },
+    
+    error = function(c) {
+        dwhrStop(conditionMessage(c))
+    })
+    
     glob.env$dimUiIds <- c(glob.env$dimUiIds,dim)
-
-    ui2()
+    
+    if (!is.null(maxHeight)) {
+        style <- paste0("overflow-x:", overflowX, "; overflow-y:hidden; height: ", maxHeight, "px;")
+    } else {
+        style <- paste0("overflow-x:", overflowX, "; overflow-y:hidden;")
+    }
+    
+    shiny::div(
+        id = paste0(dim,'Dimensie'),
+        shiny::uiOutput(paste0(dim,"DimHeader")),
+        shiny::uiOutput(paste0(dim,"DimBody")),
+        shiny::uiOutput(paste0(dim,'DimFooter')),
+        style = style
+    )
 
 }
 

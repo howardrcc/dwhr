@@ -2,21 +2,21 @@
 % Please edit documentation in R/client.R
 \name{getDimUI}
 \alias{getDimUI}
-\title{Create dimView object in the UI}
+\title{Creeer dimView object in the UI}
 \usage{
 getDimUI(dim, useWellPanel = FALSE, maxHeight = NULL,
   overflowX = "hidden")
 }
 \arguments{
-\item{dim}{string, unique id of the dimView. This id should correspond to the parameter \code{dim} in
+\item{dim}{string, uniek id van the dimView. Dit id moet overeenkomen met de parameter \code{dim} in
 \code{\link{addDimView}}}
 
-\item{useWellPanel}{boolean, if TRUE a wellPanel is drawn around the dimView object}
+\item{useWellPanel}{boolean, Als TRUE: er wordt een wellPanel om het dimView object getekend}
 
-\item{maxHeight}{an integer, maxheight in pixels for this dimView}
+\item{maxHeight}{an integer, maximum hoogte in pixels voor dit dimView object}
 
-\item{overflowX}{?}
+\item{overflowX}{string, css overflow propery in X richting, bepaalt of er wel of niet een horizontale scrollbar getoond wordt bij overflow.}
 }
 \description{
-Create html for dimView object in the shiny app's UI.
+Creeer de html voor het dimView object in de shiny app's UI.
 }

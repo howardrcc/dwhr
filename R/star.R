@@ -1,9 +1,12 @@
 
 dwhrStop <- function(mes) {
-    shinyjs::js$dumpToConsole(trace = c(
-        mes,
-        'Stack trace (innermost first):',
-        shiny::formatStackTrace(calls = sys.calls(), offset = TRUE)[-1:-6]))
+    session <- shiny::getDefaultReactiveDomain()
+    if (!is.null(session)) {
+        shinyjs::js$dumpToConsole(trace = c(
+            mes,
+            'Stack trace (innermost first):',
+            shiny::formatStackTrace(calls = sys.calls(), offset = TRUE)[-1:-6]))
+    }
     stop(mes)
 }
 
@@ -62,7 +65,8 @@ domains <- list(
     highChartsOpts = c('chart','tooltip','xAxis', 'yAxis', 'legend', 'series', 'plotOptions', 'title','dashboard','pane'),
     simpleOpts = c('inline'),
     navOpts = c('syncNav', 'hideNoFilter', 'hideAll', 'hideBreadCrumb', 'links'),
-    orderBy = c('key','name')
+    orderBy = c('key','name'),
+    cssOverflow = c('hidden','visible','scroll','auto')
 )
 
 domainCheck <- function(x,domain,minLength = 0, maxLength = 100000L) {
