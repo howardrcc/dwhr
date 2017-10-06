@@ -11,6 +11,7 @@ LazyData: true
 Imports:
     shiny,
     shinyjs,
+    V8,
     rintrojs,
     data.table,
     digest,
@@ -18,7 +19,8 @@ Imports:
     scales,
     DT,
     highcharter,
-    rlist
+    rlist,
+    assertive
 Depends:
     assertive,
     data.table
