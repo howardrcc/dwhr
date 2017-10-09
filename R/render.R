@@ -75,6 +75,10 @@ renderDims <- function(env,input,output) {
 
                     for (ll in links) {
 
+                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink') {
+                            txt <- paste0(txt,'<td>',shiny::actionLink(inputId = ll$id, label = ll$label),'</td>')
+                        }
+                        
                         if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadLink') {
                             txt <- paste0(txt,'<td>',shiny::downloadLink(outputId = ll$id, label = ll$label),'</td>')
                         }

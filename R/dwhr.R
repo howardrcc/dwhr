@@ -58,6 +58,7 @@ new.star <- function(id, session, facts, caching = FALSE, foreignKeyCheck = TRUE
     env$caching <- caching
     env$foreignKeyCheck <- foreignKeyCheck
     env$session <- session
+    env$freezeUI <- FALSE
 
     if (env$caching)
         getCache(env)

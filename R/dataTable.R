@@ -188,6 +188,179 @@ getSelectedItems <- function(env,dim){
     m
 }
 
+makeWidget <- function(env,dim,prep) {
+    
+    dd <- env$dims[[dim]]
+    
+    dt <- DT::datatable(
+        prep$tab,
+        container = prep$container,
+        options = prep$options,
+        rownames = FALSE,
+        escape = FALSE,
+        class = 'compact stripe hover row-border',
+        selection = prep$selection,
+        callback = callbackJS(dim)
+    ) %>%
+        DT::formatStyle(
+            columns = 1,
+            valueColumns = 'subsel',
+            backgroundColor = DT::styleEqual(c(1,0),c('lightGrey','white')),
+            cursor = 'pointer',
+            color = 'blue',
+            fontWeight = 'bold')
+    
+    if (dd$type != 'output' && dd$selectMode != 'none' && dd$level %in% dd$selectableLevels) {
+        dt <- dt %>%
+            DT::formatStyle(
+                columns = 2,
+                cursor = 'pointer',
+                color = 'blue')
+    }
+    
+    meas <- prep$meas
+    
+    if ('colorBarColor1' %in% names(meas)) {
+        
+        for (fc in meas$as[!is.na(meas$colorBarColor1)]) {
+            
+            color1 <- meas$colorBarColor1[meas$as == fc]
+            color2 <- meas$colorBarColor2[meas$as == fc]
+            fontWeight <- isNa(isNull(meas$fontWeight[meas$as == fc],'normal'),'normal')
+            cursor <- isNa(isNull(meas$cursor[meas$as == fc],'default'),'default')
+            
+            if (length(color2) == 0 || is.na(color2)) {
+                
+                dt <- dt %>%
+                    DT::formatStyle(
+                        columns = fc,
+                        valueColumns = paste0(fc,'_org'),
+                        fontWeight = fontWeight,
+                        background = DT::styleColorBar(c(range(prep$tab[[paste0(fc,'_org')]]),0),color1),
+                        backgroundSize = '90% 70%',
+                        backgroundRepeat = 'no-repeat',
+                        backgroundPosition = 'right center',
+                        cursor = cursor
+                    )
+            } else {
+                
+                dt <- dt %>%
+                    DT::formatStyle(
+                        columns = fc,
+                        valueColumns = paste0(fc,'_org'),
+                        fontWeight = fontWeight,
+                        background = colorFromMiddle(prep$tab[[paste0(fc,'_org')]],color1,color2),
+                        backgroundSize = '90% 70%',
+                        backgroundRepeat = 'no-repeat',
+                        backgroundPosition = 'right center',
+                        cursor = cursor
+                    )
+                
+            }
+            
+        }
+    }
+    
+    if ('bgStyle.values' %in% names(meas)) {
+        
+        for (fc in meas$as[!is.na(meas$bgStyle.values)]) {
+            
+            cuts <- meas$bgStyle.cuts[meas$as == fc]
+            levels <- meas$bgStyle.levels[meas$as == fc]
+            values <- eval(parse(text = meas$bgStyle.values[meas$as == fc]))
+            fontWeight <- isNa(isNull(meas$fontWeight[meas$as == fc],'normal'),'normal')
+            cursor <- isNa(isNull(meas$cursor[meas$as == fc],'default'),'default')
+            valueColumn <- meas$bgStyle.valueColumn[meas$as == fc]
+            
+            if(is.null(valueColumn) || is.na(valueColumn)) {
+                valueColumn <- paste0(fc,'_org')
+            } else {
+                if (paste0(meas$as[meas$viewColumn == valueColumn],'_org') %in% names(prep$tab))
+                    valueColumn <- paste0(meas$as[meas$viewColumn == valueColumn],'_org')
+                else 
+                    valueColumn <- meas$as[meas$viewColumn == valueColumn]
+            }
+            
+            if (length(cuts) > 0) {
+                
+                cuts <- eval(parse(text = cuts))
+                dt <- dt %>%
+                    DT::formatStyle(
+                        columns = fc,
+                        valueColumns = valueColumn,
+                        fontWeight = fontWeight,
+                        background = DT::styleInterval(cuts,values),
+                        #   backgroundSize = '90% 70%',
+                        cursor = cursor
+                    )
+            } else {
+                
+                levels <- eval(parse(text = levels))
+                
+                dt <- dt %>%
+                    DT::formatStyle(
+                        columns = fc,
+                        valueColumns = paste0(fc,'_org'),
+                        fontWeight = fontWeight,
+                        background = DT::styleEqual(levels,values),
+                        cursor = cursor
+                    )
+            }
+        }
+    }
+    
+    if ('fgStyle.values' %in% names(meas)) {
+        
+        for (fc in meas$as[!is.na(meas$fgStyle.values)]) {
+            
+            cuts <- meas$fgStyle.cuts[meas$as == fc]
+            levels <- meas$fgStyle.levels[meas$as == fc]
+            values <- eval(parse(text = meas$fgStyle.values[meas$as == fc]))
+            fontWeight <- isNa(isNull(meas$fontWeight[meas$as == fc],'normal'),'normal')
+            cursor <- isNa(isNull(meas$cursor[meas$as == fc],'default'),'default')
+            valueColumn <- meas$fgStyle.valueColumn[meas$as == fc]
+            
+            if(is.null(valueColumn) || is.na(valueColumn)) {
+                valueColumn <- paste0(fc,'_org')
+            } else {
+                if (paste0(meas$as[meas$viewColumn == valueColumn],'_org') %in% names(prep$tab))
+                    valueColumn <- paste0(meas$as[meas$viewColumn == valueColumn],'_org')
+                else 
+                    valueColumn <- meas$as[meas$viewColumn == valueColumn]
+            }
+            
+            if (length(cuts) > 0) {
+                
+                cuts <- eval(parse(text = cuts))
+                
+                dt <- dt %>%
+                    DT::formatStyle(
+                        columns = fc,
+                        valueColumns = valueColumn,
+                        fontWeight = fontWeight,
+                        color = DT::styleInterval(cuts,values),
+                        cursor = cursor
+                    )
+            } else {
+                
+                levels <- eval(parse(text = levels))
+                
+                dt <- dt %>%
+                    DT::formatStyle(
+                        columns = fc,
+                        valueColumns = paste0(fc,'_org'),
+                        fontWeight = fontWeight,
+                        color = DT::styleEqual(levels,values),
+                        cursor = cursor
+                    )
+            }
+        }
+    }
+    
+    dt
+}
+
+
 prepDt <- function(env,dim,pres) {
 
     dd <- env$dims[[dim]]
@@ -507,6 +680,8 @@ prepDt <- function(env,dim,pres) {
         meas = meas,
         hasFormatting = hasFormatting,
         page = (firstRow - 1) %/% pageLength)
+    
+    ret$widget <- makeWidget(env,dim,ret)
 
     env$dtPrep[[dim]] <- ret
     ret
@@ -518,198 +693,32 @@ renderDataTableDim <- function(env,dim,input,output) {
     outputDim <- paste0(dim,'Dim')
     env$dtRenderers[[dim]] <- reactiveValues(count=0)
     serverSide <- isNull(dd$serverSideTable,FALSE)
-
+    
     output[[outputDim]] <- DT::renderDataTable( {
-
+        
         env$dtRenderers[[dim]]$count
-
+        
         prep <- env$dtPrep[[dim]]
         pres <- isolate(input[[paste0(dim,'Pres')]])
         
-        if (is.null(pres))
+        if (is.null(pres) || env$dtRenderers[[dim]]$count == 0)
             return()
-
+        
         printDebug(env = env, dim, eventIn = 'renderDT', info = paste0('rendercount:', env$dtRenderers[[dim]]$count))
         
         if (is.null(prep))
             prep <- prepDt(env,dim,pres)
-
-        dt <- DT::datatable(
-            prep$tab,
-            container = prep$container,
-            options = prep$options,
-            rownames = FALSE,
-            escape = FALSE,
-            class = 'compact stripe hover row-border',
-            selection = prep$selection,
-            callback = callbackJS(dim)
-        ) %>%
-            DT::formatStyle(
-                columns = 1,
-                valueColumns = 'subsel',
-                backgroundColor = DT::styleEqual(c(1,0),c('lightGrey','white')),
-                cursor = 'pointer',
-                color = 'blue',
-                fontWeight = 'bold')
         
-        if (dd$type != 'output' && dd$selectMode != 'none' && dd$level %in% dd$selectableLevels) {
-            dt <- dt %>%
-                DT::formatStyle(
-                    columns = 2,
-                    cursor = 'pointer',
-                    color = 'blue')
-        }
-
-        meas <- prep$meas
-
-        if ('colorBarColor1' %in% names(meas)) {
-
-            for (fc in meas$as[!is.na(meas$colorBarColor1)]) {
-
-                color1 <- meas$colorBarColor1[meas$as == fc]
-                color2 <- meas$colorBarColor2[meas$as == fc]
-                fontWeight <- isNa(isNull(meas$fontWeight[meas$as == fc],'normal'),'normal')
-                cursor <- isNa(isNull(meas$cursor[meas$as == fc],'default'),'default')
-
-                if (length(color2) == 0 || is.na(color2)) {
-
-                    dt <- dt %>%
-                        DT::formatStyle(
-                            columns = fc,
-                            valueColumns = paste0(fc,'_org'),
-                            fontWeight = fontWeight,
-                            background = DT::styleColorBar(c(range(prep$tab[[paste0(fc,'_org')]]),0),color1),
-                            backgroundSize = '90% 70%',
-                            backgroundRepeat = 'no-repeat',
-                            backgroundPosition = 'right center',
-                            cursor = cursor
-                        )
-                } else {
-
-                    dt <- dt %>%
-                        DT::formatStyle(
-                            columns = fc,
-                            valueColumns = paste0(fc,'_org'),
-                            fontWeight = fontWeight,
-                            background = colorFromMiddle(prep$tab[[paste0(fc,'_org')]],color1,color2),
-                            backgroundSize = '90% 70%',
-                            backgroundRepeat = 'no-repeat',
-                            backgroundPosition = 'right center',
-                            cursor = cursor
-                        )
-
-                }
-
-            }
-        }
-
-        if ('bgStyle.values' %in% names(meas)) {
-
-            for (fc in meas$as[!is.na(meas$bgStyle.values)]) {
-
-                cuts <- meas$bgStyle.cuts[meas$as == fc]
-                levels <- meas$bgStyle.levels[meas$as == fc]
-                values <- eval(parse(text = meas$bgStyle.values[meas$as == fc]))
-                fontWeight <- isNa(isNull(meas$fontWeight[meas$as == fc],'normal'),'normal')
-                cursor <- isNa(isNull(meas$cursor[meas$as == fc],'default'),'default')
-                valueColumn <- meas$bgStyle.valueColumn[meas$as == fc]
-                
-                if(is.null(valueColumn) || is.na(valueColumn)) {
-                    valueColumn <- paste0(fc,'_org')
-                } else {
-                    if (paste0(meas$as[meas$viewColumn == valueColumn],'_org') %in% names(prep$tab))
-                        valueColumn <- paste0(meas$as[meas$viewColumn == valueColumn],'_org')
-                    else 
-                        valueColumn <- meas$as[meas$viewColumn == valueColumn]
-                }
-                
-                if (length(cuts) > 0) {
-
-                    cuts <- eval(parse(text = cuts))
-                    dt <- dt %>%
-                        DT::formatStyle(
-                            columns = fc,
-                            valueColumns = valueColumn,
-                            fontWeight = fontWeight,
-                            background = DT::styleInterval(cuts,values),
-                         #   backgroundSize = '90% 70%',
-                            cursor = cursor
-                        )
-                } else {
-
-                    levels <- eval(parse(text = levels))
-
-                    dt <- dt %>%
-                        DT::formatStyle(
-                            columns = fc,
-                            valueColumns = paste0(fc,'_org'),
-                            fontWeight = fontWeight,
-                            background = DT::styleEqual(levels,values),
-                            cursor = cursor
-                        )
-                }
-            }
-        }
-
-        if ('fgStyle.values' %in% names(meas)) {
-
-            for (fc in meas$as[!is.na(meas$fgStyle.values)]) {
-
-                cuts <- meas$fgStyle.cuts[meas$as == fc]
-                levels <- meas$fgStyle.levels[meas$as == fc]
-                values <- eval(parse(text = meas$fgStyle.values[meas$as == fc]))
-                fontWeight <- isNa(isNull(meas$fontWeight[meas$as == fc],'normal'),'normal')
-                cursor <- isNa(isNull(meas$cursor[meas$as == fc],'default'),'default')
-                valueColumn <- meas$fgStyle.valueColumn[meas$as == fc]
-                
-                if(is.null(valueColumn) || is.na(valueColumn)) {
-                    valueColumn <- paste0(fc,'_org')
-                } else {
-                    if (paste0(meas$as[meas$viewColumn == valueColumn],'_org') %in% names(prep$tab))
-                        valueColumn <- paste0(meas$as[meas$viewColumn == valueColumn],'_org')
-                    else 
-                        valueColumn <- meas$as[meas$viewColumn == valueColumn]
-                }
-
-                if (length(cuts) > 0) {
-
-                    cuts <- eval(parse(text = cuts))
-
-                    dt <- dt %>%
-                        DT::formatStyle(
-                            columns = fc,
-                            valueColumns = valueColumn,
-                            fontWeight = fontWeight,
-                            color = DT::styleInterval(cuts,values),
-                            cursor = cursor
-                        )
-                } else {
-
-                    levels <- eval(parse(text = levels))
-
-                    dt <- dt %>%
-                        DT::formatStyle(
-                            columns = fc,
-                            valueColumns = paste0(fc,'_org'),
-                            fontWeight = fontWeight,
-                            color = DT::styleEqual(levels,values),
-                            cursor = cursor
-                        )
-                }
-            }
-        }
-
-
         env$dtPrev[[dim]] <- prep
         env$dtPrep[[dim]] <- NULL
-
-        dt
-    }
-    , server = serverSide)
+        
+        prep$widget
+    }, 
+    server = serverSide)
     
-   # shiny::outputOptions(output,outputDim,suspendWhenHidden = FALSE)
-   # shiny::outputOptions(output,outputDim,priority = 10)
-
+    # shiny::outputOptions(output,outputDim,suspendWhenHidden = FALSE)
+    # shiny::outputOptions(output,outputDim,priority = 10)
+    
     #
     # observers
     #
@@ -1078,6 +1087,7 @@ processDataTable <- function(env,dim,pres){
 
         # trigger render
 
-        env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
+        if (!env$freezeUI)
+            env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
     }
 }

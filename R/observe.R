@@ -493,7 +493,7 @@ startObserversPres <- function(env,dim,pres) {
 
         shiny::observeEvent(inp[[dimPres]],{
             
-            if (!(dim %in% visibleDims(env))) {   
+            if (!(dim %in% visibleDims(env)) || env$freezeUI) {   
                 return()
             }
             
@@ -504,7 +504,7 @@ startObserversPres <- function(env,dim,pres) {
             if (presType == 'highCharts') {
                 env$hcRenderers[[dim]]$count <- env$hcRenderers[[dim]]$count + 1
             }
-            if (presType == 'dataTable') {
+            if (presType == 'dataTable' ) {
                 env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
             }
 
