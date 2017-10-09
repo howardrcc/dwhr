@@ -276,7 +276,6 @@ renderDims <- function(env,input,output) {
                     if (!is.null(lst)) {
                         dd$membersFiltered <- lst$body
                         dd$footer <- lst$footer
-                        dd$peek <- lst$peek
                     }
                 }
 

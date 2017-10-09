@@ -481,7 +481,6 @@ startObserversPres <- function(env,dim,pres) {
             }
             if (presType == 'dataTable') {
                 processDataTable(env,dim,pres)
-                #dtRenderers[[dim]]$count <<- dtRenderers[[dim]]$count + 1
             }
         })
 

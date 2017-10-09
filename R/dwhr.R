@@ -52,6 +52,7 @@ new.star <- function(id, session, facts, caching = FALSE, foreignKeyCheck = TRUE
     env$ce <- parent.frame()    # calling environment
 
     env$id <- id
+    env$call <- match.call()
     env$facts <- facts
     env$dims <- list()
     env$proxyDims <- list()
@@ -1189,7 +1190,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
         dd <- env$dims[[dim]]
         class(dd) == 'dimView' || stop('dim is not of class dimView')
 
-        uiId %in% glob.env$dimUiIds || stop('uiId not in UI')
+        #uiId %in% glob.env$dimUiIds || stop('uiId not in UI')
         length(useLevels) == 0 || dim != uiId || stop('useLevels not valid for dim == uiId')
 
         assert_is_subset(type,domains[['presType']])
