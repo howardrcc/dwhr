@@ -48,22 +48,23 @@ renderDims <- function(env,input,output) {
                     presVec <- dd$presVec
                     
                     if (length(presVec) > 1) {
-                        txt <- '<span style = "font-size:90%; display: inline-block; margin-right:20px; margin-top:2px; float:right;">'
-                    } else {
-                        txt <- '<span hidden>'
+                        
+                        if (dd$presListType == 'dropdown') {
+                            txt <- '<span style = "font-size:90%; display: inline-block; margin-right:20px; margin-top:2px; float:right;">'
+                            
+                            txt <- paste0(
+                                txt,
+                                shiny::selectizeInput(
+                                    inputId = paste0(dim,'Pres'),
+                                    label = NULL,
+                                    choices = presVec,
+                                    width = "150px",
+                                    selected = dd$defPres))
+                            
+                            txt <- paste0(txt, '</span>') 
+                        }
+                        HTML(txt)
                     }
-                    
-                    txt <- paste0(
-                        txt,
-                        shiny::selectizeInput(
-                            inputId = paste0(dim,'Pres'),
-                            label = NULL,
-                            choices = presVec,
-                            width = "150px",
-                            selected = dd$defPres))
-                    
-                    txt <- paste0(txt, '</span>') 
-                    HTML(txt)
                     
                 })
                 
@@ -73,14 +74,10 @@ renderDims <- function(env,input,output) {
                 
                 output[[outputName]] <- shiny::renderUI({
                     
-                    shiny::req(input[[paste0(dim,'Pres')]])
                     printDebug(env = env, dim, eventIn = 'renderName')
                     
                     presList <- dd$presList
-                    
-                    pres <- input[[paste0(dim,'Pres')]]
-                    presType <- presList[[pres]]$type
-                    
+                    presType <- presList[[dd$pres]]$type
                     
                     if (presType %in% c('selectInput','radioButton') || length(dd$name) == 0) {
                         name <- ''
@@ -98,15 +95,12 @@ renderDims <- function(env,input,output) {
                 
                 output[[outputName]] <- shiny::renderUI({
                     
-                    shiny::req(input[[paste0(dim,'Pres')]])
                     printDebug(env = env, dim, eventIn = 'renderLinks')
                     
                     presList <- dd$presList
                     
-                    pres <- input[[paste0(dim,'Pres')]]
-                    presType <- presList[[pres]]$type
-                    
-                    links <- presList[[pres]]$navOpts$links
+                    presType <- presList[[dd$pres]]$type
+                    links <- presList[[dd$pres]]$navOpts$links
                     
                     txt <- paste0('<div>')
                     
@@ -137,10 +131,7 @@ renderDims <- function(env,input,output) {
 
                 output[[outputHeader]] <- shiny::renderUI({
                     
-                    shiny::req(input[[paste0(dim,'Pres')]])
                     printDebug(env = env, dim, eventIn = 'renderHeader')
-
-                    pres <- input[[paste0(dim,'Pres')]]
 
                     dd$reactive$levelChange
                     dd$reactive$isFiltered
@@ -150,9 +141,9 @@ renderDims <- function(env,input,output) {
                     level <- dd$level
                     ancestors <- dd$ancestors
 
-                    hideNoFilter <- presList[[pres]]$navOpts$hideNoFilter
-                    hideBreadCrumb <- presList[[pres]]$navOpts$hideBreadCrumb
-                    hideAll <- presList[[pres]]$navOpts$hideAll
+                    hideNoFilter <- presList[[dd$pres]]$navOpts$hideNoFilter
+                    hideBreadCrumb <- presList[[dd$pres]]$navOpts$hideBreadCrumb
+                    hideAll <- presList[[dd$pres]]$navOpts$hideAll
             
                     txt <- ''
 
@@ -208,16 +199,13 @@ renderDims <- function(env,input,output) {
 
                 output[[outputBody]] <- shiny::renderUI({
 
-                    shiny::req(input[[paste0(dim,'Pres')]])
-
                     printDebug(env = env, dim, eventIn = 'renderBody')
 
                     presList <- dd$presList
 
-                    pres <- input[[paste0(dim,'Pres')]]
-                    presType <- presList[[pres]]$type
-                    height <- presList[[pres]]$height
-                    width <- presList[[pres]]$width
+                    presType <- presList[[dd$pres]]$type
+                    height <- presList[[dd$pres]]$height
+                    width <- presList[[dd$pres]]$width
 
                     leafOnly <- dd$leafOnly
 
@@ -234,7 +222,7 @@ renderDims <- function(env,input,output) {
 
                         choices <- c(choices,dd$membersFiltered$member)
                         selected <- dd$selected$label
-                        inline <- presList[[pres]]$simpleOpts$inline
+                        inline <- presList[[dd$pres]]$simpleOpts$inline
 
                     }
 
@@ -262,19 +250,12 @@ renderDims <- function(env,input,output) {
 
                 output[[outputFooter]] <- shiny::renderUI({
 
-                    req(input[[paste0(dim,'Pres')]])
-                    
                     printDebug(env = env, dim, eventIn = 'renderFooter')
                     
-                    pres <- input[[paste0(dim,'Pres')]]
                     val <- input[[paste0(dim,'DimMs')]]
 
-                    if(is.null(pres)) {
-                        pres <- dd$defPres
-                    }
-
                     presList <- dd$presList
-                    presType <- presList[[pres]]$type
+                    presType <- presList[[dd$pres]]$type
 
                     if (dd$selectMode == 'multi' && presType == 'dataTable') {
 

@@ -249,7 +249,7 @@ startObserversData <- function(env,dim) {
         },
         {
 
-            if (!(dim %in% visibleDims(env))) {   # hoe zit dit met dimensies zonder presentatie?
+            if (!(dim %in% visibleDims(env))) {  
                 return()
             }
 
@@ -303,6 +303,7 @@ startObserversPres <- function(env,dim,pres) {
 
     dd <- env$dims[[dim]]
     obs <- dd$observers
+    presListType <- dd$presListType
     presList <- dd$presList
     hideBreadCrumb <- presList[[pres]]$navOpts$hideBreadCrumb
     hideAll <- presList[[pres]]$navOpts$hideAll
@@ -458,22 +459,18 @@ startObserversPres <- function(env,dim,pres) {
 
         obs <- c(obs,noFilter)
     }
-
-    dimPres <- paste0(dim,'Pres')
-
+    
     if (!('dimRefresh' %in% obs)) {
 
         shiny::observeEvent(dd$reactive$dimRefresh, {
 
-            if (!(dim %in% visibleDims(env))) {   
+            if (!(dim %in% visibleDims(env))) {  
                 return()
             }
             
-            req(inp[[dimPres]])
             presList <- dd$presList
-            pres <- inp[[dimPres]]
-            presType <- presList[[pres]]$type
-            
+            presType <- presList[[dd$pres]]$type
+
             printDebug(env = env, dim, eventIn = 'dimRefresh', info = paste0('presType: ',presType))
 
             if (presType == 'highCharts') {
@@ -487,32 +484,69 @@ startObserversPres <- function(env,dim,pres) {
         obs <- c(obs,'dimRefresh')
     }
 
-
-    if (!(dimPres %in% obs)) {
-
-        shiny::observeEvent(inp[[dimPres]],{
+    if (presListType == 'dropdown') {
+        
+        dimPres <- paste0(dim,'Pres')
+        
+        if (!(dimPres %in% obs)) {
             
-            if (!(dim %in% visibleDims(env)) || env$freezeUI) {   
-                return()
-            }
+            shiny::observeEvent(inp[[dimPres]],{
+                
+                if (!(dim %in% visibleDims(env))) {  
+                    return()
+                }
+
+                presList <- dd$presList
+                dd$pres <- inp[[dimPres]]
+                presType <- presList[[dd$pres]]$type
+                
+                if (presType == 'highCharts') {
+                    env$hcRenderers[[dim]]$count <- env$hcRenderers[[dim]]$count + 1
+                }
+                if (presType == 'dataTable' ) {
+                    env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
+                }
+                
+            })
             
-            presList <- dd$presList
-            pres <- inp[[dimPres]]
-            presType <- presList[[pres]]$type
-
-            if (presType == 'highCharts') {
-                env$hcRenderers[[dim]]$count <- env$hcRenderers[[dim]]$count + 1
-            }
-            if (presType == 'dataTable' ) {
-                env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
-            }
-
-        })
-
-        obs <- c(obs,dimPres)
+            obs <- c(obs,dimPres)
+            
+        }
+    }
+    
+    if (presListType == 'links') {
+        
+        dimPresLink <- paste0(dim,'PresLink',length(dd$presList) - 1)
+        
+        if (!(dimPresLink %in% obs)) {
+            
+            shiny::observeEvent(inp[[dimPresLink]],{
+                
+                if (!(dim %in% visibleDims(env))) {  
+                    return()
+                }
+                
+                presList <- dd$presList
+                dd$pres <- inp[[dimPresLink]]
+                presType <- presList[[dd$pres]]$type
+                
+                if (presType == 'highCharts') {
+                    env$hcRenderers[[dim]]$count <- env$hcRenderers[[dim]]$count + 1
+                }
+                if (presType == 'dataTable' ) {
+                    env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
+                }
+                
+            })
+            
+            obs <- c(obs,dimPresLink)
+            
+        }
+        
         
     }
-
+    
+    
     dd$observers <- obs
 
 }

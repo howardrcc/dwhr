@@ -59,7 +59,6 @@ new.star <- function(id, session, facts, caching = FALSE, foreignKeyCheck = TRUE
     env$caching <- caching
     env$foreignKeyCheck <- foreignKeyCheck
     env$session <- session
-    env$freezeUI <- FALSE
 
     if (env$caching)
         getCache(env)
@@ -159,6 +158,11 @@ new.star <- function(id, session, facts, caching = FALSE, foreignKeyCheck = TRUE
 #'@param na.rm boolean, als TRUE worden NA values verwijderd voor het uitvoeren van de aggregatie-functie.
 #'@param selectableLevels integer, bepaalt welke nivo's van de dimView selecteerbaar zijn, staat standaard op alle nivo's.
 #'@param footerLevels integer, bepaalt welke nivo's een footer krijgen, staat standaard op alle nivo's.
+#'@param presListType string, bepaalt de manier waarop de presentatielijst getoond wordt. Mogelijke waarden:
+#'\itemize{
+#'  \item dropdown: lijst wordt getoond via een dropdown box
+#'  \item links: lijst wordt getoond via meerdere links 
+#'}
 #'
 #'@return gewijzigd sterschema-object.
 #'
@@ -167,7 +171,7 @@ addDimView <- function(
     env, dim, name, data, levelNames, initLevel = 0, initParent = "", selectLevel = 0,
     selectLabel = levelNames[1], state = 'enabled', type = 'bidir', selectMode = 'single', useLevels = NULL,
     cntName = 'cnt', itemName = 'Naam', ignoreDims = NULL, leafOnly = FALSE, fixedMembers = FALSE,
-    na.rm = FALSE, orderBy = 'name', selectableLevels = NULL, footerLevels = NA_integer_ ) {
+    na.rm = FALSE, orderBy = 'name', selectableLevels = NULL, footerLevels = NA_integer_ , presListType = 'dropdown') {
 
     withCallingHandlers({
         class(env) == 'star' || stop('env is not of class star')
@@ -201,6 +205,8 @@ addDimView <- function(
         assert_is_a_bool(na.rm)
         assert_is_a_string(orderBy)
         assert_is_subset(orderBy,domains[['orderBy']])
+        assert_is_a_string(presListType)
+        assert_is_subset(presListType,domains[['presListType']])
 
         maxLevel <- length(levelNames) - 1
         rootLabel <- levelNames[1]
@@ -433,6 +439,7 @@ addDimView <- function(
     l <- new.env(parent = emptyenv())
     class(l) <- 'dimView'
 
+    l$presListType <- presListType
     l$call <- match.call()
     l$name <- name
     l$master <- TRUE
@@ -548,6 +555,7 @@ addDimView <- function(
         }
         v
     })
+    l$pres <- 'stub'
     l$state <- state
     l$debounce <- TRUE
 
@@ -1431,6 +1439,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
 
     if (isDefault || length(pl) == 1) {
         dd$defPres <- newKey
+        dd$pres <- newKey
     }
 
     dd$presList <- pl

@@ -578,9 +578,9 @@ renderHighchartDim <- function(env, dim, input,output) {
         env$hcRenderers[[dim]]$count
 
         presList <- dd$presList
-        pres <- isolate(input[[paste0(dim,'Pres')]])
+        pres <- dd$pres
         
-        if (is.null(pres) || env$hcRenderers[[dim]]$count == 0) {
+        if (env$hcRenderers[[dim]]$count == 0) {
             return()
         }
 
@@ -691,7 +691,7 @@ renderHighchartDim <- function(env, dim, input,output) {
             parent <- dd$parent
             presList <- dd$presList
 
-            pres <- input[[paste0(dim,'Pres')]]
+            pres <- dd$pres
             presType <- presList[[pres]]$type
             pageLength <- dd$pageLength
             currentPage <- dd$currentPage
@@ -766,7 +766,7 @@ renderHighchartDim <- function(env, dim, input,output) {
         observeEvent(input[[highchartsHideEvent]], {
             
             e <- input[[highchartsHideEvent]]$data
-            pres <- input[[paste0(dim,'Pres')]]
+            pres <- dd$pres
             presList <- dd$presList
 
             seriesOpts <- presList[[pres]]$highChartsOpts$series
@@ -787,7 +787,7 @@ renderHighchartDim <- function(env, dim, input,output) {
          
             e <- input[[highchartsShowEvent]]$data
 
-            pres <- input[[paste0(dim,'Pres')]]
+            pres <- dd$pres
             presList <- dd$presList
 
             seriesOpts <- presList[[pres]]$highChartsOpts$series
@@ -810,7 +810,7 @@ renderHighchartDim <- function(env, dim, input,output) {
             parent <- dd$parent
             presList <- dd$presList
 
-            pres <- input[[paste0(dim,'Pres')]]
+            pres <- dd$pres
             followPager <- isNull(dd$syncNav,FALSE) && isNull(dd$pageLength,FALSE)
             pageLength <- dd$pageLength
             currentPage <- dd$currentPage

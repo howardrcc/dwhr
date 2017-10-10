@@ -699,9 +699,9 @@ renderDataTableDim <- function(env,dim,input,output) {
         env$dtRenderers[[dim]]$count
         
         prep <- env$dtPrep[[dim]]
-        pres <- isolate(input[[paste0(dim,'Pres')]])
+        pres <- dd$pres
         
-        if (is.null(pres) || env$dtRenderers[[dim]]$count == 0)
+        if (env$dtRenderers[[dim]]$count == 0)
             return()
         
         printDebug(env = env, dim, eventIn = 'renderDT', info = paste0('rendercount:', env$dtRenderers[[dim]]$count))
@@ -995,7 +995,7 @@ renderDataTableDim <- function(env,dim,input,output) {
 
             dd$pageLength <- input[[pageLengthEvent]]$data
             dd$currentPage <- ((((pl * (cp - 1)) + 1) %/% dd$pageLength)) + 1
-            pres <- isolate(input[[paste0(dim,'Pres')]])
+            pres <- dd$pres
             dd$presList[[pres]]$dataTableOpts$pageLength <- input[[pageLengthEvent]]$data
 
             dd$reactive$pageLengthChange <- dd$reactive$pageLengthChange + 1
@@ -1086,8 +1086,6 @@ processDataTable <- function(env,dim,pres){
     } else {
 
         # trigger render
-
-        if (!env$freezeUI)
-            env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
+        env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
     }
 }

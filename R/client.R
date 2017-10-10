@@ -66,22 +66,16 @@ getDimUI <- function(dim, skipTopRow = FALSE, maxHeight = NULL, overflowX = 'hid
     shiny::div(
         id = paste0(dim,'Dimensie'),
         if (!skipTopRow)
-            shiny::fluidRow(
-                shiny::column(
-                    width = 4,
-                    div(shiny::uiOutput(paste0(dim,"DimName")))
-                ),
-                shiny::column(
-                    width = 2,
-                    div(shiny::uiOutput(paste0(dim,"DimLinks")))
-                ),
-                shiny::column(
-                    width = 6,
-                    div(shiny::uiOutput(paste0(dim,"DimPresList")))
-                )
-            )
-        else 
-            shiny::uiOutput(paste0(dim,"DimPresList")),
+            HTML(paste0(
+                '<table width = "100%">'
+                , '<tbody>'
+                , '<tr>'
+                , '<td class="db-header">', shiny::uiOutput(paste0(dim,"DimName")), '</td>'
+                , '<td class="db-header">', shiny::uiOutput(paste0(dim,"DimLinks")), '</td>'
+                , '<td class="db-header">', shiny::uiOutput(paste0(dim,"DimPresList")), '</td>'
+                , '<td class="db-header" style="padding-top: 30px"></td>'
+                , '</tr></tbody></table>')
+            ),
         shiny::uiOutput(paste0(dim,"DimHeader")),
         shiny::uiOutput(paste0(dim,"DimBody")),
         shiny::uiOutput(paste0(dim,'DimFooter')),

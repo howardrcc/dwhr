@@ -66,7 +66,8 @@ domains <- list(
     simpleOpts = c('inline'),
     navOpts = c('syncNav', 'hideNoFilter', 'hideAll', 'hideBreadCrumb', 'links'),
     orderBy = c('key','name'),
-    cssOverflow = c('hidden','visible','scroll','auto')
+    cssOverflow = c('hidden','visible','scroll','auto'),
+    presListType = c('dropdown','links')
 )
 
 domainCheck <- function(x,domain,minLength = 0, maxLength = 100000L) {
