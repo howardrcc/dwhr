@@ -33,16 +33,16 @@ dwhrInit <- function() {
 #'
 #' @param dim string, uniek id van the dimView. Dit id moet overeenkomen met de parameter \code{dim} in
 #' \code{\link{addDimView}}
-#' @param useWellPanel boolean, Als TRUE: er wordt een wellPanel om het dimView object getekend
+#' @param skipTopRow boolean, Als TRUE: eerste regel met Naam, links en presentatie wordt overgeslagen.
 #' @param maxHeight an integer, maximum hoogte in pixels voor dit dimView object
 #' @param overflowX string, css overflow propery in X richting, bepaalt of er wel of niet een horizontale scrollbar getoond wordt bij overflow. 
 #'
 #' @export
-getDimUI <- function(dim, useWellPanel = FALSE, maxHeight = NULL, overflowX = 'hidden') {
+getDimUI <- function(dim, skipTopRow = FALSE, maxHeight = NULL, overflowX = 'hidden') {
     
     withCallingHandlers({
         assert_is_a_string(dim)
-        assert_is_a_bool(useWellPanel)
+        assert_is_a_bool(skipTopRow)
         assert_is_a_number(isNull(maxHeight,0))
         maxHeight <- as.integer(maxHeight)
         assert_is_a_string(overflowX)
@@ -65,6 +65,23 @@ getDimUI <- function(dim, useWellPanel = FALSE, maxHeight = NULL, overflowX = 'h
     
     shiny::div(
         id = paste0(dim,'Dimensie'),
+        if (!skipTopRow)
+            shiny::fluidRow(
+                shiny::column(
+                    width = 4,
+                    div(shiny::uiOutput(paste0(dim,"DimName")))
+                ),
+                shiny::column(
+                    width = 2,
+                    div(shiny::uiOutput(paste0(dim,"DimLinks")))
+                ),
+                shiny::column(
+                    width = 6,
+                    div(shiny::uiOutput(paste0(dim,"DimPresList")))
+                )
+            )
+        else 
+            shiny::uiOutput(paste0(dim,"DimPresList")),
         shiny::uiOutput(paste0(dim,"DimHeader")),
         shiny::uiOutput(paste0(dim,"DimBody")),
         shiny::uiOutput(paste0(dim,'DimFooter')),

@@ -36,66 +36,23 @@ renderDims <- function(env,input,output) {
                 if('highCharts' %in% presTypes) {
                     renderHighchartDim(env,dim,input,output)
                 }
-
-                # dimension Header
-
-                outputHeader = paste0(dim,'DimHeader')
-
-                output[[outputHeader]] <- shiny::renderUI({
-
-                    printDebug(env = env, dim, eventIn = 'renderHeader')
-
-                    pres <- isolate(input[[paste0(dim,'Pres')]])
-                    if(is.null(pres)) {
-                        pres <- dd$defPres
-                    }
-
-                    dd$reactive$levelChange
-                    dd$reactive$isFiltered
-
-                    presList <- dd$presList
-                    presType <- presList[[pres]]$type
-
-
-                    if (presType %in% c('selectInput','radioButton') || length(dd$name) == 0) {
-                        name <- ''
-                    } else {
-                        name <- h4(dd$name)
-                    }
-
-                    level <- dd$level
-                    ancestors <- dd$ancestors
-
-                    hideNoFilter <- presList[[pres]]$navOpts$hideNoFilter
-                    hideBreadCrumb <- presList[[pres]]$navOpts$hideBreadCrumb
-                    hideAll <- presList[[pres]]$navOpts$hideAll
-                    links <- presList[[pres]]$navOpts$links
-
-                    txt <- paste0('<table style="width:100%"><tr><td style="width:100%">',name,'</td>')
-
-                    for (ll in links) {
-
-                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink') {
-                            txt <- paste0(txt,'<td>',shiny::actionLink(inputId = ll$id, label = ll$label),'</td>')
-                        }
-                        
-                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadLink') {
-                            txt <- paste0(txt,'<td>',shiny::downloadLink(outputId = ll$id, label = ll$label),'</td>')
-                        }
-
-                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadButton') {
-                            txt <- paste0(txt,'<td>',shiny::downloadButton(outputId = ll$id, label = ll$label),'</td>')
-                        }
-                    }
-
+                
+                # dimension preslist
+                
+                outputName = paste0(dim,'DimPresList')
+                
+                output[[outputName]] <- shiny::renderUI({
+                    
+                    printDebug(env = env, dim, eventIn = 'renderPresList')
+                    
                     presVec <- dd$presVec
-
+                    
                     if (length(presVec) > 1) {
-                        txt <- paste0(txt, '<td><span style = "font-size:90%; display: inline-block; margin-right:10px; margin-top:2px">')
+                        txt <- '<span style = "font-size:90%; display: inline-block; margin-right:20px; margin-top:2px; float:right;">'
                     } else {
-                        txt <- paste0(txt, '<td hidden><span>')
+                        txt <- '<span hidden>'
                     }
-
+                    
                     txt <- paste0(
                         txt,
                         shiny::selectizeInput(
@@ -103,13 +60,104 @@ renderDims <- function(env,input,output) {
                             label = NULL,
                             choices = presVec,
                             width = "150px",
-                            selected = pres),
-                        '</span></td></tr></table>')
+                            selected = dd$defPres))
+                    
+                    txt <- paste0(txt, '</span>') 
+                    HTML(txt)
+                    
+                })
+                
+                # dimension Name
+                
+                outputName = paste0(dim,'DimName')
+                
+                output[[outputName]] <- shiny::renderUI({
+                    
+                    shiny::req(input[[paste0(dim,'Pres')]])
+                    printDebug(env = env, dim, eventIn = 'renderName')
+                    
+                    presList <- dd$presList
+                    
+                    pres <- input[[paste0(dim,'Pres')]]
+                    presType <- presList[[pres]]$type
+                    
+                    
+                    if (presType %in% c('selectInput','radioButton') || length(dd$name) == 0) {
+                        name <- ''
+                    } else {
+                        name <- h4(dd$name)
+                    }
+                    
+                    name
+                    
+                })
+                
+                # dimension Links
+                
+                outputName = paste0(dim,'DimLinks')
+                
+                output[[outputName]] <- shiny::renderUI({
+                    
+                    shiny::req(input[[paste0(dim,'Pres')]])
+                    printDebug(env = env, dim, eventIn = 'renderLinks')
+                    
+                    presList <- dd$presList
+                    
+                    pres <- input[[paste0(dim,'Pres')]]
+                    presType <- presList[[pres]]$type
+                    
+                    links <- presList[[pres]]$navOpts$links
+                    
+                    txt <- paste0('<div>')
+                    
+                    for (ll in links) {
+                        
+                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink') {
+                            txt <- paste0(txt,shiny::actionLink(inputId = ll$id, label = ll$label))
+                        }
+                        
+                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadLink') {
+                            txt <- paste0(txt,shiny::downloadLink(outputId = ll$id, label = ll$label))
+                        }
+                        
+                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadButton') {
+                            txt <- paste0(txt,shiny::downloadButton(outputId = ll$id, label = ll$label))
+                        }
+                    }
+                    
+                    txt <- paste0(txt,'</div>')
+                    HTML(txt)
+                
+                })
+                
+                    
+                # dimension Header
+
+                outputHeader = paste0(dim,'DimHeader')
+
+                output[[outputHeader]] <- shiny::renderUI({
+                    
+                    shiny::req(input[[paste0(dim,'Pres')]])
+                    printDebug(env = env, dim, eventIn = 'renderHeader')
+
+                    pres <- input[[paste0(dim,'Pres')]]
+
+                    dd$reactive$levelChange
+                    dd$reactive$isFiltered
+
+                    presList <- dd$presList
+                  
+                    level <- dd$level
+                    ancestors <- dd$ancestors
+
+                    hideNoFilter <- presList[[pres]]$navOpts$hideNoFilter
+                    hideBreadCrumb <- presList[[pres]]$navOpts$hideBreadCrumb
+                    hideAll <- presList[[pres]]$navOpts$hideAll
+            
+                    txt <- ''
 
                     if(!hideBreadCrumb) {
-                        
-                        #browser(expr = {dim == 'kpi'})
-
+                    
                         txt <- paste0(txt,'<div style="padding-bottom:4px;" id="',dim, 'Breadcrumb">')
 
                         if (!hideAll) {
