@@ -3,7 +3,7 @@
 #' Maak een sterschema-object gebaseerd op een feiten-tabel. Aan het resulterende object kunnen dimensie views worden toegevoegd met
 #' \code{\link{addDimView}}. \code{new.star()} moet uitgevoerd worden binnen een shiny-server sessie.
 #'
-#' @param id string, Id voor dit sterschema-object.
+#' @param starId string, Id voor dit sterschema-object.
 #' @param session een shiny sessie object.
 #' @param facts dataframe met aggregeerbare meetwaarden en foreign-keys naar dimView-dataframes
 #' @param caching boolean, controleert de caching van geaggreerde meetwaarden. Te gebruiken bij grote feiten-tabellen. default FALSE
@@ -16,10 +16,10 @@
 #'     }  .
 #'
 #' @export
-new.star <- function(id, session, facts, caching = FALSE, foreignKeyCheck = TRUE) {
+new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = TRUE) {
 
     withCallingHandlers({
-        assert_is_a_string(id)
+        assert_is_a_string(starId)
         assert_is_data.frame(facts)
         assert_is_a_bool(caching)
         assert_is_a_bool(foreignKeyCheck)
@@ -35,7 +35,7 @@ new.star <- function(id, session, facts, caching = FALSE, foreignKeyCheck = TRUE
         if (!exists('starList',envir = ses)) {
             ses$starList <- list()
         } else {
-            id %in% ses$starList && stop(paste0('star-object with id: ', id, 'already exists'))
+            starId %in% ses$starList && stop(paste0('star-object with id: ', starId, 'already exists'))
         }
 
     },
@@ -44,14 +44,14 @@ new.star <- function(id, session, facts, caching = FALSE, foreignKeyCheck = TRUE
         dwhrStop(conditionMessage(c))
     })
 
-    ses$starList <- c(ses$starList,id)
+    ses$starList <- c(ses$starList,starId)
 
     env <- new.env(parent = emptyenv())
     class(env) <- 'star'
 
     env$ce <- parent.frame()    # calling environment
 
-    env$id <- id
+    env$id <- starId
     env$call <- match.call()
     env$facts <- facts
     env$dims <- list()
@@ -445,7 +445,7 @@ addDimView <- function(
     l$derrivedMeasureCalls <- list()
     l$presentationCalls <- list()
     l$name <- name
-    l$globalDim <- paste0(env$id,toupper(substr(dim,1,1)),substr(dim,2,100))
+    l$gdim <- getGlobalId(env$id,dim)
     l$master <- TRUE
     l$views <- list()
     l$data <- data
@@ -1187,7 +1187,7 @@ addTextColumn <- function(env, dim, textColumn, as, viewColumn, sort = NULL, lev
 #'
 #'@export
 #'
-addPresentation <- function(env, dim, uiId = NULL, type, as, name = '', isDefault = FALSE, height = NULL, width = NULL,
+addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault = FALSE, height = NULL, width = NULL,
     useLevels = NULL, navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL, checkUiId = TRUE) {
 
     withCallingHandlers({
@@ -1195,7 +1195,7 @@ addPresentation <- function(env, dim, uiId = NULL, type, as, name = '', isDefaul
         class(env) == 'star' || stop('env is not of class star')
 
         assert_is_a_string(dim)
-        assert_is_a_string(isNull(uiId,''))
+        assert_is_a_string(uiId)
         assert_is_a_string(type)
         assert_is_a_string(as)
         assert_is_a_string(name)
@@ -1214,12 +1214,10 @@ addPresentation <- function(env, dim, uiId = NULL, type, as, name = '', isDefaul
 
         dd <- env$dims[[dim]]
         class(dd) == 'dimView' || stop('dim is not of class dimView')
-        
-        if (is.null(uiId)) {
-            uiId = dd$globalDim
-        }
 
-        !checkUiId || uiId %in% glob.env$dimUiIds || stop('uiId not in UI')
+        gdim <- getGlobalId(env$id,uiId)
+        
+        !checkUiId || gdim %in% glob.env$dimUiIds || stop('uiId not in UI')
         length(useLevels) == 0 || dim != uiId || stop('useLevels not valid for dim == uiId')
 
         assert_is_subset(type,domains[['presType']])
@@ -1384,7 +1382,7 @@ addPresentation <- function(env, dim, uiId = NULL, type, as, name = '', isDefaul
     if (type %in% c('radioButton','selectInput'))
         (dd$type == 'input' && isSingleLevel(env,dim) && dd$selectMode == 'single') || dwhrStop('Presentation type not valid for this dim')
 
-    if (uiId != dd$globalDim) {
+    if (uiId != dim) {
 
         if (!uiId %in% names(env$dims)) {
             is.null(dd$syncNav) || dd$syncNav == navOpts$syncNav || dwhrStop('Incompatible syncNav')
@@ -1750,10 +1748,10 @@ setDebug <- function(debug) {
 #'
 #' @export
 #'
-clone.star <- function(from, toId, dimViews = list()) {
+clone.star <- function(from, toId, dimViews = list(),checkUiId = FALSE) {
     
     call <- from$call
-    call$id <- toId
+    call$starId <- toId
     
     to <- eval(call, envir = from$ce)
     
@@ -1761,14 +1759,13 @@ clone.star <- function(from, toId, dimViews = list()) {
         
         call <- from$dims[[dv]]$call
         call$env <- to
-        call$dim <- paste0(dv,'_',toId)
+        call$state <- 'disabled'
         eval(call, envir = from$ce)
         
         if(isNull(dimViews[[dv]]$measures,TRUE)) {
             
             for(mCall in from$dims[[dv]]$measureCalls) {
                 mCall$env <- to
-                mCall$dim <- paste0(dv,'_',toId)
                 eval(mCall, envir = from$ce)
             }
             
@@ -1778,7 +1775,6 @@ clone.star <- function(from, toId, dimViews = list()) {
             
             for(dmCall in from$dims[[dv]]$derrivedMeasureCalls) {
                 dmCall$env <- to
-                dmCall$dim <- paste0(dv,'_',toId)
                 eval(dmCall, envir = from$ce)
             }
             
@@ -1788,7 +1784,7 @@ clone.star <- function(from, toId, dimViews = list()) {
             
             for(pCall in from$dims[[dv]]$presentationCalls) {
                 pCall$env <- to
-                pCall$dim <- paste0(dv,'_',toId)
+                pCall$checkUiId <- checkUiId
                 eval(pCall, envir = from$ce)
             }
             

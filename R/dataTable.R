@@ -36,41 +36,44 @@ colorAsImageInterval <- function (cuts, values) {
     DT::JS(paste0(js, "linear-gradient('0deg',",values[n + 1],",",values[n + 1],")"))
 }
 
-initCompleteJS <- function(dim, row = NULL, pageLength) {
+initCompleteJS <- function(env,dim, row = NULL, pageLength) {
+    gdim <- env$dims[[dim]]$gdim
+    
     page <- (row - 1) %/% pageLength
     txt <- paste0("function(settings, json) {
     var api = this.api(); api.page(",page,").draw('page');
     var number = Math.random();
     $.unblockUI();
     var id = this[0].id
-    Shiny.onInputChange('",dim,"_dt_ready',{r: number, id: id} );
+    Shiny.onInputChange('",gdim,"_dt_ready',{r: number, id: id} );
     }")
     DT::JS(txt)
 }
 
-callbackJS <- function(dim) {
-
+callbackJS <- function(env,dim) {
+    gdim <- env$dims[[dim]]$gdim
+    
     txt <- paste0("table.on('order.dt', function() {
     var order = table.order();
     var data1 = [order[0]];
     var title = table.column( data1[0] ).header();
     var name = $(title).html();
     var number = Math.random();
-    Shiny.onInputChange('",dim,"_ordering',{r: number, name: name, data: data1} );
+    Shiny.onInputChange('",gdim,"_ordering',{r: number, name: name, data: data1} );
 });
     table.on('page.dt', function() {
     var info = table.page.info();
     var data2 = info.page;
     var number = Math.random();
-    Shiny.onInputChange('",dim,"_paging',{r: number, data: data2} );
+    Shiny.onInputChange('",gdim,"_paging',{r: number, data: data2} );
 });
     table.on('draw.dt', function() {
     var number = Math.random();
-    Shiny.onInputChange('",dim,"_dt_draw',{r: number} );
+    Shiny.onInputChange('",gdim,"_dt_draw',{r: number} );
 });
     table.on('length.dt', function(e,setting,len) {
     var number = Math.random();
-    Shiny.onInputChange('",dim,"_page_length',{r: number, data: len} );
+    Shiny.onInputChange('",gdim,"_page_length',{r: number, data: len} );
     });
 ")
     DT::JS(txt)
@@ -206,7 +209,7 @@ makeDtWidget <- function(env,dim,prep) {
         escape = FALSE,
         class = 'compact stripe hover row-border',
         selection = prep$selection,
-        callback = callbackJS(dim),
+        callback = callbackJS(env,dim),
         height = height
     ) %>%
         DT::formatStyle(
@@ -677,7 +680,7 @@ prepDt <- function(env,dim,pres,print = FALSE) {
                      , language = list( paginate = list('first' = '|<', 'next' = '>','previous' = '<', 'last' = '>|')
                                         , search = 'Zoeken'
                                         , lengthMenu = '_MENU_ regels')
-                     , initComplete = initCompleteJS(dim,firstRow,pageLength))
+                     , initComplete = initCompleteJS(env,dim,firstRow,pageLength))
 
     if (!is.null(orderOpt)) {
         options$order = list(orderOpt)
@@ -714,7 +717,9 @@ prepDt <- function(env,dim,pres,print = FALSE) {
 renderDataTableDim <- function(env,dim,input,output) {
 
     dd <- env$dims[[dim]]
-    outputDim <- paste0(dim,'Dim')
+    gdim <- dd$gdim
+    
+    outputDim <- paste0(gdim,'Dim')
     env$dtRenderers[[dim]] <- reactiveValues(count=0)
     serverSide <- isNull(dd$serverSideTable,FALSE)
     
@@ -747,7 +752,7 @@ renderDataTableDim <- function(env,dim,input,output) {
     # observers
     #
 
-    cellClicked = paste0(dim,'Dim_cell_clicked')
+    cellClicked = paste0(gdim,'Dim_cell_clicked')
 
     shiny::observeEvent(input[[cellClicked]], {
         info <- input[[cellClicked]]
@@ -796,7 +801,7 @@ renderDataTableDim <- function(env,dim,input,output) {
 
     })
 
-    cellsSelected = paste0(dim,'Dim_cells_selected')
+    cellsSelected = paste0(gdim,'Dim_cells_selected')
 
     shiny::observeEvent(input[[cellsSelected]], {
 
@@ -932,7 +937,7 @@ renderDataTableDim <- function(env,dim,input,output) {
 
     })
 
-    orderEvent <- paste0(dim,'_ordering')
+    orderEvent <- paste0(gdim,'_ordering')
 
     shiny::observeEvent(input[[orderEvent]], {
 
@@ -969,7 +974,7 @@ renderDataTableDim <- function(env,dim,input,output) {
         }
     })
 
-    readyEvent <- paste0(dim,'_dt_ready')
+    readyEvent <- paste0(gdim,'_dt_ready')
 
     shiny::observeEvent(input[[readyEvent]], {
         printDebug(env = env, dim, eventIn = 'dataTableReady', info = paste0('dtUiId: ', input[[readyEvent]]$id))
@@ -985,13 +990,13 @@ renderDataTableDim <- function(env,dim,input,output) {
         shinyjs::js$tooltip()
     })
 
-    drawEvent <- paste0(dim,'_dt_draw')
+    drawEvent <- paste0(gdim,'_dt_draw')
 
     shiny::observeEvent(input[[drawEvent]], {
         printDebug(env = env, dim, eventIn = 'dataTableDraw')
     })
 
-    pagingEvent <- paste0(dim,'_paging')
+    pagingEvent <- paste0(gdim,'_paging')
 
     shiny::observeEvent(input[[pagingEvent]], {
         dd <- env$dims[[dim]]
@@ -1007,7 +1012,7 @@ renderDataTableDim <- function(env,dim,input,output) {
         }
     })
 
-    pageLengthEvent <- paste0(dim,'_page_length')
+    pageLengthEvent <- paste0(gdim,'_page_length')
 
     shiny::observeEvent(input[[pageLengthEvent]], {
         dd <- env$dims[[dim]]
@@ -1028,7 +1033,7 @@ renderDataTableDim <- function(env,dim,input,output) {
 
     })
 
-    outputDim <- paste0(dim,'Dim')
+    outputDim <- paste0(gdim,'Dim')
 
     searchEvent <- paste0(outputDim,'_search')
 
@@ -1050,8 +1055,8 @@ renderDataTableDim <- function(env,dim,input,output) {
 
                 dd$currentPage <- 1
 
-                if(exists(paste0(dim,'PageChangeHook'))) {
-                    do.call(paste0(dim,'PageChangeHook'),list())
+                if(exists(paste0(gdim,'PageChangeHook'))) {
+                    do.call(paste0(gdim,'PageChangeHook'),list())
                 }
             }
 

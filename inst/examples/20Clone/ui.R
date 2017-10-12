@@ -3,6 +3,6 @@ library(dwhr)
 
 fluidPage(
     dwhrInit(),
-    getDimUI(dim = 's1Per'),
-    getDimUI(dim = 's2Per')
+    getDimUI(starId = 's1', dim = 'per')
+    #getDimUI(starId = 's2', dim = 'per')
 )

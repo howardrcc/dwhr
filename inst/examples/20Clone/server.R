@@ -21,7 +21,7 @@ function(input, output, session) {
 
     authenticate(session)    # heeft user toegang?
 
-    s1 <- new.star(id = 's1',
+    s1 <- new.star(starId = 's1',
                    session = session,
                    facts = facts,
                    foreignKeyCheck = FALSE) %>%   # maak sterschema object
@@ -55,7 +55,7 @@ function(input, output, session) {
                     list(viewColumn = 'xyz', colorBarColor1 = '#f7fcb9')))) %>%
         renderDims(input,output)                    # start rendering
     
-    s2 <- clone.star(from = s1, toId = 's2', dimViews = list( per = list())) %>%
+    s2 <- clone.star(from = s1, toId = 's2', dimViews = list( per = list()), checkUiId = FALSE) %>%
         renderDims(input,output)                    # start rendering
     
     observeEvent(s1$dims[['per']]$reactive$clickMeasureEvent,{

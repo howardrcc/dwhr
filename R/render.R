@@ -18,7 +18,7 @@ renderDims <- function(env,input,output) {
 
                 dim <- ddim
                 dd <- env$dims[[dim]]
-                gdim <- dd$globalDim
+                gdim <- dd$gdim
                 
                 # simple
 
@@ -343,7 +343,7 @@ renderDims <- function(env,input,output) {
         }
 
         if (glob.env$debug) {
-            print(paste0(ddim,'|observers: ',paste0(env$dims[[ddim]]$observers,collapse = '|')))
+            print(paste0(env$dims[[ddim]]$gdim,'|observers: ',paste0(env$dims[[ddim]]$observers,collapse = '|')))
         }
 
     }

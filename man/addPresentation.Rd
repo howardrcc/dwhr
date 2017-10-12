@@ -4,7 +4,7 @@
 \alias{addPresentation}
 \title{Toevoegen van een presentatie aan een dimView object.}
 \usage{
-addPresentation(env, dim, uiId = NULL, type, as, name = "",
+addPresentation(env, dim, uiId = dim, type, as, name = "",
   isDefault = FALSE, height = NULL, width = NULL, useLevels = NULL,
   navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL,
   highChartsOpts = NULL, checkUiId = TRUE)

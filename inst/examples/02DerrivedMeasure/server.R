@@ -33,7 +33,7 @@ function(input, output, session) {
         df$pqr - df$xyz
     }
 
-    s1 <- new.star(id = 's1',
+    s1 <- new.star(starId = 's1',
                    session = session,
                    facts = facts,
                    foreignKeyCheck = FALSE) %>%   # maak sterschema object

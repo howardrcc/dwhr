@@ -2,7 +2,7 @@
 startObserversData <- function(env,dim) {
 
     dd <- env$dims[[dim]]
-    gdim <- dd$globalDim
+    gdim <- dd$gdim
     obs <- dd$observers
     inp <- env$session$input
     userData <- env$session$userData
@@ -311,7 +311,7 @@ startObserversData <- function(env,dim) {
 startObserversPres <- function(env,dim,pres) {
 
     dd <- env$dims[[dim]]
-    gdim <- dd$globalDim
+    gdim <- dd$gdim
     obs <- dd$observers
     presListType <- dd$presListType
     presList <- dd$presList

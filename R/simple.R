@@ -1,6 +1,6 @@
 renderSimpleDim <- function(env,dim,input,output)  {
     
-    gdim <- env$dims[[dim]]$globalDim
+    gdim <- env$dims[[dim]]$gdim
     outputSimple <- paste0(gdim,'DimSimple')
     
     observeEvent(input[[outputSimple]],{

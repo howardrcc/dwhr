@@ -2,6 +2,7 @@
 plotBandSingleSelectJS <- function(env,dim,label,color,serieType) {
     
     dd <- env$dims[[dim]]
+    gdim <- dd$gdim
     
     selectable <- 'true'
     unSelectable <- 'true'
@@ -38,13 +39,14 @@ plotBandSingleSelectJS <- function(env,dim,label,color,serieType) {
     }
 
     highcharter::JS(paste0("function(event){
-    plotBandSingleSelect('",dim,"',this, event,",selectable,",",unSelectable,",",drillable,",'",color,"');
+    plotBandSingleSelect('",gdim,"',this, event,",selectable,",",unSelectable,",",drillable,",'",color,"');
 }"))
 }
 
 pointSingleSelectJS <- function(env,dim,color,serieType) {
     
     dd <- env$dims[[dim]]
+    gdim <- dd$gdim
     
     selectable <- 'true'
     unSelectable <- 'true'
@@ -75,7 +77,7 @@ pointSingleSelectJS <- function(env,dim,color,serieType) {
     }
 
      highcharter::JS(paste0("function(event){
-    pointSingleSelect('",dim,"',this, event,",selectable,",",unSelectable,",",drillable,",'",color,"');
+    pointSingleSelect('",gdim,"',this, event,",selectable,",",unSelectable,",",drillable,",'",color,"');
 }"))
 }
 
@@ -280,6 +282,7 @@ makeHcWidget <- function(env,dim,prep){
 prepHc <- function(env, dim, pres, print = FALSE) {
 
     dd <- env$dims[[dim]]
+    gdim <- dd$gdim
     
     presList <- dd$presList
     presType <- presList[[pres]]$type
@@ -588,10 +591,10 @@ prepHc <- function(env, dim, pres, print = FALSE) {
         
         plotOptionsOpts$series$events$hide <- highcharter::JS(paste0("function(){
                                                              var number = Math.random();
-                                                             Shiny.onInputChange('",dim,"HighchartHide',{r: number, data: this.options.id})}"))
+                                                             Shiny.onInputChange('",gdim,"HighchartHide',{r: number, data: this.options.id})}"))
         plotOptionsOpts$series$events$show <- highcharter::JS(paste0("function(){
                                                                var number = Math.random();
-                                                               Shiny.onInputChange('",dim,"HighchartShow',{r: number, data: this.options.id})}"))
+                                                               Shiny.onInputChange('",gdim,"HighchartShow',{r: number, data: this.options.id})}"))
     } 
 
     ret <- list(
@@ -658,8 +661,9 @@ listDiff <- function(l1,l2) {
 renderHighchartDim <- function(env, dim, input,output) {
 
     dd <- env$dims[[dim]]
+    gdim <- dd$gdim
     
-    outputChart <- paste0(dim,'DimChart')
+    outputChart <- paste0(gdim,'DimChart')
     env$hcRenderers[[dim]] <- reactiveValues(count=0)
     obs <- dd$observers
 
@@ -694,7 +698,7 @@ renderHighchartDim <- function(env, dim, input,output) {
     # observers voor highcharts
     #
 
-    highchartsClickEvent <- paste0(dim,'HighchartClick')
+    highchartsClickEvent <- paste0(gdim,'HighchartClick')
 
     if (!(highchartsClickEvent %in% obs)) {
 
@@ -718,8 +722,8 @@ renderHighchartDim <- function(env, dim, input,output) {
             unSelect <- event$unSelect
             id <- event$id
 
-            if(exists(paste0(dim,'HighChartsClickHook'))) {
-                do.call(paste0(dim,'HighChartsClickHook'),list(event = event))
+            if(exists(paste0(gdim,'HighChartsClickHook'))) {
+                do.call(paste0(gdim,'HighChartsClickHook'),list(event = event))
             }
 
             if (select || unSelect || drill) {
@@ -772,7 +776,7 @@ renderHighchartDim <- function(env, dim, input,output) {
     }
 
 
-    highchartsHideEvent <- paste0(dim,'HighchartHide')
+    highchartsHideEvent <- paste0(gdim,'HighchartHide')
 
     if (!(highchartsHideEvent %in% obs)) {
 
@@ -792,7 +796,7 @@ renderHighchartDim <- function(env, dim, input,output) {
         obs <- c(obs,highchartsHideEvent)
     }
 
-    highchartsShowEvent <- paste0(dim,'HighchartShow')
+    highchartsShowEvent <- paste0(gdim,'HighchartShow')
 
     if (!(highchartsShowEvent %in% obs)) {
 
@@ -813,7 +817,7 @@ renderHighchartDim <- function(env, dim, input,output) {
         obs <- c(obs,highchartsShowEvent)
     }
 
-    highchartsPbClickEvent <- paste0(dim,'HighchartPbClick')
+    highchartsPbClickEvent <- paste0(gdim,'HighchartPbClick')
 
     if (!(highchartsPbClickEvent %in% obs)) {
 
@@ -834,8 +838,8 @@ renderHighchartDim <- function(env, dim, input,output) {
             select <- event$select
             unSelect <- event$unSelect
 
-            if(exists(paste0(dim,'HighChartsPbClickHook'))) {
-                do.call(paste0(dim,'HighChartsPbClickHook'),list(event = event))
+            if(exists(paste0(gdim,'HighChartsPbClickHook'))) {
+                do.call(paste0(gdim,'HighChartsPbClickHook'),list(event = event))
             }
 
             if (select || unSelect || drill) {
@@ -916,7 +920,7 @@ renderHighchartDim <- function(env, dim, input,output) {
         obs <- c(obs,highchartsPbClickEvent)
     }
 
-    highchartsReadyEvent <- paste0(dim,'HighchartReady')
+    highchartsReadyEvent <- paste0(gdim,'HighchartReady')
 
     if (!(highchartsReadyEvent %in% obs)) {
 
@@ -937,6 +941,8 @@ renderHighchartDim <- function(env, dim, input,output) {
 processHighCharts <- function(env,dim,pres){
 
     dd <- env$dims[[dim]]
+    gdim <- dd$gdim
+    
     chart <- env$hcPrep[[dim]]
     
     if (is.null(chart))
@@ -982,7 +988,7 @@ processHighCharts <- function(env,dim,pres){
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'seriesData')
 
             shinyjs::js$updateSeriesData(
-                dim = dim,
+                dim = gdim,
                 seriesData = l2,
                 redraw = FALSE)
             
@@ -1001,7 +1007,7 @@ processHighCharts <- function(env,dim,pres){
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'seriesOpts')
 
             shinyjs::js$updateSeriesOpts(
-                dim = dim,
+                dim = gdim,
                 seriesOpts = lapply(seq_along(l1),function(x) listDiff(l1[[x]],l2[[x]])),
                 redraw = FALSE)
             
@@ -1023,7 +1029,7 @@ processHighCharts <- function(env,dim,pres){
             for (axis in seq_along(l2)) {
                 
                 shinyjs::js$updateYAxis(
-                    dim = dim,
+                    dim = gdim,
                     axis = axis - 1,
                     yAxisOpts = listDiff(l1[[axis]],l2[[axis]]),
                     redraw = FALSE)
@@ -1037,7 +1043,7 @@ processHighCharts <- function(env,dim,pres){
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'xAxisOpts')
 
             shinyjs::js$updateXAxis(
-                dim = dim,
+                dim = gdim,
                 axis = 0,
                 xAxisOpts = listDiff(env$hcPrev[[dim]]$xAxisOpts,chart$xAxisOpts),
                 redraw = FALSE)
@@ -1048,7 +1054,7 @@ processHighCharts <- function(env,dim,pres){
         if(!identical(env$hcPrev[[dim]]$titleOpts,chart$titleOpts)) {
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'titleOpts')
             shinyjs::js$updateTitle(
-                dim = dim,
+                dim = gdim,
                 titleOpts = listDiff(env$hcPrev[[dim]]$titleOpts,chart$titleOpts),
                 redraw = FALSE)
             change <- TRUE
@@ -1056,14 +1062,14 @@ processHighCharts <- function(env,dim,pres){
 
 
         if (change) {
-            shinyjs::js$redraw(dim = dim,animate = FALSE)
+            shinyjs::js$redraw(dim = gdim,animate = FALSE)
         }
 
         if (length(chart$plotBands) > 0) {
 
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'xPlotBands')
             shinyjs::js$updateXPlotBands(
-                dim = dim,
+                dim = gdim,
                 plotBands = chart$plotBands,
                 redraw = FALSE)
         }
