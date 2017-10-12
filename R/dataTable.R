@@ -188,9 +188,15 @@ getSelectedItems <- function(env,dim){
     m
 }
 
-makeWidget <- function(env,dim,prep) {
+makeDtWidget <- function(env,dim,prep) {
     
     dd <- env$dims[[dim]]
+    print <- prep$print
+    
+    height <- NULL
+    
+    if (print)
+        height <- 100
     
     dt <- DT::datatable(
         prep$tab,
@@ -200,7 +206,8 @@ makeWidget <- function(env,dim,prep) {
         escape = FALSE,
         class = 'compact stripe hover row-border',
         selection = prep$selection,
-        callback = callbackJS(dim)
+        callback = callbackJS(dim),
+        height = height
     ) %>%
         DT::formatStyle(
             columns = 1,
@@ -219,6 +226,10 @@ makeWidget <- function(env,dim,prep) {
     }
     
     meas <- prep$meas
+    
+    if (print) {
+        meas <- meas[meas$print,]    
+    }
     
     if ('colorBarColor1' %in% names(meas)) {
         
@@ -360,8 +371,10 @@ makeWidget <- function(env,dim,prep) {
     dt
 }
 
-
-prepDt <- function(env,dim,pres) {
+#'
+#' @export
+#'
+prepDt <- function(env,dim,pres,print = FALSE) {
 
     dd <- env$dims[[dim]]
     presList <- dd$presList
@@ -393,12 +406,15 @@ prepDt <- function(env,dim,pres) {
         merge(measList[measList$category %in% c('tooltip','sort'),], measures,by.x = 'viewColumn', by.y = 'viewColumn', all.x = TRUE))
     
     meas$visible[is.na(meas$visible)] <- FALSE
+    meas$print[is.na(meas$print)] <- FALSE
 
-    measures <- measures[measures$viewColumn %in% measList$viewColumn,]
+    measures <- measures[measures$viewColumn %in% measList$viewColumn &
+                         measures$visible &
+                        (measures$print | !print),]
 
     tab <- data.frame(
         zoom = '+',
-        addFormatting(env,dim,dd$membersFiltered,measures[measures$visible,],FALSE),
+        addFormatting(env,dim,dd$membersFiltered,measures,FALSE),
         stringsAsFactors = FALSE)
 
     #
@@ -413,8 +429,8 @@ prepDt <- function(env,dim,pres) {
     #
 
     formattedColumns <- grep('*_fc',names(tab),value = TRUE)
-    textColumns <- meas$viewColumn[meas$category == 'text']
-
+    textColumns <- meas$viewColumn[meas$category == 'text' & (meas$print | !print)]
+        
     if (length(textColumns) > 0) {
         tab[[textColumns]] <- as.character(tab[[textColumns]])
     }
@@ -529,6 +545,7 @@ prepDt <- function(env,dim,pres) {
         }
 
     }
+    
 
     #
     # what is hidden?
@@ -536,13 +553,11 @@ prepDt <- function(env,dim,pres) {
 
     hideCols <- setdiff(0:(length(names(tab))-1),visCols)
 
-    # if (lvl == dd$maxLevel || all(tab$zoom == '')) {
-    #     hideCols <- c(0,hideCols)
-    # }
+    if (print) {
+        hideCols <- c(0,hideCols)
+    }
 
     if (!lvl %in% dd$selectableLevels) {
-        # if (length(measColNames) > 0) 
-        #     hideCols <- unique(c(hideCols,seq(1:length(measColNames)) + 2))
         selection = list(mode = 'none')
     }
 
@@ -552,7 +567,7 @@ prepDt <- function(env,dim,pres) {
 
     if (nrow(tab) > 1 && lvl %in% dd$footerLevels) {
         
-        footer <- addFormatting(env,dim,dd$footer,measures[measures$visible,],TRUE)
+        footer <- addFormatting(env,dim,dd$footer,measures,TRUE)
         
         footer$memberKey <- ''
         footer <- footer[,c(names(footer)[1],'memberKey',measViewColNames)]
@@ -571,7 +586,13 @@ prepDt <- function(env,dim,pres) {
         ft <- ''
         orderable <- FALSE
     }
-
+    
+    if (print) {
+        paging <- FALSE
+        dom <- 'rt'
+        orderable <- FALSE
+        selection = list(mode = 'none')
+    }
 
     # set presented column names
 
@@ -586,7 +607,7 @@ prepDt <- function(env,dim,pres) {
         notOrderable <- c(0)
     }
 
-    leftAlign <- which(names(tab) %in% meas$as[meas$align == 'left']) - 1
+    leftAlign <- which(names(tab) %in% union(dd$itemName,meas$as[meas$align == 'left'])) - 1
     centerAlign <- which(names(tab) %in% meas$as[meas$align == 'center']) - 1
     rightAlign <- setdiff(setdiff(union(which(names(tab) %in% meas$as[meas$align == 'right']) - 1,formattedColNrs),centerAlign),leftAlign)
 
@@ -678,12 +699,15 @@ prepDt <- function(env,dim,pres) {
         container = container,
         selection = selection,
         meas = meas,
+        print = print,
         hasFormatting = hasFormatting,
         page = (firstRow - 1) %/% pageLength)
     
-    ret$widget <- makeWidget(env,dim,ret)
+    ret$widget <- makeDtWidget(env,dim,ret)
 
-    env$dtPrep[[dim]] <- ret
+    if (!print)
+        env$dtPrep[[dim]] <- ret
+    
     ret
 }
 
@@ -716,9 +740,9 @@ renderDataTableDim <- function(env,dim,input,output) {
     }, 
     server = serverSide)
     
-    # shiny::outputOptions(output,outputDim,suspendWhenHidden = FALSE)
-    # shiny::outputOptions(output,outputDim,priority = 10)
-    
+    shiny::outputOptions(output,outputDim,suspendWhenHidden = FALSE)
+    shiny::outputOptions(output,outputDim,priority = 10)
+
     #
     # observers
     #

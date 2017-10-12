@@ -494,6 +494,7 @@ addDimView <- function(
         orderChange = 0,
         pageChange = 0,
         pageLengthChange = 0,
+        presChange = 0,
         clickMeasureEvent = list(
             clickCount = 0,
             clickViewColumn = '',
@@ -1158,7 +1159,8 @@ addTextColumn <- function(env, dim, textColumn, as, viewColumn, sort = NULL, lev
 #'         \item fontWeight: string, mag zijn: normal of bold. default normal.
 #'         \item align: string, bepaalt uitlijning in kolom: left, center of right. 
 #'         \item cursor: string, te hanteren cursor voor deze kolom als muis over de kolom gaat.
-#'         \item visible: boolean, als FALSE is kolom niet zichtbaar in UI. 
+#'         \item visible: boolean, als FALSE is kolom niet zichtbaar in UI, default TRUE. 
+#'         \item print: boolean, als FALSE wordt kolom niet in printbare documenten (pdf etc) getoond, default TRUE.
 #'     }
 #'     \item pageLength: integer, aantal regels per pagina in het geval van een langere lijst van dimView-members.
 #'     \item pageLengthList: numeric, vector met pagina lengtes waaruit gebruiker kan kiezen.
@@ -1295,6 +1297,13 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                     dataTableOpts$measures[[i]]$visible <- x$visible
                 } else {
                     dataTableOpts$measures[[i]]$visible <- TRUE
+                }
+                
+                if ('print' %in% names(x)) {
+                    assert_is_a_bool(x$print)
+                    dataTableOpts$measures[[i]]$print <- x$print
+                } else {
+                    dataTableOpts$measures[[i]]$print <- TRUE
                 }
 
                 dataTableOpts$measures[[i]] <- rlist::list.flatten(dataTableOpts$measures[[i]])

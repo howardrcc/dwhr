@@ -10,8 +10,10 @@ startObserversData <- function(env,dim) {
     if (!('levelChange' %in% obs)) {
         shiny::observeEvent(dd$reactive$levelChange,{
 
-            if(dd$reactive$levelChange > 0)
-                printDebug(env = env, dim, eventIn = 'levelChange', info = paste0('new level:',dd$level))
+            if(dd$reactive$levelChange == 0)
+                return()
+            
+            printDebug(env = env, dim, eventIn = 'levelChange', info = paste0('new level:',dd$level))
 
             dd$searchTxt <- ""
 
@@ -49,8 +51,10 @@ startObserversData <- function(env,dim) {
     if (!('orderChange' %in% obs)) {
         shiny::observeEvent(dd$reactive$orderChange,{
 
-            if(dd$reactive$orderChange > 0)
-                printDebug(env = env, dim, eventIn = 'orderChange')
+            if(dd$reactive$orderChange == 0)
+                return()
+            
+            printDebug(env = env, dim, eventIn = 'orderChange')
 
             dd$searchTxt <- ""
 
@@ -95,8 +99,10 @@ startObserversData <- function(env,dim) {
     if (!('pageChange' %in% obs)) {
         shiny::observeEvent(dd$reactive$pageChange,{
 
-            if(dd$reactive$pageChange > 0)
-                printDebug(env = env, dim, eventIn = 'pageChange')
+            if(dd$reactive$pageChange == 0)
+                return()
+            
+            printDebug(env = env, dim, eventIn = 'pageChange')
 
             if(exists(paste0(dim,'PageChangeHook'),envir = env$ce)) {
                 do.call(paste0(dim,'PageChangeHook'),list(),envir = env$ce)
@@ -129,8 +135,10 @@ startObserversData <- function(env,dim) {
     if (!('pageLengthChange' %in% obs)) {
         shiny::observeEvent(dd$reactive$pageLengthChange,{
 
-            if(dd$reactive$pageLengthChange > 0)
-                printDebug(env = env, dim, eventIn = 'pageLengthChange')
+            if(dd$reactive$pageLengthChange == 0)
+                return()
+
+            printDebug(env = env, dim, eventIn = 'pageLengthChange')
 
             if(exists(paste0(dim,'PageLengthChangeHook'),envir = env$ce)) {
                 do.call(paste0(dim,'PageLengthChangeHook'),list(),envir = env$ce)
@@ -474,10 +482,10 @@ startObserversPres <- function(env,dim,pres) {
             printDebug(env = env, dim, eventIn = 'dimRefresh', info = paste0('presType: ',presType))
 
             if (presType == 'highCharts') {
-                processHighCharts(env,dim,pres)
+                processHighCharts(env,dim,dd$pres)
             }
             if (presType == 'dataTable') {
-                processDataTable(env,dim,pres)
+                processDataTable(env,dim,dd$pres)
             }
         })
 
@@ -491,11 +499,15 @@ startObserversPres <- function(env,dim,pres) {
         if (!(dimPres %in% obs)) {
             
             shiny::observeEvent(inp[[dimPres]],{
-                
-                if (!(dim %in% visibleDims(env))) {  
+
+                if (!(dim %in% visibleDims(env)) || dd$pres == inp[[dimPres]]) {  
                     return()
                 }
-
+               
+                dd$reactive$presChange <- dd$reactive$presChange + 1
+                
+                printDebug(env = env, dim, eventIn = dimPres, eventOut = 'presChange')
+                
                 presList <- dd$presList
                 dd$pres <- inp[[dimPres]]
                 presType <- presList[[dd$pres]]$type
@@ -516,7 +528,8 @@ startObserversPres <- function(env,dim,pres) {
     
     if (presListType == 'links') {
         
-        dimPresLink <- paste0(dim,'PresLink',length(dd$presList) - 1)
+        presNum <- length(dd$presList)
+        dimPresLink <- paste0(dim,'PresLink',presNum)
         
         if (!(dimPresLink %in% obs)) {
             
@@ -526,8 +539,13 @@ startObserversPres <- function(env,dim,pres) {
                     return()
                 }
                 
+                printDebug(env = env, dim, eventIn = dimPresLink, eventOut = 'presChange')
+                
+                dd$reactive$presChange <- dd$reactive$presChange + 1
+                
                 presList <- dd$presList
-                dd$pres <- inp[[dimPresLink]]
+
+                dd$pres <- names(presList)[presNum]
                 presType <- presList[[dd$pres]]$type
                 
                 if (presType == 'highCharts') {

@@ -49,7 +49,9 @@ renderDims <- function(env,input,output) {
                     
                     if (length(presVec) > 1) {
                         
+                        
                         if (dd$presListType == 'dropdown') {
+                            
                             txt <- '<span style = "font-size:90%; display: inline-block; margin-right:20px; margin-top:2px; float:right;">'
                             
                             txt <- paste0(
@@ -60,9 +62,29 @@ renderDims <- function(env,input,output) {
                                     choices = presVec,
                                     width = "150px",
                                     selected = dd$defPres))
-                            
-                            txt <- paste0(txt, '</span>') 
                         }
+                        
+                        if (dd$presListType == 'links') {
+                        
+                            txt <- '<span style = "font-size:120%; float:right;">'
+                            
+                            for (i in 1:length(presVec)) {
+                                
+                                input[[paste0(dim,'PresLink',i)]]
+                                
+                                if (dd$pres == presVec[i]) {
+                                    txt <- paste0(txt,span(names(presVec)[i],style = 'background-color: #f4f4f4', title = 'representatie'))
+                                } else {
+                                    txt <- paste0(txt,shiny::actionLink(inputId = paste0(dim,'PresLink',i), label = names(presVec)[i], title = 'representatie'))
+                                }
+                                
+                                if (length(presVec) > i)
+                                    txt <- paste0(txt,'&nbsp&nbsp&nbsp&nbsp')
+                            }
+                        }
+                        
+                        txt <- paste0(txt, '</span>') 
+                        
                         HTML(txt)
                     }
                     
@@ -75,6 +97,8 @@ renderDims <- function(env,input,output) {
                 output[[outputName]] <- shiny::renderUI({
                     
                     printDebug(env = env, dim, eventIn = 'renderName')
+                    
+                    dd$reactive$presChange
                     
                     presList <- dd$presList
                     presType <- presList[[dd$pres]]$type
@@ -96,6 +120,8 @@ renderDims <- function(env,input,output) {
                 output[[outputName]] <- shiny::renderUI({
                     
                     printDebug(env = env, dim, eventIn = 'renderLinks')
+                    
+                    dd$reactive$presChange
                     
                     presList <- dd$presList
                     
@@ -135,6 +161,7 @@ renderDims <- function(env,input,output) {
 
                     dd$reactive$levelChange
                     dd$reactive$isFiltered
+                    dd$reactive$presChange
 
                     presList <- dd$presList
                   
@@ -200,7 +227,9 @@ renderDims <- function(env,input,output) {
                 output[[outputBody]] <- shiny::renderUI({
 
                     printDebug(env = env, dim, eventIn = 'renderBody')
-
+                    
+                    dd$reactive$presChange
+                    
                     presList <- dd$presList
 
                     presType <- presList[[dd$pres]]$type
@@ -252,6 +281,7 @@ renderDims <- function(env,input,output) {
 
                     printDebug(env = env, dim, eventIn = 'renderFooter')
                     
+                    dd$reactive$presChange
                     val <- input[[paste0(dim,'DimMs')]]
 
                     presList <- dd$presList

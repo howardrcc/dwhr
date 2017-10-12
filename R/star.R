@@ -58,7 +58,7 @@ domains <- list(
     selectMode = c('single','multi','none'),
     dataTableOpts =  c('measures', 'pageLength', 'pageLengthList','serverSideTable'),
     dataTableMeasures = c('colorBarColor1','colorBarColor2','viewColumn','format', 'orderable',
-                          'bgStyle','fgStyle','width','fontWeight','align','cursor','visible'),
+                          'bgStyle','fgStyle','width','fontWeight','align','cursor','visible','print'),
     dataTableStyle = c('cuts','levels','values','valueColumn'),
     dataTableFormats = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3','hidden','paperclip'),
     fontWeight = c('bold','normal'),

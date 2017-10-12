@@ -191,7 +191,93 @@ getAdhocSlice <- function(env, dim,level,parent,selected) {
 
 }
 
-prepChart <- function(env,dim,pres) {
+makeHcWidget <- function(env,dim,prep){
+    
+    print <- prep$print
+    
+    hcoptslang <- getOption("highcharter.lang")
+    hcoptslang$thousandsSep <- "."
+    hcoptslang$decimalPoint <- ','
+    options(highcharter.lang = hcoptslang)
+    
+    a <- highcharter::highchart()
+
+    if (!is.null(prep$chartOpts)) {
+        prep$chartOpts$hc = a
+        prep$chartOpts$events$redraw <- readyJS(dim)
+        a <- do.call(eval(parse(text = 'highcharter::hc_chart')), prep$chartOpts)
+    }
+    
+    patterns <- lapply(env$customPatterns[[dim]],function(x) {return (x)})
+    
+    if (length(patterns) > 0) {
+        
+        names(patterns) <- NULL  # het moet een unnamed list zijn
+        
+        defsOpts <- list(
+            hc = a,
+            patterns = patterns)
+        
+        a <- do.call(eval(parse(text = 'highcharter::hc_defs')), defsOpts)
+    }
+    
+    if (!is.null(prep$titleOpts)) {
+        prep$titleOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_title')), prep$titleOpts)
+    }
+    
+    if(!is.null(prep$xAxisOpts)) {
+        prep$xAxisOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_xAxis')), prep$xAxisOpts)
+    }
+    
+    if(!is.null(prep$yAxisOpts)) {
+        prep$yAxisOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_yAxis_multiples')), prep$yAxisOpts)
+    }
+    
+    if(!is.null(prep$tooltipOpts)) {
+        prep$tooltipOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_tooltip')), prep$tooltipOpts)
+    }
+    
+    if (!is.null(prep$legendOpts)) {
+        prep$legendOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_legend')), prep$legendOpts)
+    }
+    
+    if (!is.null(prep$paneOpts)) {
+        prep$paneOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_pane')), prep$paneOpts)
+    }
+    
+    if (!is.null(prep$plotOptionsOpts)) {
+        prep$plotOptionsOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_plotOptions')), prep$plotOptionsOpts)
+    }
+    
+    a <- a %>%
+        highcharter::hc_add_series_list(prep$seriesOpts) %>%
+        highcharter::hc_add_theme(highcharter::hc_theme_smpl())
+    
+    
+    # hc_credits( enabled = TRUE
+    #           , position = list(
+    #                 align = 'right',
+    #                 x = -10,
+    #                 verticalAlign = 'top',
+    #                 y = 20)
+    #           , style =  list(color = 'black', fontSize= '12px')
+    #             , text = "Business Intelligence and Analytics") %>%
+    
+    a
+    
+}
+
+#'
+#' @export
+#'
+prepHc <- function(env, dim, pres, print = FALSE) {
 
     dd <- env$dims[[dim]]
     
@@ -518,10 +604,14 @@ prepChart <- function(env,dim,pres) {
         chartOpts = chartOpts,
         titleOpts = titleOpts,
         paneOpts = paneOpts,
-        plotBands = plotBands
-    )
+        plotBands = plotBands,
+        print = print)
 
-    env$hcPrep[[dim]] <- ret
+    ret$widget <- makeHcWidget(env,dim,ret)
+    
+    if (!print)
+        env$hcPrep[[dim]] <- ret
+    
     ret
 
 }
@@ -577,105 +667,28 @@ renderHighchartDim <- function(env, dim, input,output) {
 
         env$hcRenderers[[dim]]$count
 
-        presList <- dd$presList
         pres <- dd$pres
+        prep <- env$hcPrep[[dim]]
         
         if (env$hcRenderers[[dim]]$count == 0) {
             return()
         }
 
         printDebug(env, dim, eventIn = 'renderHighCharts', info = paste0('rendercount:', env$hcRenderers[[dim]]$count))
-
-        hcoptslang <- getOption("highcharter.lang")
-        hcoptslang$thousandsSep <- "."
-        hcoptslang$decimalPoint <- ','
-        options(highcharter.lang = hcoptslang)
-
-        a <- highcharter::highchart()
-
-        chart <- env$hcPrep[[dim]]
-
-        if (is.null(chart))
-            chart <- prepChart(env,dim,pres)
-
-        env$hcPrev[[dim]] <- removeCallbacks(chart)
+        
+        if (is.null(prep))
+            prep <- prepHc(env,dim,pres)
+        
+        env$hcPrev[[dim]] <- removeCallbacks(prep)
         env$hcPrep[[dim]] <- NULL
-
-
-        if (!is.null(chart$chartOpts)) {
-            chart$chartOpts$hc = a
-            chart$chartOpts$events$redraw <- readyJS(dim)
-            a <- do.call(eval(parse(text = 'highcharter::hc_chart')), chart$chartOpts)
-        }
-
-        patterns <- lapply(env$customPatterns[[dim]],function(x) {return (x)})
-
-        if (length(patterns) > 0) {
-
-            names(patterns) <- NULL  # het moet een unnamed list zijn
-
-            defsOpts <- list(
-                hc = a,
-                patterns = patterns)
-
-            a <- do.call(eval(parse(text = 'highcharter::hc_defs')), defsOpts)
-        }
-
-        if (!is.null(chart$titleOpts)) {
-            chart$titleOpts$hc <- a
-            a <- do.call(eval(parse(text = 'highcharter::hc_title')), chart$titleOpts)
-        }
-
-        if(!is.null(chart$xAxisOpts)) {
-            chart$xAxisOpts$hc <- a
-            a <- do.call(eval(parse(text = 'highcharter::hc_xAxis')), chart$xAxisOpts)
-        }
-
-        if(!is.null(chart$yAxisOpts)) {
-            chart$yAxisOpts$hc <- a
-            a <- do.call(eval(parse(text = 'highcharter::hc_yAxis_multiples')), chart$yAxisOpts)
-        }
-
-        if(!is.null(chart$tooltipOpts)) {
-            chart$tooltipOpts$hc <- a
-            a <- do.call(eval(parse(text = 'highcharter::hc_tooltip')), chart$tooltipOpts)
-        }
-
-        if (!is.null(chart$legendOpts)) {
-            chart$legendOpts$hc <- a
-            a <- do.call(eval(parse(text = 'highcharter::hc_legend')), chart$legendOpts)
-        }
-
-        if (!is.null(chart$paneOpts)) {
-            chart$paneOpts$hc <- a
-            a <- do.call(eval(parse(text = 'highcharter::hc_pane')), chart$paneOpts)
-        }
-
-        if (!is.null(chart$plotOptionsOpts)) {
-            chart$plotOptionsOpts$hc <- a
-            a <- do.call(eval(parse(text = 'highcharter::hc_plotOptions')), chart$plotOptionsOpts)
-        }
-
-        a <- a %>%
-            highcharter::hc_add_series_list(chart$seriesOpts) %>%
-            highcharter::hc_add_theme(highcharter::hc_theme_smpl())
-
-
-        # hc_credits( enabled = TRUE
-        #           , position = list(
-        #                 align = 'right',
-        #                 x = -10,
-        #                 verticalAlign = 'top',
-        #                 y = 20)
-        #           , style =  list(color = 'black', fontSize= '12px')
-        #             , text = "Business Intelligence and Analytics") %>%
-
-        a
+        
+        prep$widget
+        
     })
     
-    # shiny::outputOptions(output,outputChart,suspendWhenHidden = FALSE)
-    # shiny::outputOptions(output,outputChart,priority = 5)
-    # 
+    shiny::outputOptions(output,outputChart,suspendWhenHidden = FALSE)
+    shiny::outputOptions(output,outputChart,priority = 5)
+
 
     #
     # observers voor highcharts
@@ -927,7 +940,7 @@ processHighCharts <- function(env,dim,pres){
     chart <- env$hcPrep[[dim]]
     
     if (is.null(chart))
-        chart <- prepChart(env,dim,pres)
+        chart <- prepHc(env,dim,pres)
 
     presList <- dd$presList
     useUpdate <- presList[[pres]]$highChartsOpts$dashboard$useUpdate

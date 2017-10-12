@@ -76,7 +76,8 @@ getoond worden op het scherm. Hoe de navigatie in dat geval moet verlopen kan vi
         \item fontWeight: string, mag zijn: normal of bold. default normal.
         \item align: string, bepaalt uitlijning in kolom: left, center of right. 
         \item cursor: string, te hanteren cursor voor deze kolom als muis over de kolom gaat.
-        \item visible: boolean, als FALSE is kolom niet zichtbaar in UI. 
+        \item visible: boolean, als FALSE is kolom niet zichtbaar in UI, default TRUE. 
+        \item print: boolean, als FALSE wordt kolom niet in printbare documenten (pdf etc) getoond, default TRUE.
     }
     \item pageLength: integer, aantal regels per pagina in het geval van een langere lijst van dimView-members.
     \item pageLengthList: numeric, vector met pagina lengtes waaruit gebruiker kan kiezen.

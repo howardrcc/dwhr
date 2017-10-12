@@ -44,7 +44,7 @@ function(input, output, session) {
             as = c('som','distinct','mediaan'),        # te tonen kolomnaam voor de measure
             format = c('decimal2','decimal2','euro2'), # te tonen format van de measure
             sort = c(30,20,10),
-            levels = c(2,3)
+            levels = c(1,2,3)
             ) %>%
         addPresentation(
             dim = 'per' ,
