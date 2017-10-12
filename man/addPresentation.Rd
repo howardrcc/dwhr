@@ -4,10 +4,10 @@
 \alias{addPresentation}
 \title{Toevoegen van een presentatie aan een dimView object.}
 \usage{
-addPresentation(env, dim, uiId = dim, type, as, name = "",
+addPresentation(env, dim, uiId = NULL, type, as, name = "",
   isDefault = FALSE, height = NULL, width = NULL, useLevels = NULL,
   navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL,
-  highChartsOpts = NULL)
+  highChartsOpts = NULL, checkUiId = TRUE)
 }
 \arguments{
 \item{env}{sterschema object, gecreeerd met \code{\link{new.star}}.}
@@ -84,7 +84,7 @@ getoond worden op het scherm. Hoe de navigatie in dat geval moet verlopen kan vi
     \item serverSideTable: boolean, Als TRUE wordt de data slechts gedeeltelijk geladen in client. Toe te passen voor (zeer) grote dimViews.
 }}
 
-\item{highChartOpts}{}
+\item{checkUiId}{boolean, als TRUE: controleer of uiId in de client voorkomt, default TRUE.}
 }
 \value{
 gewijzigd sterschema object.

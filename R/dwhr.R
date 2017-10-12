@@ -441,7 +441,11 @@ addDimView <- function(
 
     l$presListType <- presListType
     l$call <- match.call()
+    l$measureCalls <- list()
+    l$derrivedMeasureCalls <- list()
+    l$presentationCalls <- list()
     l$name <- name
+    l$globalDim <- paste0(env$id,toupper(substr(dim,1,1)),substr(dim,2,100))
     l$master <- TRUE
     l$views <- list()
     l$data <- data
@@ -773,6 +777,8 @@ addMeasure <- function(env, dim, factColumn, fun, as = factColumn, viewColumn = 
     error = function(c) {
         dwhrStop(conditionMessage(c))
     })
+    
+    dd$measureCalls[[length(dd$measureCalls) + 1]] <- match.call()
 
     ml <- rbind(
         ml,
@@ -891,6 +897,8 @@ addMeasureDerrived <- function(env, dim, userFunc, as, viewColumn = NULL, sort =
         dwhrStop(conditionMessage(c))
     })
 
+    dd$derrivedMeasureCalls[[length(dd$derrivedMeasureCalls) + 1]] <- match.call()
+    
     ml <- rbind(
         ml,
         data.frame(
@@ -972,6 +980,8 @@ addSortColumn <- function(env, dim, sortColumn, levels = NULL) {
     error = function(c) {
         dwhrStop(conditionMessage(c))
     })
+    
+    dd$measureCalls[[length(dd$measureCalls) + 1]] <- match.call()
 
     ml <- rbind(
         ml,
@@ -1023,7 +1033,9 @@ addTooltipColumn <- function(env, dim, tooltipColumn, levels = NULL) {
     error = function(c) {
         dwhrStop(conditionMessage(c))
     })
-
+    
+    dd$measureCalls[[length(dd$measureCalls) + 1]] <- match.call()
+    
     sort <- max(ml$sort) + 1
 
     ml <- rbind(
@@ -1078,6 +1090,8 @@ addTextColumn <- function(env, dim, textColumn, as, viewColumn, sort = NULL, lev
     error = function(c) {
         dwhrStop(conditionMessage(c))
     })
+    
+    dd$measureCalls[[length(dd$measureCalls) + 1]] <- match.call()
 
     ml <- rbind(
         ml,
@@ -1167,20 +1181,21 @@ addTextColumn <- function(env, dim, textColumn, as, viewColumn, sort = NULL, lev
 #'     \item serverSideTable: boolean, Als TRUE wordt de data slechts gedeeltelijk geladen in client. Toe te passen voor (zeer) grote dimViews.
 #' }
 #' @param highChartOpts
+#' @param checkUiId boolean, als TRUE: controleer of uiId in de client voorkomt, default TRUE.
 #'
 #'@return gewijzigd sterschema object.
 #'
 #'@export
 #'
-addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault = FALSE, height = NULL, width = NULL,
-    useLevels = NULL, navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL) {
+addPresentation <- function(env, dim, uiId = NULL, type, as, name = '', isDefault = FALSE, height = NULL, width = NULL,
+    useLevels = NULL, navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL, checkUiId = TRUE) {
 
     withCallingHandlers({
 
         class(env) == 'star' || stop('env is not of class star')
 
         assert_is_a_string(dim)
-        assert_is_a_string(uiId)
+        assert_is_a_string(isNull(uiId,''))
         assert_is_a_string(type)
         assert_is_a_string(as)
         assert_is_a_string(name)
@@ -1199,8 +1214,12 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
 
         dd <- env$dims[[dim]]
         class(dd) == 'dimView' || stop('dim is not of class dimView')
+        
+        if (is.null(uiId)) {
+            uiId = dd$globalDim
+        }
 
-        #uiId %in% glob.env$dimUiIds || stop('uiId not in UI')
+        !checkUiId || uiId %in% glob.env$dimUiIds || stop('uiId not in UI')
         length(useLevels) == 0 || dim != uiId || stop('useLevels not valid for dim == uiId')
 
         assert_is_subset(type,domains[['presType']])
@@ -1357,13 +1376,15 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
     error = function(c) {
         dwhrStop(conditionMessage(c))
     })
+    
+    dd$presentationCalls[[length(dd$presentationCalls) + 1]] <- match.call()
 
     if (!is.null(highChartsOpts)) domainCheck(names(highChartsOpts),'highChartsOpts')
 
     if (type %in% c('radioButton','selectInput'))
         (dd$type == 'input' && isSingleLevel(env,dim) && dd$selectMode == 'single') || dwhrStop('Presentation type not valid for this dim')
 
-    if (uiId != dim) {
+    if (uiId != dd$globalDim) {
 
         if (!uiId %in% names(env$dims)) {
             is.null(dd$syncNav) || dd$syncNav == navOpts$syncNav || dwhrStop('Incompatible syncNav')
@@ -1723,6 +1744,87 @@ setColumnName <- function(env,dim,colFrom, viewColFrom = NULL,colTo) {
 #'
 setDebug <- function(debug) {
     glob.env$debug <- debug
+}
+
+
+#'
+#' @export
+#'
+clone.star <- function(from, toId, dimViews = list()) {
+    
+    call <- from$call
+    call$id <- toId
+    
+    to <- eval(call, envir = from$ce)
+    
+    for (dv in names(dimViews)) {
+        
+        call <- from$dims[[dv]]$call
+        call$env <- to
+        call$dim <- paste0(dv,'_',toId)
+        eval(call, envir = from$ce)
+        
+        if(isNull(dimViews[[dv]]$measures,TRUE)) {
+            
+            for(mCall in from$dims[[dv]]$measureCalls) {
+                mCall$env <- to
+                mCall$dim <- paste0(dv,'_',toId)
+                eval(mCall, envir = from$ce)
+            }
+            
+        }
+        
+        if(isNull(dimViews[[dv]]$derrivedMeasures,TRUE)) {
+            
+            for(dmCall in from$dims[[dv]]$derrivedMeasureCalls) {
+                dmCall$env <- to
+                dmCall$dim <- paste0(dv,'_',toId)
+                eval(dmCall, envir = from$ce)
+            }
+            
+        }
+        
+        if(isNull(dimViews[[dv]]$presentations,TRUE)) {
+            
+            for(pCall in from$dims[[dv]]$presentationCalls) {
+                pCall$env <- to
+                pCall$dim <- paste0(dv,'_',toId)
+                eval(pCall, envir = from$ce)
+            }
+            
+        }
+    }
+    
+    to
+
+}
+
+#'
+#' @export
+#'
+navigate <- function(env,dim,level,parent) {
+    
+    dd <- env$dims[[dim]]
+    
+    if (dd$level != level || dd$parent != parent) {
+
+        ancestors <- c(parent)
+        
+        if (level >= 1) {
+            for (i in level:1) {
+                p <- ancestors[1]
+                ancestors <- c(unique(dd$pc$parentLabel[dd$pc$level == i - 1 & dd$pc$label == p]),ancestors)
+            }
+        }
+        
+        dd$level <- level
+        dd$parent <- parent
+        dd$ancestors <- ancestors
+        dd$reactive$levelChange <- dd$reactive$levelChange + 1
+        
+    }
+    
+    env
 }
 
 

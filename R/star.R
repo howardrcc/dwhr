@@ -14,7 +14,8 @@ printDebug <- function(env, dim, dumpReactive = NULL, eventIn, eventOut = NULL, 
 
     if (glob.env$debug && (is.null(glob.env$debugDims) || dim %in% glob.env$debugDims))  {
 
-        txt <- paste0(dim, '|eventIn:', eventIn)
+        gdim <- env$dims[[dim]]$globalDim
+        txt <- paste0(gdim, '|eventIn:', eventIn)
 
         if (!is.null(eventOut)) {
             txt <- paste0(txt,'|eventOut:', eventOut)
@@ -58,7 +59,7 @@ domains <- list(
     selectMode = c('single','multi','none'),
     dataTableOpts =  c('measures', 'pageLength', 'pageLengthList','serverSideTable'),
     dataTableMeasures = c('colorBarColor1','colorBarColor2','viewColumn','format', 'orderable',
-                          'bgStyle','fgStyle','width','fontWeight','align','cursor','visible','print'),
+                          'bgStyle','fgStyle','width','fontWeight','align','cursor','visible'),
     dataTableStyle = c('cuts','levels','values','valueColumn'),
     dataTableFormats = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3','hidden','paperclip'),
     fontWeight = c('bold','normal'),
@@ -113,6 +114,8 @@ cacheFind <- function(env, dim) {
     if (!env$caching) {
         return()
     }
+    
+    gdim <- env$dims[[dim]]$globalDim
 
     ss <- NULL
     for (d in sort(filteringDims(env))) {
@@ -132,7 +135,7 @@ cacheFind <- function(env, dim) {
     dfl <- env$globalCache[[env$id]][[dim]][[parent]][[lvl]][[md5]]
 
     if(!is.null(dfl)) {
-        print(paste0(dim, ': cacheHit!'))
+        print(paste0(gdim, ': cacheHit!'))
     }
 
     dfl
@@ -617,8 +620,9 @@ dimSetHasSubselect <- function(env,dim) {
 dimCorrectSelectionInfo <- function(input,env,dim) {
 
     l <- env$dims[[dim]]$selected
+    gdim <- env$dims[[dim]]$globalDim
 
-    if (nrow(l) > 1 && !(input[[paste0(dim,'DimMs')]])) {
+    if (nrow(l) > 1 && !(input[[paste0(gdim,'DimMs')]])) {
         l <- l[nrow(l),]
 
         env$dims[[dim]]$selected <- l

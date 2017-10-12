@@ -18,6 +18,7 @@ renderDims <- function(env,input,output) {
 
                 dim <- ddim
                 dd <- env$dims[[dim]]
+                gdim <- dd$globalDim
                 
                 # simple
 
@@ -39,7 +40,7 @@ renderDims <- function(env,input,output) {
                 
                 # dimension preslist
                 
-                outputName = paste0(dim,'DimPresList')
+                outputName = paste0(gdim,'DimPresList')
                 
                 output[[outputName]] <- shiny::renderUI({
                     
@@ -57,7 +58,7 @@ renderDims <- function(env,input,output) {
                             txt <- paste0(
                                 txt,
                                 shiny::selectizeInput(
-                                    inputId = paste0(dim,'Pres'),
+                                    inputId = paste0(gdim,'Pres'),
                                     label = NULL,
                                     choices = presVec,
                                     width = "150px",
@@ -70,12 +71,12 @@ renderDims <- function(env,input,output) {
                             
                             for (i in 1:length(presVec)) {
                                 
-                                input[[paste0(dim,'PresLink',i)]]
+                                input[[paste0(gdim,'PresLink',i)]]
                                 
                                 if (dd$pres == presVec[i]) {
                                     txt <- paste0(txt,span(names(presVec)[i],style = 'background-color: #f4f4f4', title = 'representatie'))
                                 } else {
-                                    txt <- paste0(txt,shiny::actionLink(inputId = paste0(dim,'PresLink',i), label = names(presVec)[i], title = 'representatie'))
+                                    txt <- paste0(txt,shiny::actionLink(inputId = paste0(gdim,'PresLink',i), label = names(presVec)[i], title = 'representatie'))
                                 }
                                 
                                 if (length(presVec) > i)
@@ -92,7 +93,7 @@ renderDims <- function(env,input,output) {
                 
                 # dimension Name
                 
-                outputName = paste0(dim,'DimName')
+                outputName = paste0(gdim,'DimName')
                 
                 output[[outputName]] <- shiny::renderUI({
                     
@@ -115,7 +116,7 @@ renderDims <- function(env,input,output) {
                 
                 # dimension Links
                 
-                outputName = paste0(dim,'DimLinks')
+                outputName = paste0(gdim,'DimLinks')
                 
                 output[[outputName]] <- shiny::renderUI({
                     
@@ -153,7 +154,7 @@ renderDims <- function(env,input,output) {
                     
                 # dimension Header
 
-                outputHeader = paste0(dim,'DimHeader')
+                outputHeader = paste0(gdim,'DimHeader')
 
                 output[[outputHeader]] <- shiny::renderUI({
                     
@@ -182,7 +183,7 @@ renderDims <- function(env,input,output) {
                             if (level == 0) {
                                 txt <- paste0(txt, 'Top')
                             } else {
-                                txt <- paste0(txt, shiny::actionLink(inputId = paste0(dim,'DimLink0'), label = 'Top'))
+                                txt <- paste0(txt, shiny::actionLink(inputId = paste0(gdim,'DimLink0'), label = 'Top'))
                             }
                         }
 
@@ -194,12 +195,12 @@ renderDims <- function(env,input,output) {
                                     if (level == 1)
                                         txt <- paste0(txt,dd$levelNames[2])
                                     else 
-                                        txt <- paste0(txt,shiny::actionLink(inputId = paste0(dim,'DimLink1'), label = dd$levelNames[2]))    
+                                        txt <- paste0(txt,shiny::actionLink(inputId = paste0(gdim,'DimLink1'), label = dd$levelNames[2]))    
                                 } else {
                                     if (lvl == (level - 1)) {
                                         txt <- paste0(txt,'&nbsp>&nbsp',substr(ancestors[lvl + 2],1,30))
                                     } else {
-                                        txt <- paste0(txt,'&nbsp>&nbsp',shiny::actionLink(inputId = paste0(dim,'DimLink',lvl + 1), label = substr(ancestors[lvl + 2],1,30)))
+                                        txt <- paste0(txt,'&nbsp>&nbsp',shiny::actionLink(inputId = paste0(gdim,'DimLink',lvl + 1), label = substr(ancestors[lvl + 2],1,30)))
                                     }    
                                 }
                             }
@@ -212,7 +213,7 @@ renderDims <- function(env,input,output) {
 
                     if (any(dd$selected$level > 0) && !hideNoFilter) {
 
-                        txt <- paste0(txt,'<span style="float:right;">',actionLink(inputId = paste0(dim,'NoFilter'), label = 'Verwijder Filter', style='color:red'),'</span>')
+                        txt <- paste0(txt,'<span style="float:right;">',actionLink(inputId = paste0(gdim,'NoFilter'), label = 'Verwijder Filter', style='color:red'),'</span>')
                     }
 
                     txt <- paste0(txt,"</div>")
@@ -222,7 +223,7 @@ renderDims <- function(env,input,output) {
 
                 # dimension Body
 
-                outputBody = paste0(dim,'DimBody')
+                outputBody = paste0(gdim,'DimBody')
 
                 output[[outputBody]] <- shiny::renderUI({
 
@@ -238,9 +239,9 @@ renderDims <- function(env,input,output) {
 
                     leafOnly <- dd$leafOnly
 
-                    outputSimple <- paste0(dim,'DimSimple')
-                    outputDim <- paste0(dim,'Dim')
-                    outputChart <- paste0(dim,'DimChart')
+                    outputSimple <- paste0(gdim,'DimSimple')
+                    outputDim <- paste0(gdim,'Dim')
+                    outputChart <- paste0(gdim,'DimChart')
 
 
                     if (is.null(height)) { height <- '300'}
@@ -275,14 +276,14 @@ renderDims <- function(env,input,output) {
 
                 # dimension Footer
 
-                outputFooter <- paste0(dim,'DimFooter')
+                outputFooter <- paste0(gdim,'DimFooter')
 
                 output[[outputFooter]] <- shiny::renderUI({
 
                     printDebug(env = env, dim, eventIn = 'renderFooter')
                     
                     dd$reactive$presChange
-                    val <- input[[paste0(dim,'DimMs')]]
+                    val <- input[[paste0(gdim,'DimMs')]]
 
                     presList <- dd$presList
                     presType <- presList[[dd$pres]]$type
@@ -294,7 +295,7 @@ renderDims <- function(env,input,output) {
                         txt <- paste0(
                             txt,
                             shiny::checkboxInput(
-                                inputId = paste0(dim,'DimMs'),
+                                inputId = paste0(gdim,'DimMs'),
                                 label = 'Meerdere items selecteren',
                                 value = val),
                             '</td>')
@@ -305,7 +306,7 @@ renderDims <- function(env,input,output) {
                                 txt,
                                 '<td>',
                                 shiny::checkboxInput(
-                                    inputId = paste0(dim,'DimWait'),
+                                    inputId = paste0(gdim,'DimWait'),
                                     label = 'Wachten met bijwerken',
                                     value = NULL),
                                 '</td></tr></table>')
@@ -314,7 +315,7 @@ renderDims <- function(env,input,output) {
                                 txt,
                                 '<td hidden>',
                                 shiny::checkboxInput(
-                                    inputId = paste0(dim,'DimWait'),
+                                    inputId = paste0(gdim,'DimWait'),
                                     label = 'Wachten met bijwerken',
                                     value = NULL),
                                 '</td></tr></table>')

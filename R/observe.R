@@ -2,6 +2,7 @@
 startObserversData <- function(env,dim) {
 
     dd <- env$dims[[dim]]
+    gdim <- dd$globalDim
     obs <- dd$observers
     inp <- env$session$input
     userData <- env$session$userData
@@ -17,8 +18,8 @@ startObserversData <- function(env,dim) {
 
             dd$searchTxt <- ""
 
-            if(exists(paste0(dim,'LevelChangeHook'),envir = env$ce)) {
-                do.call(paste0(dim,'LevelChangeHook'),list(),envir = env$ce)
+            if(exists(paste0(gdim,'LevelChangeHook'),envir = env$ce)) {
+                do.call(paste0(gdim,'LevelChangeHook'),list(),envir = env$ce)
             }
 
             if (isNull(dd$syncNav,FALSE)) {
@@ -63,8 +64,8 @@ startObserversData <- function(env,dim) {
             orderViewColumn2 <- dd$orderViewColumn2
             orderColumnDir <- dd$orderColumnDir
 
-            if(exists(paste0(dim,'OrderChangeHook'),envir = env$ce)) {
-                do.call(paste0(dim,'OrderChangeHook'),list(orderColumn,orderColumnDir),envir = env$ce)
+            if(exists(paste0(gdim,'OrderChangeHook'),envir = env$ce)) {
+                do.call(paste0(gdim,'OrderChangeHook'),list(orderColumn,orderColumnDir),envir = env$ce)
             }
 
             if (isNull(dd$syncNav,FALSE)) {
@@ -104,8 +105,8 @@ startObserversData <- function(env,dim) {
             
             printDebug(env = env, dim, eventIn = 'pageChange')
 
-            if(exists(paste0(dim,'PageChangeHook'),envir = env$ce)) {
-                do.call(paste0(dim,'PageChangeHook'),list(),envir = env$ce)
+            if(exists(paste0(gdim,'PageChangeHook'),envir = env$ce)) {
+                do.call(paste0(gdim,'PageChangeHook'),list(),envir = env$ce)
             }
 
             if (isNull(dd$syncNav,FALSE)) {
@@ -140,8 +141,8 @@ startObserversData <- function(env,dim) {
 
             printDebug(env = env, dim, eventIn = 'pageLengthChange')
 
-            if(exists(paste0(dim,'PageLengthChangeHook'),envir = env$ce)) {
-                do.call(paste0(dim,'PageLengthChangeHook'),list(),envir = env$ce)
+            if(exists(paste0(gdim,'PageLengthChangeHook'),envir = env$ce)) {
+                do.call(paste0(gdim,'PageLengthChangeHook'),list(),envir = env$ce)
             }
 
             if (isNull(dd$syncNav,FALSE)) {
@@ -174,8 +175,8 @@ startObserversData <- function(env,dim) {
 
             if(dd$reactive$selectChange > 0 && !dd$wait) {
 
-                if(exists(paste0(dim,'SelectChangeHook'),envir = env$ce)) {
-                    do.call(paste0(dim,'SelectChangeHook'),list(),envir = env$ce)
+                if(exists(paste0(gdim,'SelectChangeHook'),envir = env$ce)) {
+                    do.call(paste0(gdim,'SelectChangeHook'),list(),envir = env$ce)
                 }
 
                 if (any(dd$selected$level == 0)) {
@@ -282,8 +283,8 @@ startObserversData <- function(env,dim) {
                                    eventIn = 'memberChange',
                                    eventOut = 'dimRefresh')
 
-                        if(exists(paste0(dim,'MembersChangedHook'),envir = env$ce)) {
-                            do.call(paste0(dim,'MembersChangedHook'),list(),envir = env$ce)
+                        if(exists(paste0(gdim,'MembersChangedHook'),envir = env$ce)) {
+                            do.call(paste0(gdim,'MembersChangedHook'),list(),envir = env$ce)
                         }
 
                     } else {
@@ -310,6 +311,7 @@ startObserversData <- function(env,dim) {
 startObserversPres <- function(env,dim,pres) {
 
     dd <- env$dims[[dim]]
+    gdim <- dd$globalDim
     obs <- dd$observers
     presListType <- dd$presListType
     presList <- dd$presList
@@ -322,7 +324,7 @@ startObserversPres <- function(env,dim,pres) {
     # observers voor checkboxes
     #
 
-    dimMs <- paste0(dim,'DimMs')
+    dimMs <- paste0(gdim,'DimMs')
 
     if (!(dimMs %in% obs)) {
         shiny::observeEvent(inp[[dimMs]], {
@@ -345,7 +347,7 @@ startObserversPres <- function(env,dim,pres) {
         obs <- c(obs,dimMs)
     }
 
-    dimWait <- paste0(dim,'DimWait')
+    dimWait <- paste0(gdim,'DimWait')
 
     if (!(dimWait %in% obs)) {
 
@@ -391,7 +393,7 @@ startObserversPres <- function(env,dim,pres) {
     #
 
     maxLevel <- dd$maxLevel
-    dimLink0 <- paste0(dim,'DimLink0')
+    dimLink0 <- paste0(gdim,'DimLink0')
 
     if (!(dimLink0 %in% obs) && !hideBreadCrumb && !hideAll) {
 
@@ -406,7 +408,7 @@ startObserversPres <- function(env,dim,pres) {
         obs <- c(obs,dimLink0)
     }
 
-    dimLink1 <- paste0(dim,'DimLink1')
+    dimLink1 <- paste0(gdim,'DimLink1')
 
     if (!(dimLink1 %in% obs) && !hideBreadCrumb) {
 
@@ -421,7 +423,7 @@ startObserversPres <- function(env,dim,pres) {
         obs <- c(obs,dimLink1)
     }
 
-    dimLink2 <- paste0(dim,'DimLink2')
+    dimLink2 <- paste0(gdim,'DimLink2')
 
     if (!(dimLink2 %in% obs) && !hideBreadCrumb && maxLevel >= 2) {
 
@@ -436,7 +438,7 @@ startObserversPres <- function(env,dim,pres) {
         obs <- c(obs,dimLink2)
     }
 
-    dimLink3 <- paste0(dim,'DimLink3')
+    dimLink3 <- paste0(gdim,'DimLink3')
 
     if (!(dimLink3 %in% obs) && !hideBreadCrumb && maxLevel >= 3) {
 
@@ -451,7 +453,7 @@ startObserversPres <- function(env,dim,pres) {
         obs <- c(obs,dimLink3)
     }
 
-    noFilter <- paste0(dim,'NoFilter')
+    noFilter <- paste0(gdim,'NoFilter')
 
     if (!(noFilter %in% obs) && !hideNoFilter) {
 
@@ -494,7 +496,7 @@ startObserversPres <- function(env,dim,pres) {
 
     if (presListType == 'dropdown') {
         
-        dimPres <- paste0(dim,'Pres')
+        dimPres <- paste0(gdim,'Pres')
         
         if (!(dimPres %in% obs)) {
             
@@ -529,7 +531,7 @@ startObserversPres <- function(env,dim,pres) {
     if (presListType == 'links') {
         
         presNum <- length(dd$presList)
-        dimPresLink <- paste0(dim,'PresLink',presNum)
+        dimPresLink <- paste0(gdim,'PresLink',presNum)
         
         if (!(dimPresLink %in% obs)) {
             
