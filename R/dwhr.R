@@ -1748,10 +1748,14 @@ setDebug <- function(debug) {
 #'
 #' @export
 #'
-clone.star <- function(from, toId, dimViews = list(),checkUiId = FALSE) {
+clone.star <- function(from, toId, facts = NULL, dimViews = NULL, checkUiId = FALSE, print = FALSE) {
     
     call <- from$call
     call$starId <- toId
+    
+    if (!is.null(facts)) {
+        call$facts <- facts
+    }
     
     to <- eval(call, envir = from$ce)
     
@@ -1759,8 +1763,14 @@ clone.star <- function(from, toId, dimViews = list(),checkUiId = FALSE) {
         
         call <- from$dims[[dv]]$call
         call$env <- to
-        call$state <- 'disabled'
+        
+        if (!is.null(dimViews[[dv]]$state)) {
+            call$state <- dimViews[[dv]]$state
+        }
+        
         eval(call, envir = from$ce)
+        
+        to$dims[[dv]]$print <- print
         
         if(isNull(dimViews[[dv]]$measures,TRUE)) {
             
@@ -1768,24 +1778,25 @@ clone.star <- function(from, toId, dimViews = list(),checkUiId = FALSE) {
                 mCall$env <- to
                 eval(mCall, envir = from$ce)
             }
+         
             
-        }
-        
-        if(isNull(dimViews[[dv]]$derrivedMeasures,TRUE)) {
-            
-            for(dmCall in from$dims[[dv]]$derrivedMeasureCalls) {
-                dmCall$env <- to
-                eval(dmCall, envir = from$ce)
-            }
-            
-        }
-        
-        if(isNull(dimViews[[dv]]$presentations,TRUE)) {
-            
-            for(pCall in from$dims[[dv]]$presentationCalls) {
-                pCall$env <- to
-                pCall$checkUiId <- checkUiId
-                eval(pCall, envir = from$ce)
+            if(isNull(dimViews[[dv]]$derrivedMeasures,TRUE)) {
+                
+                for(dmCall in from$dims[[dv]]$derrivedMeasureCalls) {
+                    dmCall$env <- to
+                    eval(dmCall, envir = from$ce)
+                }
+              
+                
+                if(isNull(dimViews[[dv]]$presentations,TRUE)) {
+                    
+                    for(pCall in from$dims[[dv]]$presentationCalls) {
+                        pCall$env <- to
+                        pCall$checkUiId <- checkUiId
+                        eval(pCall, envir = from$ce)
+                    }
+                    
+                }
             }
             
         }

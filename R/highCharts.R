@@ -722,8 +722,8 @@ renderHighchartDim <- function(env, dim, input,output) {
             unSelect <- event$unSelect
             id <- event$id
 
-            if(exists(paste0(gdim,'HighChartsClickHook'))) {
-                do.call(paste0(gdim,'HighChartsClickHook'),list(event = event))
+            if(exists(paste0(dim,'HighChartsClickHook'),envir = env$ce)) {
+                do.call(paste0(dim,'HighChartsClickHook'),list(env = env, event = event),envir = env$ce)
             }
 
             if (select || unSelect || drill) {
@@ -838,8 +838,8 @@ renderHighchartDim <- function(env, dim, input,output) {
             select <- event$select
             unSelect <- event$unSelect
 
-            if(exists(paste0(gdim,'HighChartsPbClickHook'))) {
-                do.call(paste0(gdim,'HighChartsPbClickHook'),list(event = event))
+            if(exists(paste0(dim,'HighChartsPbClickHook'),envir = env$ce)) {
+                do.call(paste0(dim,'HighChartsPbClickHook'),list(env = env, event = event),envir = env$ce)
             }
 
             if (select || unSelect || drill) {

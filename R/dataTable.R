@@ -377,9 +377,11 @@ makeDtWidget <- function(env,dim,prep) {
 #'
 #' @export
 #'
-prepDt <- function(env,dim,pres,print = FALSE) {
+prepDt <- function(env,dim,pres,print = NULL) {
 
     dd <- env$dims[[dim]]
+    
+    print <- isNull(print,isNull(dd$print,FALSE))
     presList <- dd$presList
     opts <- presList[[pres]]$dataTableOpts
 
@@ -1055,8 +1057,8 @@ renderDataTableDim <- function(env,dim,input,output) {
 
                 dd$currentPage <- 1
 
-                if(exists(paste0(gdim,'PageChangeHook'))) {
-                    do.call(paste0(gdim,'PageChangeHook'),list())
+                if(exists(paste0(dim,'PageChangeHook'),envir = env$ce)) {
+                    do.call(paste0(dim,'PageChangeHook'),list(env = env),envir = env$ce)
                 }
             }
 

@@ -18,8 +18,8 @@ startObserversData <- function(env,dim) {
 
             dd$searchTxt <- ""
 
-            if(exists(paste0(gdim,'LevelChangeHook'),envir = env$ce)) {
-                do.call(paste0(gdim,'LevelChangeHook'),list(),envir = env$ce)
+            if(exists(paste0(dim,'LevelChangeHook'),envir = env$ce)) {
+                do.call(paste0(dim,'LevelChangeHook'),list(env = env),envir = env$ce)
             }
 
             if (isNull(dd$syncNav,FALSE)) {
@@ -64,8 +64,8 @@ startObserversData <- function(env,dim) {
             orderViewColumn2 <- dd$orderViewColumn2
             orderColumnDir <- dd$orderColumnDir
 
-            if(exists(paste0(gdim,'OrderChangeHook'),envir = env$ce)) {
-                do.call(paste0(gdim,'OrderChangeHook'),list(orderColumn,orderColumnDir),envir = env$ce)
+            if(exists(paste0(dim,'OrderChangeHook'),envir = env$ce)) {
+                do.call(paste0(dim,'OrderChangeHook'),list(env = env, orderColumn,orderColumnDir),envir = env$ce)
             }
 
             if (isNull(dd$syncNav,FALSE)) {
@@ -105,8 +105,8 @@ startObserversData <- function(env,dim) {
             
             printDebug(env = env, dim, eventIn = 'pageChange')
 
-            if(exists(paste0(gdim,'PageChangeHook'),envir = env$ce)) {
-                do.call(paste0(gdim,'PageChangeHook'),list(),envir = env$ce)
+            if(exists(paste0(dim,'PageChangeHook'),envir = env$ce)) {
+                do.call(paste0(dim,'PageChangeHook'),list(env = env),envir = env$ce)
             }
 
             if (isNull(dd$syncNav,FALSE)) {
@@ -141,8 +141,8 @@ startObserversData <- function(env,dim) {
 
             printDebug(env = env, dim, eventIn = 'pageLengthChange')
 
-            if(exists(paste0(gdim,'PageLengthChangeHook'),envir = env$ce)) {
-                do.call(paste0(gdim,'PageLengthChangeHook'),list(),envir = env$ce)
+            if(exists(paste0(dim,'PageLengthChangeHook'),envir = env$ce)) {
+                do.call(paste0(dim,'PageLengthChangeHook'),list(env = env),envir = env$ce)
             }
 
             if (isNull(dd$syncNav,FALSE)) {
@@ -175,8 +175,8 @@ startObserversData <- function(env,dim) {
 
             if(dd$reactive$selectChange > 0 && !dd$wait) {
 
-                if(exists(paste0(gdim,'SelectChangeHook'),envir = env$ce)) {
-                    do.call(paste0(gdim,'SelectChangeHook'),list(),envir = env$ce)
+                if(exists(paste0(dim,'SelectChangeHook'),envir = env$ce)) {
+                    do.call(paste0(dim,'SelectChangeHook'),list(env = env),envir = env$ce)
                 }
 
                 if (any(dd$selected$level == 0)) {
@@ -283,8 +283,8 @@ startObserversData <- function(env,dim) {
                                    eventIn = 'memberChange',
                                    eventOut = 'dimRefresh')
 
-                        if(exists(paste0(gdim,'MembersChangedHook'),envir = env$ce)) {
-                            do.call(paste0(gdim,'MembersChangedHook'),list(),envir = env$ce)
+                        if(exists(paste0(dim,'MembersChangedHook'),envir = env$ce)) {
+                            do.call(paste0(dim,'MembersChangedHook'),list(env = env),envir = env$ce)
                         }
 
                     } else {
@@ -381,7 +381,7 @@ startObserversPres <- function(env,dim,pres) {
 
 
             if(exists(paste0('waitHook'),envir = env$ce)) {
-                do.call(paste0('waitHook'),list(block = inp[[dimWait]]),envir = env$ce)
+                do.call(paste0('waitHook'),list(env = env, block = inp[[dimWait]]),envir = env$ce)
             }
         })
 
