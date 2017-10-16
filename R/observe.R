@@ -290,7 +290,7 @@ startObserversData <- function(env,dim) {
                     } else {
 
                         if (dd$state == 'enabled' && !dd$visible) {
-                            shinyjs::js$showDim(dim = dim)
+                            shinyjs::js$showDim(dim = gdim)
                             dd$visible <- TRUE
                         }
                     }
@@ -354,10 +354,11 @@ startObserversPres <- function(env,dim,pres) {
         shiny::observeEvent(inp[[dimWait]], {
 
             for (d in setdiff(inputDims(env),dim)) {
+                g <- env$dims[[d]]$gdim
                 if(!inp[[dimWait]]) {
-                    shinyjs::runjs(paste0('$("#',d,'Dimensie").unblock()'))
+                    shinyjs::runjs(paste0('$("#',g,'Dimensie").unblock()'))
                 } else {
-                    shinyjs::runjs(paste0('$("#',d,'Dimensie").block({ message: null, overlayCSS: { backgroundColor: "#f2f2f2"} })'))
+                    shinyjs::runjs(paste0('$("#',g,'Dimensie").block({ message: null, overlayCSS: { backgroundColor: "#f2f2f2"} })'))
                 }
             }
 

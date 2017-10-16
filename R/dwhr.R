@@ -568,7 +568,7 @@ addDimView <- function(
         l$visible <- TRUE
     } else {
         l$visible <- FALSE
-        shinyjs::js$hideDim(dim = dim)
+        shinyjs::js$hideDim(dim = l$gdim)
     }
 
     env$dims[[dim]] <- l
@@ -1626,6 +1626,7 @@ dimChangeState <- function(env, dim, newState) {
 
     state <- env$dims[[dim]]$state
     dd <- env$dims[[dim]]
+    gdim <- dd$gdim
 
     if(newState != state ) {
 
@@ -1639,9 +1640,13 @@ dimChangeState <- function(env, dim, newState) {
 
         if (oldVis != newVis) {
             if (newVis != 'Y') {
-                shinyjs::js$hideDim(dim = dim)
+                shinyjs::js$hideDim(dim = gdim)
                 env$dims[[dim]]$visible <- FALSE
             }
+            
+            # showDim uitstellen tot na render. Zie ready events van highCharts en dataTable
+            # als het niet tot een render komt, dan wordt dit via de observer op memberchange opgelost
+            # door het uitstellen krijg je bij het tonen altijd alleen de nieuwe output te zien
 
             dd$reactive$visChange <- dd$reactive$visChange + 1
             printDebug(env = env, dim, eventIn = 'dimChangeState', eventOut = 'visChange', info = paste0('visible: ', newVis))

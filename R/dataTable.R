@@ -984,7 +984,7 @@ renderDataTableDim <- function(env,dim,input,output) {
         dd <- env$dims[[dim]]
 
         if (dd$state == 'enabled' && !dd$visible) {
-            shinyjs::js$showDim(dim = dim)
+            shinyjs::js$showDim(dim = gdim)
             dd$visible <- TRUE
         }
 

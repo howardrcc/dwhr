@@ -8,6 +8,14 @@ plotBandSingleSelectJS <- function(env,dim,label,color,serieType) {
     unSelectable <- 'true'
     drillable <- 'true'
 
+    if (!0 %in% dd$selectableLevels) {
+        unSelectable <- 'false'
+    }
+    
+    if (dd$level %in% dd$selectableLevels) {
+        selectable <- 'true'
+    }
+    
     if (dd$leafOnly) {
         selectable <- ifelse((dd$level == dd$maxLevel),'true','false')
         unSelectable <- 'false'
@@ -51,7 +59,15 @@ pointSingleSelectJS <- function(env,dim,color,serieType) {
     selectable <- 'true'
     unSelectable <- 'true'
     drillable <- 'true'
-
+    
+    if (!0 %in% dd$selectableLevels) {
+        unSelectable <- 'false'
+    }
+    
+    if (dd$level %in% dd$selectableLevels) {
+        selectable <- 'true'
+    }
+    
     if (dd$leafOnly) {
         selectable <- ifelse((dd$level == dd$maxLevel),'true','false')
         unSelectable <- 'false'
@@ -196,6 +212,7 @@ getAdhocSlice <- function(env, dim,level,parent,selected) {
 makeHcWidget <- function(env,dim,prep){
     
     print <- prep$print
+    gdim <- env$dims[[dim]]$gdim
     
     hcoptslang <- getOption("highcharter.lang")
     hcoptslang$thousandsSep <- "."
@@ -206,7 +223,7 @@ makeHcWidget <- function(env,dim,prep){
 
     if (!is.null(prep$chartOpts)) {
         prep$chartOpts$hc = a
-        prep$chartOpts$events$redraw <- readyJS(dim)
+        prep$chartOpts$events$redraw <- readyJS(gdim)
         a <- do.call(eval(parse(text = 'highcharter::hc_chart')), prep$chartOpts)
     }
     
@@ -927,7 +944,7 @@ renderHighchartDim <- function(env, dim, input,output) {
         observeEvent(input[[highchartsReadyEvent]], {
             printDebug(env, dim, eventIn = 'highchartsReady')
             if (dd$state == 'enabled' && !dd$visible) {
-                shinyjs::js$showDim(dim = dim)
+                shinyjs::js$showDim(dim = gdim)
                 dd$visible <- TRUE
             }
         })
