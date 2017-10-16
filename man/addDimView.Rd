@@ -9,7 +9,8 @@ addDimView(env, dim, name, data, levelNames, initLevel = 0, initParent = "",
   type = "bidir", selectMode = "single", useLevels = NULL,
   cntName = "cnt", itemName = "Naam", ignoreDims = NULL,
   leafOnly = FALSE, fixedMembers = FALSE, na.rm = FALSE,
-  orderBy = "name", selectableLevels = NULL, footerLevels = NA_integer_)
+  orderBy = "name", selectableLevels = NULL, footerLevels = NA_integer_,
+  presListType = "dropdown")
 }
 \arguments{
 \item{env}{sterschema-object, gemaakt met \code{\link{new.star}}}
@@ -77,6 +78,12 @@ outer join tussen dimensie en feiten-tabel.}
 \item{selectableLevels}{integer, bepaalt welke nivo's van de dimView selecteerbaar zijn, staat standaard op alle nivo's.}
 
 \item{footerLevels}{integer, bepaalt welke nivo's een footer krijgen, staat standaard op alle nivo's.}
+
+\item{presListType}{string, bepaalt de manier waarop de presentatielijst getoond wordt. Mogelijke waarden:
+\itemize{
+ \item dropdown: lijst wordt getoond via een dropdown box
+ \item links: lijst wordt getoond via meerdere links 
+}}
 }
 \value{
 gewijzigd sterschema-object.

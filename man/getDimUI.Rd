@@ -4,14 +4,16 @@
 \alias{getDimUI}
 \title{Creeer dimView object in the UI}
 \usage{
-getDimUI(dim, useWellPanel = FALSE, maxHeight = NULL,
+getDimUI(starId, dim, skipTopRow = FALSE, maxHeight = NULL,
   overflowX = "hidden")
 }
 \arguments{
+\item{starId, }{uniek id van het sterschema. Dit id moet overeenkomen met de parameter \code{starId} in \code{\link{new.star}}}
+
 \item{dim}{string, uniek id van the dimView. Dit id moet overeenkomen met de parameter \code{dim} in
 \code{\link{addDimView}}}
 
-\item{useWellPanel}{boolean, Als TRUE: er wordt een wellPanel om het dimView object getekend}
+\item{skipTopRow}{boolean, Als TRUE: eerste regel met Naam, links en presentatie wordt overgeslagen.}
 
 \item{maxHeight}{an integer, maximum hoogte in pixels voor dit dimView object}
 

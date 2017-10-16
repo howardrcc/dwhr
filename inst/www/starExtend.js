@@ -268,7 +268,7 @@ shinyjs.hideDim = function(params) {
 shinyjs.showDim = function(params) {
     container = '#'.concat(params.dim,'Dimensie');
     $(container).removeClass("hide-db");
-    $(container).fadeTo(1000,1);
+    $(container).fadeTo(2000,1);
 };
 
 shinyjs.updateDT = function(params) {

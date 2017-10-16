@@ -4,10 +4,10 @@
 \alias{new.star}
 \title{Creeer nieuw sterschema-object}
 \usage{
-new.star(id, session, facts, caching = FALSE, foreignKeyCheck = TRUE)
+new.star(starId, session, facts, caching = FALSE, foreignKeyCheck = TRUE)
 }
 \arguments{
-\item{id}{string, Id voor dit sterschema-object.}
+\item{starId}{string, Id voor dit sterschema-object.}
 
 \item{session}{een shiny sessie object.}
 

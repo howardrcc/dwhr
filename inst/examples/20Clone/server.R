@@ -2,6 +2,8 @@ library(shiny)
 library(magrittr)
 library(dwhr)
 
+dwhr::setDebug(TRUE)
+
 # laden data
 
 per <- read.csv(
@@ -52,4 +54,16 @@ function(input, output, session) {
                     list(viewColumn = 'abc', colorBarColor1 = '#f7fcb9'),
                     list(viewColumn = 'xyz', colorBarColor1 = '#f7fcb9')))) %>%
         renderDims(input,output)                    # start rendering
+    
+    s2 <- clone.star(from = s1, toId = 's2', dimViews = list( per = list()), checkUiId = FALSE) %>%
+        renderDims(input,output)                    # start rendering
+    
+    observeEvent(s1$dims[['per']]$reactive$clickMeasureEvent,{
+        e <- s1$dims[['per']]$reactive$clickMeasureEvent
+        if (e$clickCount > 0)
+            navigate(s2,'per',1,'Alle perioden')
+        
+    })
+    
+    
 }

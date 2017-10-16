@@ -2,6 +2,7 @@
 startObserversData <- function(env,dim) {
 
     dd <- env$dims[[dim]]
+    gdim <- dd$gdim
     obs <- dd$observers
     inp <- env$session$input
     userData <- env$session$userData
@@ -10,13 +11,15 @@ startObserversData <- function(env,dim) {
     if (!('levelChange' %in% obs)) {
         shiny::observeEvent(dd$reactive$levelChange,{
 
-            if(dd$reactive$levelChange > 0)
-                printDebug(env = env, dim, eventIn = 'levelChange', info = paste0('new level:',dd$level))
+            if(dd$reactive$levelChange == 0)
+                return()
+            
+            printDebug(env = env, dim, eventIn = 'levelChange', info = paste0('new level:',dd$level))
 
             dd$searchTxt <- ""
 
             if(exists(paste0(dim,'LevelChangeHook'),envir = env$ce)) {
-                do.call(paste0(dim,'LevelChangeHook'),list(),envir = env$ce)
+                do.call(paste0(dim,'LevelChangeHook'),list(env = env),envir = env$ce)
             }
 
             if (isNull(dd$syncNav,FALSE)) {
@@ -49,8 +52,10 @@ startObserversData <- function(env,dim) {
     if (!('orderChange' %in% obs)) {
         shiny::observeEvent(dd$reactive$orderChange,{
 
-            if(dd$reactive$orderChange > 0)
-                printDebug(env = env, dim, eventIn = 'orderChange')
+            if(dd$reactive$orderChange == 0)
+                return()
+            
+            printDebug(env = env, dim, eventIn = 'orderChange')
 
             dd$searchTxt <- ""
 
@@ -60,7 +65,7 @@ startObserversData <- function(env,dim) {
             orderColumnDir <- dd$orderColumnDir
 
             if(exists(paste0(dim,'OrderChangeHook'),envir = env$ce)) {
-                do.call(paste0(dim,'OrderChangeHook'),list(orderColumn,orderColumnDir),envir = env$ce)
+                do.call(paste0(dim,'OrderChangeHook'),list(env = env, orderColumn,orderColumnDir),envir = env$ce)
             }
 
             if (isNull(dd$syncNav,FALSE)) {
@@ -95,11 +100,13 @@ startObserversData <- function(env,dim) {
     if (!('pageChange' %in% obs)) {
         shiny::observeEvent(dd$reactive$pageChange,{
 
-            if(dd$reactive$pageChange > 0)
-                printDebug(env = env, dim, eventIn = 'pageChange')
+            if(dd$reactive$pageChange == 0)
+                return()
+            
+            printDebug(env = env, dim, eventIn = 'pageChange')
 
             if(exists(paste0(dim,'PageChangeHook'),envir = env$ce)) {
-                do.call(paste0(dim,'PageChangeHook'),list(),envir = env$ce)
+                do.call(paste0(dim,'PageChangeHook'),list(env = env),envir = env$ce)
             }
 
             if (isNull(dd$syncNav,FALSE)) {
@@ -129,11 +136,13 @@ startObserversData <- function(env,dim) {
     if (!('pageLengthChange' %in% obs)) {
         shiny::observeEvent(dd$reactive$pageLengthChange,{
 
-            if(dd$reactive$pageLengthChange > 0)
-                printDebug(env = env, dim, eventIn = 'pageLengthChange')
+            if(dd$reactive$pageLengthChange == 0)
+                return()
+
+            printDebug(env = env, dim, eventIn = 'pageLengthChange')
 
             if(exists(paste0(dim,'PageLengthChangeHook'),envir = env$ce)) {
-                do.call(paste0(dim,'PageLengthChangeHook'),list(),envir = env$ce)
+                do.call(paste0(dim,'PageLengthChangeHook'),list(env = env),envir = env$ce)
             }
 
             if (isNull(dd$syncNav,FALSE)) {
@@ -167,7 +176,7 @@ startObserversData <- function(env,dim) {
             if(dd$reactive$selectChange > 0 && !dd$wait) {
 
                 if(exists(paste0(dim,'SelectChangeHook'),envir = env$ce)) {
-                    do.call(paste0(dim,'SelectChangeHook'),list(),envir = env$ce)
+                    do.call(paste0(dim,'SelectChangeHook'),list(env = env),envir = env$ce)
                 }
 
                 if (any(dd$selected$level == 0)) {
@@ -249,7 +258,7 @@ startObserversData <- function(env,dim) {
         },
         {
 
-            if (!(dim %in% visibleDims(env))) {   # hoe zit dit met dimensies zonder presentatie?
+            if (!(dim %in% visibleDims(env))) {  
                 return()
             }
 
@@ -275,13 +284,13 @@ startObserversData <- function(env,dim) {
                                    eventOut = 'dimRefresh')
 
                         if(exists(paste0(dim,'MembersChangedHook'),envir = env$ce)) {
-                            do.call(paste0(dim,'MembersChangedHook'),list(),envir = env$ce)
+                            do.call(paste0(dim,'MembersChangedHook'),list(env = env),envir = env$ce)
                         }
 
                     } else {
 
                         if (dd$state == 'enabled' && !dd$visible) {
-                            shinyjs::js$showDim(dim = dim)
+                            shinyjs::js$showDim(dim = gdim)
                             dd$visible <- TRUE
                         }
                     }
@@ -302,7 +311,9 @@ startObserversData <- function(env,dim) {
 startObserversPres <- function(env,dim,pres) {
 
     dd <- env$dims[[dim]]
+    gdim <- dd$gdim
     obs <- dd$observers
+    presListType <- dd$presListType
     presList <- dd$presList
     hideBreadCrumb <- presList[[pres]]$navOpts$hideBreadCrumb
     hideAll <- presList[[pres]]$navOpts$hideAll
@@ -313,7 +324,7 @@ startObserversPres <- function(env,dim,pres) {
     # observers voor checkboxes
     #
 
-    dimMs <- paste0(dim,'DimMs')
+    dimMs <- paste0(gdim,'DimMs')
 
     if (!(dimMs %in% obs)) {
         shiny::observeEvent(inp[[dimMs]], {
@@ -336,17 +347,18 @@ startObserversPres <- function(env,dim,pres) {
         obs <- c(obs,dimMs)
     }
 
-    dimWait <- paste0(dim,'DimWait')
+    dimWait <- paste0(gdim,'DimWait')
 
     if (!(dimWait %in% obs)) {
 
         shiny::observeEvent(inp[[dimWait]], {
 
             for (d in setdiff(inputDims(env),dim)) {
+                g <- env$dims[[d]]$gdim
                 if(!inp[[dimWait]]) {
-                    shinyjs::runjs(paste0('$("#',d,'Dimensie").unblock()'))
+                    shinyjs::runjs(paste0('$("#',g,'Dimensie").unblock()'))
                 } else {
-                    shinyjs::runjs(paste0('$("#',d,'Dimensie").block({ message: null, overlayCSS: { backgroundColor: "#f2f2f2"} })'))
+                    shinyjs::runjs(paste0('$("#',g,'Dimensie").block({ message: null, overlayCSS: { backgroundColor: "#f2f2f2"} })'))
                 }
             }
 
@@ -370,7 +382,7 @@ startObserversPres <- function(env,dim,pres) {
 
 
             if(exists(paste0('waitHook'),envir = env$ce)) {
-                do.call(paste0('waitHook'),list(block = inp[[dimWait]]),envir = env$ce)
+                do.call(paste0('waitHook'),list(env = env, block = inp[[dimWait]]),envir = env$ce)
             }
         })
 
@@ -382,7 +394,7 @@ startObserversPres <- function(env,dim,pres) {
     #
 
     maxLevel <- dd$maxLevel
-    dimLink0 <- paste0(dim,'DimLink0')
+    dimLink0 <- paste0(gdim,'DimLink0')
 
     if (!(dimLink0 %in% obs) && !hideBreadCrumb && !hideAll) {
 
@@ -397,7 +409,7 @@ startObserversPres <- function(env,dim,pres) {
         obs <- c(obs,dimLink0)
     }
 
-    dimLink1 <- paste0(dim,'DimLink1')
+    dimLink1 <- paste0(gdim,'DimLink1')
 
     if (!(dimLink1 %in% obs) && !hideBreadCrumb) {
 
@@ -412,7 +424,7 @@ startObserversPres <- function(env,dim,pres) {
         obs <- c(obs,dimLink1)
     }
 
-    dimLink2 <- paste0(dim,'DimLink2')
+    dimLink2 <- paste0(gdim,'DimLink2')
 
     if (!(dimLink2 %in% obs) && !hideBreadCrumb && maxLevel >= 2) {
 
@@ -427,7 +439,7 @@ startObserversPres <- function(env,dim,pres) {
         obs <- c(obs,dimLink2)
     }
 
-    dimLink3 <- paste0(dim,'DimLink3')
+    dimLink3 <- paste0(gdim,'DimLink3')
 
     if (!(dimLink3 %in% obs) && !hideBreadCrumb && maxLevel >= 3) {
 
@@ -442,7 +454,7 @@ startObserversPres <- function(env,dim,pres) {
         obs <- c(obs,dimLink3)
     }
 
-    noFilter <- paste0(dim,'NoFilter')
+    noFilter <- paste0(gdim,'NoFilter')
 
     if (!(noFilter %in% obs) && !hideNoFilter) {
 
@@ -458,62 +470,104 @@ startObserversPres <- function(env,dim,pres) {
 
         obs <- c(obs,noFilter)
     }
-
-    dimPres <- paste0(dim,'Pres')
-
+    
     if (!('dimRefresh' %in% obs)) {
 
         shiny::observeEvent(dd$reactive$dimRefresh, {
 
-            if (!(dim %in% visibleDims(env))) {   
+            if (!(dim %in% visibleDims(env))) {  
                 return()
             }
             
-            req(inp[[dimPres]])
             presList <- dd$presList
-            pres <- inp[[dimPres]]
-            presType <- presList[[pres]]$type
-            
+            presType <- presList[[dd$pres]]$type
+
             printDebug(env = env, dim, eventIn = 'dimRefresh', info = paste0('presType: ',presType))
 
             if (presType == 'highCharts') {
-                processHighCharts(env,dim,pres)
+                processHighCharts(env,dim,dd$pres)
             }
             if (presType == 'dataTable') {
-                processDataTable(env,dim,pres)
-                #dtRenderers[[dim]]$count <<- dtRenderers[[dim]]$count + 1
+                processDataTable(env,dim,dd$pres)
             }
         })
 
         obs <- c(obs,'dimRefresh')
     }
 
-
-    if (!(dimPres %in% obs)) {
-
-        shiny::observeEvent(inp[[dimPres]],{
+    if (presListType == 'dropdown') {
+        
+        dimPres <- paste0(gdim,'Pres')
+        
+        if (!(dimPres %in% obs)) {
             
-            if (!(dim %in% visibleDims(env))) {   
-                return()
-            }
+            shiny::observeEvent(inp[[dimPres]],{
+
+                if (!(dim %in% visibleDims(env)) || dd$pres == inp[[dimPres]]) {  
+                    return()
+                }
+               
+                dd$reactive$presChange <- dd$reactive$presChange + 1
+                
+                printDebug(env = env, dim, eventIn = dimPres, eventOut = 'presChange')
+                
+                presList <- dd$presList
+                dd$pres <- inp[[dimPres]]
+                presType <- presList[[dd$pres]]$type
+                
+                if (presType == 'highCharts') {
+                    env$hcRenderers[[dim]]$count <- env$hcRenderers[[dim]]$count + 1
+                }
+                if (presType == 'dataTable' ) {
+                    env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
+                }
+                
+            })
             
-            presList <- dd$presList
-            pres <- inp[[dimPres]]
-            presType <- presList[[pres]]$type
+            obs <- c(obs,dimPres)
+            
+        }
+    }
+    
+    if (presListType == 'links') {
+        
+        presNum <- length(dd$presList)
+        dimPresLink <- paste0(gdim,'PresLink',presNum)
+        
+        if (!(dimPresLink %in% obs)) {
+            
+            shiny::observeEvent(inp[[dimPresLink]],{
+                
+                if (!(dim %in% visibleDims(env))) {  
+                    return()
+                }
+                
+                printDebug(env = env, dim, eventIn = dimPresLink, eventOut = 'presChange')
+                
+                dd$reactive$presChange <- dd$reactive$presChange + 1
+                
+                presList <- dd$presList
 
-            if (presType == 'highCharts') {
-                env$hcRenderers[[dim]]$count <- env$hcRenderers[[dim]]$count + 1
-            }
-            if (presType == 'dataTable') {
-                env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
-            }
-
-        })
-
-        obs <- c(obs,dimPres)
+                dd$pres <- names(presList)[presNum]
+                presType <- presList[[dd$pres]]$type
+                
+                if (presType == 'highCharts') {
+                    env$hcRenderers[[dim]]$count <- env$hcRenderers[[dim]]$count + 1
+                }
+                if (presType == 'dataTable' ) {
+                    env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
+                }
+                
+            })
+            
+            obs <- c(obs,dimPresLink)
+            
+        }
+        
         
     }
-
+    
+    
     dd$observers <- obs
 
 }

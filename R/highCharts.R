@@ -2,11 +2,20 @@
 plotBandSingleSelectJS <- function(env,dim,label,color,serieType) {
     
     dd <- env$dims[[dim]]
+    gdim <- dd$gdim
     
     selectable <- 'true'
     unSelectable <- 'true'
     drillable <- 'true'
 
+    if (!0 %in% dd$selectableLevels) {
+        unSelectable <- 'false'
+    }
+    
+    if (dd$level %in% dd$selectableLevels) {
+        selectable <- 'true'
+    }
+    
     if (dd$leafOnly) {
         selectable <- ifelse((dd$level == dd$maxLevel),'true','false')
         unSelectable <- 'false'
@@ -38,18 +47,27 @@ plotBandSingleSelectJS <- function(env,dim,label,color,serieType) {
     }
 
     highcharter::JS(paste0("function(event){
-    plotBandSingleSelect('",dim,"',this, event,",selectable,",",unSelectable,",",drillable,",'",color,"');
+    plotBandSingleSelect('",gdim,"',this, event,",selectable,",",unSelectable,",",drillable,",'",color,"');
 }"))
 }
 
 pointSingleSelectJS <- function(env,dim,color,serieType) {
     
     dd <- env$dims[[dim]]
+    gdim <- dd$gdim
     
     selectable <- 'true'
     unSelectable <- 'true'
     drillable <- 'true'
-
+    
+    if (!0 %in% dd$selectableLevels) {
+        unSelectable <- 'false'
+    }
+    
+    if (dd$level %in% dd$selectableLevels) {
+        selectable <- 'true'
+    }
+    
     if (dd$leafOnly) {
         selectable <- ifelse((dd$level == dd$maxLevel),'true','false')
         unSelectable <- 'false'
@@ -75,7 +93,7 @@ pointSingleSelectJS <- function(env,dim,color,serieType) {
     }
 
      highcharter::JS(paste0("function(event){
-    pointSingleSelect('",dim,"',this, event,",selectable,",",unSelectable,",",drillable,",'",color,"');
+    pointSingleSelect('",gdim,"',this, event,",selectable,",",unSelectable,",",drillable,",'",color,"');
 }"))
 }
 
@@ -191,9 +209,97 @@ getAdhocSlice <- function(env, dim,level,parent,selected) {
 
 }
 
-prepChart <- function(env,dim,pres) {
+makeHcWidget <- function(env,dim,prep){
+    
+    print <- prep$print
+    gdim <- env$dims[[dim]]$gdim
+    
+    hcoptslang <- getOption("highcharter.lang")
+    hcoptslang$thousandsSep <- "."
+    hcoptslang$decimalPoint <- ','
+    options(highcharter.lang = hcoptslang)
+    
+    a <- highcharter::highchart()
+
+    if (!is.null(prep$chartOpts)) {
+        prep$chartOpts$hc = a
+        prep$chartOpts$events$redraw <- readyJS(gdim)
+        a <- do.call(eval(parse(text = 'highcharter::hc_chart')), prep$chartOpts)
+    }
+    
+    patterns <- lapply(env$customPatterns[[dim]],function(x) {return (x)})
+    
+    if (length(patterns) > 0) {
+        
+        names(patterns) <- NULL  # het moet een unnamed list zijn
+        
+        defsOpts <- list(
+            hc = a,
+            patterns = patterns)
+        
+        a <- do.call(eval(parse(text = 'highcharter::hc_defs')), defsOpts)
+    }
+    
+    if (!is.null(prep$titleOpts)) {
+        prep$titleOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_title')), prep$titleOpts)
+    }
+    
+    if(!is.null(prep$xAxisOpts)) {
+        prep$xAxisOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_xAxis')), prep$xAxisOpts)
+    }
+    
+    if(!is.null(prep$yAxisOpts)) {
+        prep$yAxisOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_yAxis_multiples')), prep$yAxisOpts)
+    }
+    
+    if(!is.null(prep$tooltipOpts)) {
+        prep$tooltipOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_tooltip')), prep$tooltipOpts)
+    }
+    
+    if (!is.null(prep$legendOpts)) {
+        prep$legendOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_legend')), prep$legendOpts)
+    }
+    
+    if (!is.null(prep$paneOpts)) {
+        prep$paneOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_pane')), prep$paneOpts)
+    }
+    
+    if (!is.null(prep$plotOptionsOpts)) {
+        prep$plotOptionsOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_plotOptions')), prep$plotOptionsOpts)
+    }
+    
+    a <- a %>%
+        highcharter::hc_add_series_list(prep$seriesOpts) %>%
+        highcharter::hc_add_theme(highcharter::hc_theme_smpl())
+    
+    
+    # hc_credits( enabled = TRUE
+    #           , position = list(
+    #                 align = 'right',
+    #                 x = -10,
+    #                 verticalAlign = 'top',
+    #                 y = 20)
+    #           , style =  list(color = 'black', fontSize= '12px')
+    #             , text = "Business Intelligence and Analytics") %>%
+    
+    a
+    
+}
+
+#'
+#' @export
+#'
+prepHc <- function(env, dim, pres, print = FALSE) {
 
     dd <- env$dims[[dim]]
+    gdim <- dd$gdim
     
     presList <- dd$presList
     presType <- presList[[pres]]$type
@@ -502,10 +608,10 @@ prepChart <- function(env,dim,pres) {
         
         plotOptionsOpts$series$events$hide <- highcharter::JS(paste0("function(){
                                                              var number = Math.random();
-                                                             Shiny.onInputChange('",dim,"HighchartHide',{r: number, data: this.options.id})}"))
+                                                             Shiny.onInputChange('",gdim,"HighchartHide',{r: number, data: this.options.id})}"))
         plotOptionsOpts$series$events$show <- highcharter::JS(paste0("function(){
                                                                var number = Math.random();
-                                                               Shiny.onInputChange('",dim,"HighchartShow',{r: number, data: this.options.id})}"))
+                                                               Shiny.onInputChange('",gdim,"HighchartShow',{r: number, data: this.options.id})}"))
     } 
 
     ret <- list(
@@ -518,10 +624,14 @@ prepChart <- function(env,dim,pres) {
         chartOpts = chartOpts,
         titleOpts = titleOpts,
         paneOpts = paneOpts,
-        plotBands = plotBands
-    )
+        plotBands = plotBands,
+        print = print)
 
-    env$hcPrep[[dim]] <- ret
+    ret$widget <- makeHcWidget(env,dim,ret)
+    
+    if (!print)
+        env$hcPrep[[dim]] <- ret
+    
     ret
 
 }
@@ -568,8 +678,9 @@ listDiff <- function(l1,l2) {
 renderHighchartDim <- function(env, dim, input,output) {
 
     dd <- env$dims[[dim]]
+    gdim <- dd$gdim
     
-    outputChart <- paste0(dim,'DimChart')
+    outputChart <- paste0(gdim,'DimChart')
     env$hcRenderers[[dim]] <- reactiveValues(count=0)
     obs <- dd$observers
 
@@ -577,111 +688,34 @@ renderHighchartDim <- function(env, dim, input,output) {
 
         env$hcRenderers[[dim]]$count
 
-        presList <- dd$presList
-        pres <- isolate(input[[paste0(dim,'Pres')]])
+        pres <- dd$pres
+        prep <- env$hcPrep[[dim]]
         
-        if (is.null(pres) || env$hcRenderers[[dim]]$count == 0) {
+        if (env$hcRenderers[[dim]]$count == 0) {
             return()
         }
 
         printDebug(env, dim, eventIn = 'renderHighCharts', info = paste0('rendercount:', env$hcRenderers[[dim]]$count))
-
-        hcoptslang <- getOption("highcharter.lang")
-        hcoptslang$thousandsSep <- "."
-        hcoptslang$decimalPoint <- ','
-        options(highcharter.lang = hcoptslang)
-
-        a <- highcharter::highchart()
-
-        chart <- env$hcPrep[[dim]]
-
-        if (is.null(chart))
-            chart <- prepChart(env,dim,pres)
-
-        env$hcPrev[[dim]] <- removeCallbacks(chart)
+        
+        if (is.null(prep))
+            prep <- prepHc(env,dim,pres)
+        
+        env$hcPrev[[dim]] <- removeCallbacks(prep)
         env$hcPrep[[dim]] <- NULL
-
-
-        if (!is.null(chart$chartOpts)) {
-            chart$chartOpts$hc = a
-            chart$chartOpts$events$redraw <- readyJS(dim)
-            a <- do.call(eval(parse(text = 'highcharter::hc_chart')), chart$chartOpts)
-        }
-
-        patterns <- lapply(env$customPatterns[[dim]],function(x) {return (x)})
-
-        if (length(patterns) > 0) {
-
-            names(patterns) <- NULL  # het moet een unnamed list zijn
-
-            defsOpts <- list(
-                hc = a,
-                patterns = patterns)
-
-            a <- do.call(eval(parse(text = 'highcharter::hc_defs')), defsOpts)
-        }
-
-        if (!is.null(chart$titleOpts)) {
-            chart$titleOpts$hc <- a
-            a <- do.call(eval(parse(text = 'highcharter::hc_title')), chart$titleOpts)
-        }
-
-        if(!is.null(chart$xAxisOpts)) {
-            chart$xAxisOpts$hc <- a
-            a <- do.call(eval(parse(text = 'highcharter::hc_xAxis')), chart$xAxisOpts)
-        }
-
-        if(!is.null(chart$yAxisOpts)) {
-            chart$yAxisOpts$hc <- a
-            a <- do.call(eval(parse(text = 'highcharter::hc_yAxis_multiples')), chart$yAxisOpts)
-        }
-
-        if(!is.null(chart$tooltipOpts)) {
-            chart$tooltipOpts$hc <- a
-            a <- do.call(eval(parse(text = 'highcharter::hc_tooltip')), chart$tooltipOpts)
-        }
-
-        if (!is.null(chart$legendOpts)) {
-            chart$legendOpts$hc <- a
-            a <- do.call(eval(parse(text = 'highcharter::hc_legend')), chart$legendOpts)
-        }
-
-        if (!is.null(chart$paneOpts)) {
-            chart$paneOpts$hc <- a
-            a <- do.call(eval(parse(text = 'highcharter::hc_pane')), chart$paneOpts)
-        }
-
-        if (!is.null(chart$plotOptionsOpts)) {
-            chart$plotOptionsOpts$hc <- a
-            a <- do.call(eval(parse(text = 'highcharter::hc_plotOptions')), chart$plotOptionsOpts)
-        }
-
-        a <- a %>%
-            highcharter::hc_add_series_list(chart$seriesOpts) %>%
-            highcharter::hc_add_theme(highcharter::hc_theme_smpl())
-
-
-        # hc_credits( enabled = TRUE
-        #           , position = list(
-        #                 align = 'right',
-        #                 x = -10,
-        #                 verticalAlign = 'top',
-        #                 y = 20)
-        #           , style =  list(color = 'black', fontSize= '12px')
-        #             , text = "Business Intelligence and Analytics") %>%
-
-        a
+        
+        prep$widget
+        
     })
     
-    # shiny::outputOptions(output,outputChart,suspendWhenHidden = FALSE)
-    # shiny::outputOptions(output,outputChart,priority = 5)
-    # 
+    shiny::outputOptions(output,outputChart,suspendWhenHidden = FALSE)
+    shiny::outputOptions(output,outputChart,priority = 5)
+
 
     #
     # observers voor highcharts
     #
 
-    highchartsClickEvent <- paste0(dim,'HighchartClick')
+    highchartsClickEvent <- paste0(gdim,'HighchartClick')
 
     if (!(highchartsClickEvent %in% obs)) {
 
@@ -691,7 +725,7 @@ renderHighchartDim <- function(env, dim, input,output) {
             parent <- dd$parent
             presList <- dd$presList
 
-            pres <- input[[paste0(dim,'Pres')]]
+            pres <- dd$pres
             presType <- presList[[pres]]$type
             pageLength <- dd$pageLength
             currentPage <- dd$currentPage
@@ -705,8 +739,8 @@ renderHighchartDim <- function(env, dim, input,output) {
             unSelect <- event$unSelect
             id <- event$id
 
-            if(exists(paste0(dim,'HighChartsClickHook'))) {
-                do.call(paste0(dim,'HighChartsClickHook'),list(event = event))
+            if(exists(paste0(dim,'HighChartsClickHook'),envir = env$ce)) {
+                do.call(paste0(dim,'HighChartsClickHook'),list(env = env, event = event),envir = env$ce)
             }
 
             if (select || unSelect || drill) {
@@ -759,14 +793,14 @@ renderHighchartDim <- function(env, dim, input,output) {
     }
 
 
-    highchartsHideEvent <- paste0(dim,'HighchartHide')
+    highchartsHideEvent <- paste0(gdim,'HighchartHide')
 
     if (!(highchartsHideEvent %in% obs)) {
 
         observeEvent(input[[highchartsHideEvent]], {
             
             e <- input[[highchartsHideEvent]]$data
-            pres <- input[[paste0(dim,'Pres')]]
+            pres <- dd$pres
             presList <- dd$presList
 
             seriesOpts <- presList[[pres]]$highChartsOpts$series
@@ -779,7 +813,7 @@ renderHighchartDim <- function(env, dim, input,output) {
         obs <- c(obs,highchartsHideEvent)
     }
 
-    highchartsShowEvent <- paste0(dim,'HighchartShow')
+    highchartsShowEvent <- paste0(gdim,'HighchartShow')
 
     if (!(highchartsShowEvent %in% obs)) {
 
@@ -787,7 +821,7 @@ renderHighchartDim <- function(env, dim, input,output) {
          
             e <- input[[highchartsShowEvent]]$data
 
-            pres <- input[[paste0(dim,'Pres')]]
+            pres <- dd$pres
             presList <- dd$presList
 
             seriesOpts <- presList[[pres]]$highChartsOpts$series
@@ -800,7 +834,7 @@ renderHighchartDim <- function(env, dim, input,output) {
         obs <- c(obs,highchartsShowEvent)
     }
 
-    highchartsPbClickEvent <- paste0(dim,'HighchartPbClick')
+    highchartsPbClickEvent <- paste0(gdim,'HighchartPbClick')
 
     if (!(highchartsPbClickEvent %in% obs)) {
 
@@ -810,7 +844,7 @@ renderHighchartDim <- function(env, dim, input,output) {
             parent <- dd$parent
             presList <- dd$presList
 
-            pres <- input[[paste0(dim,'Pres')]]
+            pres <- dd$pres
             followPager <- isNull(dd$syncNav,FALSE) && isNull(dd$pageLength,FALSE)
             pageLength <- dd$pageLength
             currentPage <- dd$currentPage
@@ -821,8 +855,8 @@ renderHighchartDim <- function(env, dim, input,output) {
             select <- event$select
             unSelect <- event$unSelect
 
-            if(exists(paste0(dim,'HighChartsPbClickHook'))) {
-                do.call(paste0(dim,'HighChartsPbClickHook'),list(event = event))
+            if(exists(paste0(dim,'HighChartsPbClickHook'),envir = env$ce)) {
+                do.call(paste0(dim,'HighChartsPbClickHook'),list(env = env, event = event),envir = env$ce)
             }
 
             if (select || unSelect || drill) {
@@ -903,14 +937,14 @@ renderHighchartDim <- function(env, dim, input,output) {
         obs <- c(obs,highchartsPbClickEvent)
     }
 
-    highchartsReadyEvent <- paste0(dim,'HighchartReady')
+    highchartsReadyEvent <- paste0(gdim,'HighchartReady')
 
     if (!(highchartsReadyEvent %in% obs)) {
 
         observeEvent(input[[highchartsReadyEvent]], {
             printDebug(env, dim, eventIn = 'highchartsReady')
             if (dd$state == 'enabled' && !dd$visible) {
-                shinyjs::js$showDim(dim = dim)
+                shinyjs::js$showDim(dim = gdim)
                 dd$visible <- TRUE
             }
         })
@@ -924,10 +958,12 @@ renderHighchartDim <- function(env, dim, input,output) {
 processHighCharts <- function(env,dim,pres){
 
     dd <- env$dims[[dim]]
+    gdim <- dd$gdim
+    
     chart <- env$hcPrep[[dim]]
     
     if (is.null(chart))
-        chart <- prepChart(env,dim,pres)
+        chart <- prepHc(env,dim,pres)
 
     presList <- dd$presList
     useUpdate <- presList[[pres]]$highChartsOpts$dashboard$useUpdate
@@ -969,7 +1005,7 @@ processHighCharts <- function(env,dim,pres){
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'seriesData')
 
             shinyjs::js$updateSeriesData(
-                dim = dim,
+                dim = gdim,
                 seriesData = l2,
                 redraw = FALSE)
             
@@ -988,7 +1024,7 @@ processHighCharts <- function(env,dim,pres){
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'seriesOpts')
 
             shinyjs::js$updateSeriesOpts(
-                dim = dim,
+                dim = gdim,
                 seriesOpts = lapply(seq_along(l1),function(x) listDiff(l1[[x]],l2[[x]])),
                 redraw = FALSE)
             
@@ -1010,7 +1046,7 @@ processHighCharts <- function(env,dim,pres){
             for (axis in seq_along(l2)) {
                 
                 shinyjs::js$updateYAxis(
-                    dim = dim,
+                    dim = gdim,
                     axis = axis - 1,
                     yAxisOpts = listDiff(l1[[axis]],l2[[axis]]),
                     redraw = FALSE)
@@ -1024,7 +1060,7 @@ processHighCharts <- function(env,dim,pres){
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'xAxisOpts')
 
             shinyjs::js$updateXAxis(
-                dim = dim,
+                dim = gdim,
                 axis = 0,
                 xAxisOpts = listDiff(env$hcPrev[[dim]]$xAxisOpts,chart$xAxisOpts),
                 redraw = FALSE)
@@ -1035,7 +1071,7 @@ processHighCharts <- function(env,dim,pres){
         if(!identical(env$hcPrev[[dim]]$titleOpts,chart$titleOpts)) {
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'titleOpts')
             shinyjs::js$updateTitle(
-                dim = dim,
+                dim = gdim,
                 titleOpts = listDiff(env$hcPrev[[dim]]$titleOpts,chart$titleOpts),
                 redraw = FALSE)
             change <- TRUE
@@ -1043,14 +1079,14 @@ processHighCharts <- function(env,dim,pres){
 
 
         if (change) {
-            shinyjs::js$redraw(dim = dim,animate = FALSE)
+            shinyjs::js$redraw(dim = gdim,animate = FALSE)
         }
 
         if (length(chart$plotBands) > 0) {
 
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'xPlotBands')
             shinyjs::js$updateXPlotBands(
-                dim = dim,
+                dim = gdim,
                 plotBands = chart$plotBands,
                 redraw = FALSE)
         }

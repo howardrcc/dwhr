@@ -34,6 +34,7 @@ function(input, output, session) {
             levelNames = c('Alle perioden', 'Jaar', 'Maand'),  # getoonde namen van nivo's
             initLevel = 2,
             initParent = '2017',
+            presListType = 'links',
             orderBy = 'key') %>%
         addMeasure(
             dim = 'per',

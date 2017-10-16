@@ -3,7 +3,7 @@
 #' Maak een sterschema-object gebaseerd op een feiten-tabel. Aan het resulterende object kunnen dimensie views worden toegevoegd met
 #' \code{\link{addDimView}}. \code{new.star()} moet uitgevoerd worden binnen een shiny-server sessie.
 #'
-#' @param id string, Id voor dit sterschema-object.
+#' @param starId string, Id voor dit sterschema-object.
 #' @param session een shiny sessie object.
 #' @param facts dataframe met aggregeerbare meetwaarden en foreign-keys naar dimView-dataframes
 #' @param caching boolean, controleert de caching van geaggreerde meetwaarden. Te gebruiken bij grote feiten-tabellen. default FALSE
@@ -16,10 +16,10 @@
 #'     }  .
 #'
 #' @export
-new.star <- function(id, session, facts, caching = FALSE, foreignKeyCheck = TRUE) {
+new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = TRUE) {
 
     withCallingHandlers({
-        assert_is_a_string(id)
+        assert_is_a_string(starId)
         assert_is_data.frame(facts)
         assert_is_a_bool(caching)
         assert_is_a_bool(foreignKeyCheck)
@@ -35,7 +35,7 @@ new.star <- function(id, session, facts, caching = FALSE, foreignKeyCheck = TRUE
         if (!exists('starList',envir = ses)) {
             ses$starList <- list()
         } else {
-            id %in% ses$starList && stop(paste0('star-object with id: ', id, 'already exists'))
+            starId %in% ses$starList && stop(paste0('star-object with id: ', starId, 'already exists'))
         }
 
     },
@@ -44,14 +44,15 @@ new.star <- function(id, session, facts, caching = FALSE, foreignKeyCheck = TRUE
         dwhrStop(conditionMessage(c))
     })
 
-    ses$starList <- c(ses$starList,id)
+    ses$starList <- c(ses$starList,starId)
 
     env <- new.env(parent = emptyenv())
     class(env) <- 'star'
 
     env$ce <- parent.frame()    # calling environment
 
-    env$id <- id
+    env$id <- starId
+    env$call <- match.call()
     env$facts <- facts
     env$dims <- list()
     env$proxyDims <- list()
@@ -157,6 +158,11 @@ new.star <- function(id, session, facts, caching = FALSE, foreignKeyCheck = TRUE
 #'@param na.rm boolean, als TRUE worden NA values verwijderd voor het uitvoeren van de aggregatie-functie.
 #'@param selectableLevels integer, bepaalt welke nivo's van de dimView selecteerbaar zijn, staat standaard op alle nivo's.
 #'@param footerLevels integer, bepaalt welke nivo's een footer krijgen, staat standaard op alle nivo's.
+#'@param presListType string, bepaalt de manier waarop de presentatielijst getoond wordt. Mogelijke waarden:
+#'\itemize{
+#'  \item dropdown: lijst wordt getoond via een dropdown box
+#'  \item links: lijst wordt getoond via meerdere links 
+#'}
 #'
 #'@return gewijzigd sterschema-object.
 #'
@@ -165,7 +171,7 @@ addDimView <- function(
     env, dim, name, data, levelNames, initLevel = 0, initParent = "", selectLevel = 0,
     selectLabel = levelNames[1], state = 'enabled', type = 'bidir', selectMode = 'single', useLevels = NULL,
     cntName = 'cnt', itemName = 'Naam', ignoreDims = NULL, leafOnly = FALSE, fixedMembers = FALSE,
-    na.rm = FALSE, orderBy = 'name', selectableLevels = NULL, footerLevels = NA_integer_ ) {
+    na.rm = FALSE, orderBy = 'name', selectableLevels = NULL, footerLevels = NA_integer_ , presListType = 'dropdown') {
 
     withCallingHandlers({
         class(env) == 'star' || stop('env is not of class star')
@@ -199,6 +205,8 @@ addDimView <- function(
         assert_is_a_bool(na.rm)
         assert_is_a_string(orderBy)
         assert_is_subset(orderBy,domains[['orderBy']])
+        assert_is_a_string(presListType)
+        assert_is_subset(presListType,domains[['presListType']])
 
         maxLevel <- length(levelNames) - 1
         rootLabel <- levelNames[1]
@@ -431,8 +439,13 @@ addDimView <- function(
     l <- new.env(parent = emptyenv())
     class(l) <- 'dimView'
 
+    l$presListType <- presListType
     l$call <- match.call()
+    l$measureCalls <- list()
+    l$derrivedMeasureCalls <- list()
+    l$presentationCalls <- list()
     l$name <- name
+    l$gdim <- getGlobalId(env$id,dim)
     l$master <- TRUE
     l$views <- list()
     l$data <- data
@@ -485,6 +498,7 @@ addDimView <- function(
         orderChange = 0,
         pageChange = 0,
         pageLengthChange = 0,
+        presChange = 0,
         clickMeasureEvent = list(
             clickCount = 0,
             clickViewColumn = '',
@@ -546,6 +560,7 @@ addDimView <- function(
         }
         v
     })
+    l$pres <- 'stub'
     l$state <- state
     l$debounce <- TRUE
 
@@ -553,7 +568,7 @@ addDimView <- function(
         l$visible <- TRUE
     } else {
         l$visible <- FALSE
-        shinyjs::js$hideDim(dim = dim)
+        shinyjs::js$hideDim(dim = l$gdim)
     }
 
     env$dims[[dim]] <- l
@@ -762,6 +777,8 @@ addMeasure <- function(env, dim, factColumn, fun, as = factColumn, viewColumn = 
     error = function(c) {
         dwhrStop(conditionMessage(c))
     })
+    
+    dd$measureCalls[[length(dd$measureCalls) + 1]] <- match.call()
 
     ml <- rbind(
         ml,
@@ -880,6 +897,8 @@ addMeasureDerrived <- function(env, dim, userFunc, as, viewColumn = NULL, sort =
         dwhrStop(conditionMessage(c))
     })
 
+    dd$derrivedMeasureCalls[[length(dd$derrivedMeasureCalls) + 1]] <- match.call()
+    
     ml <- rbind(
         ml,
         data.frame(
@@ -961,6 +980,8 @@ addSortColumn <- function(env, dim, sortColumn, levels = NULL) {
     error = function(c) {
         dwhrStop(conditionMessage(c))
     })
+    
+    dd$measureCalls[[length(dd$measureCalls) + 1]] <- match.call()
 
     ml <- rbind(
         ml,
@@ -1012,7 +1033,9 @@ addTooltipColumn <- function(env, dim, tooltipColumn, levels = NULL) {
     error = function(c) {
         dwhrStop(conditionMessage(c))
     })
-
+    
+    dd$measureCalls[[length(dd$measureCalls) + 1]] <- match.call()
+    
     sort <- max(ml$sort) + 1
 
     ml <- rbind(
@@ -1067,6 +1090,8 @@ addTextColumn <- function(env, dim, textColumn, as, viewColumn, sort = NULL, lev
     error = function(c) {
         dwhrStop(conditionMessage(c))
     })
+    
+    dd$measureCalls[[length(dd$measureCalls) + 1]] <- match.call()
 
     ml <- rbind(
         ml,
@@ -1148,20 +1173,22 @@ addTextColumn <- function(env, dim, textColumn, as, viewColumn, sort = NULL, lev
 #'         \item fontWeight: string, mag zijn: normal of bold. default normal.
 #'         \item align: string, bepaalt uitlijning in kolom: left, center of right. 
 #'         \item cursor: string, te hanteren cursor voor deze kolom als muis over de kolom gaat.
-#'         \item visible: boolean, als FALSE is kolom niet zichtbaar in UI. 
+#'         \item visible: boolean, als FALSE is kolom niet zichtbaar in UI, default TRUE. 
+#'         \item print: boolean, als FALSE wordt kolom niet in printbare documenten (pdf etc) getoond, default TRUE.
 #'     }
 #'     \item pageLength: integer, aantal regels per pagina in het geval van een langere lijst van dimView-members.
 #'     \item pageLengthList: numeric, vector met pagina lengtes waaruit gebruiker kan kiezen.
 #'     \item serverSideTable: boolean, Als TRUE wordt de data slechts gedeeltelijk geladen in client. Toe te passen voor (zeer) grote dimViews.
 #' }
 #' @param highChartOpts
+#' @param checkUiId boolean, als TRUE: controleer of uiId in de client voorkomt, default TRUE.
 #'
 #'@return gewijzigd sterschema object.
 #'
 #'@export
 #'
 addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault = FALSE, height = NULL, width = NULL,
-    useLevels = NULL, navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL) {
+    useLevels = NULL, navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL, checkUiId = TRUE) {
 
     withCallingHandlers({
 
@@ -1188,7 +1215,9 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
         dd <- env$dims[[dim]]
         class(dd) == 'dimView' || stop('dim is not of class dimView')
 
-        uiId %in% glob.env$dimUiIds || stop('uiId not in UI')
+        gdim <- getGlobalId(env$id,uiId)
+        
+        !checkUiId || gdim %in% glob.env$dimUiIds || stop('uiId not in UI')
         length(useLevels) == 0 || dim != uiId || stop('useLevels not valid for dim == uiId')
 
         assert_is_subset(type,domains[['presType']])
@@ -1286,6 +1315,13 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 } else {
                     dataTableOpts$measures[[i]]$visible <- TRUE
                 }
+                
+                if ('print' %in% names(x)) {
+                    assert_is_a_bool(x$print)
+                    dataTableOpts$measures[[i]]$print <- x$print
+                } else {
+                    dataTableOpts$measures[[i]]$print <- TRUE
+                }
 
                 dataTableOpts$measures[[i]] <- rlist::list.flatten(dataTableOpts$measures[[i]])
                 dataTableOpts$measures[[i]]$colOrder <- i
@@ -1338,6 +1374,8 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
     error = function(c) {
         dwhrStop(conditionMessage(c))
     })
+    
+    dd$presentationCalls[[length(dd$presentationCalls) + 1]] <- match.call()
 
     if (!is.null(highChartsOpts)) domainCheck(names(highChartsOpts),'highChartsOpts')
 
@@ -1429,6 +1467,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
 
     if (isDefault || length(pl) == 1) {
         dd$defPres <- newKey
+        dd$pres <- newKey
     }
 
     dd$presList <- pl
@@ -1587,6 +1626,7 @@ dimChangeState <- function(env, dim, newState) {
 
     state <- env$dims[[dim]]$state
     dd <- env$dims[[dim]]
+    gdim <- dd$gdim
 
     if(newState != state ) {
 
@@ -1600,9 +1640,13 @@ dimChangeState <- function(env, dim, newState) {
 
         if (oldVis != newVis) {
             if (newVis != 'Y') {
-                shinyjs::js$hideDim(dim = dim)
+                shinyjs::js$hideDim(dim = gdim)
                 env$dims[[dim]]$visible <- FALSE
             }
+            
+            # showDim uitstellen tot na render. Zie ready events van highCharts en dataTable
+            # als het niet tot een render komt, dan wordt dit via de observer op memberchange opgelost
+            # door het uitstellen krijg je bij het tonen altijd alleen de nieuwe output te zien
 
             dd$reactive$visChange <- dd$reactive$visChange + 1
             printDebug(env = env, dim, eventIn = 'dimChangeState', eventOut = 'visChange', info = paste0('visible: ', newVis))
@@ -1703,6 +1747,96 @@ setColumnName <- function(env,dim,colFrom, viewColFrom = NULL,colTo) {
 #'
 setDebug <- function(debug) {
     glob.env$debug <- debug
+}
+
+
+#'
+#' @export
+#'
+clone.star <- function(from, toId, facts = NULL, dimViews = NULL, checkUiId = FALSE, print = FALSE) {
+    
+    call <- from$call
+    call$starId <- toId
+    
+    if (!is.null(facts)) {
+        call$facts <- facts
+    }
+    
+    to <- eval(call, envir = from$ce)
+    
+    for (dv in names(dimViews)) {
+        
+        call <- from$dims[[dv]]$call
+        call$env <- to
+        
+        if (!is.null(dimViews[[dv]]$state)) {
+            call$state <- dimViews[[dv]]$state
+        }
+        
+        eval(call, envir = from$ce)
+        
+        to$dims[[dv]]$print <- print
+        
+        if(isNull(dimViews[[dv]]$measures,TRUE)) {
+            
+            for(mCall in from$dims[[dv]]$measureCalls) {
+                mCall$env <- to
+                eval(mCall, envir = from$ce)
+            }
+         
+            
+            if(isNull(dimViews[[dv]]$derrivedMeasures,TRUE)) {
+                
+                for(dmCall in from$dims[[dv]]$derrivedMeasureCalls) {
+                    dmCall$env <- to
+                    eval(dmCall, envir = from$ce)
+                }
+              
+                
+                if(isNull(dimViews[[dv]]$presentations,TRUE)) {
+                    
+                    for(pCall in from$dims[[dv]]$presentationCalls) {
+                        pCall$env <- to
+                        pCall$checkUiId <- checkUiId
+                        eval(pCall, envir = from$ce)
+                    }
+                    
+                }
+            }
+            
+        }
+    }
+    
+    to
+
+}
+
+#'
+#' @export
+#'
+navigate <- function(env,dim,level,parent) {
+    
+    dd <- env$dims[[dim]]
+    
+    if (dd$level != level || dd$parent != parent) {
+
+        ancestors <- c(parent)
+        
+        if (level >= 1) {
+            for (i in level:1) {
+                p <- ancestors[1]
+                ancestors <- c(unique(dd$pc$parentLabel[dd$pc$level == i - 1 & dd$pc$label == p]),ancestors)
+            }
+        }
+        
+        dd$level <- level
+        dd$parent <- parent
+        dd$ancestors <- ancestors
+        dd$reactive$levelChange <- dd$reactive$levelChange + 1
+        
+    }
+    
+    env
 }
 
 

@@ -31,31 +31,34 @@ dwhrInit <- function() {
 #'
 #' Creeer de html voor het dimView object in de shiny app's UI.
 #'
+#' @param starId, uniek id van het sterschema. Dit id moet overeenkomen met de parameter \code{starId} in \code{\link{new.star}}
 #' @param dim string, uniek id van the dimView. Dit id moet overeenkomen met de parameter \code{dim} in
 #' \code{\link{addDimView}}
-#' @param useWellPanel boolean, Als TRUE: er wordt een wellPanel om het dimView object getekend
+#' @param skipTopRow boolean, Als TRUE: eerste regel met Naam, links en presentatie wordt overgeslagen.
 #' @param maxHeight an integer, maximum hoogte in pixels voor dit dimView object
 #' @param overflowX string, css overflow propery in X richting, bepaalt of er wel of niet een horizontale scrollbar getoond wordt bij overflow. 
 #'
 #' @export
-getDimUI <- function(dim, useWellPanel = FALSE, maxHeight = NULL, overflowX = 'hidden') {
+getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflowX = 'hidden') {
     
     withCallingHandlers({
+        assert_is_a_string(starId)
         assert_is_a_string(dim)
-        assert_is_a_bool(useWellPanel)
+        assert_is_a_bool(skipTopRow)
         assert_is_a_number(isNull(maxHeight,0))
         maxHeight <- as.integer(maxHeight)
         assert_is_a_string(overflowX)
         assert_is_subset(overflowX,domains[['cssOverflow']])
-    
-        dim %in% glob.env$dimUiIds && stop('duplicate dims')    
+        
+        gdim <- getGlobalId(starId,dim)
+        gdim %in% glob.env$dimUiIds && stop('duplicate dims')    
     },
     
     error = function(c) {
         dwhrStop(conditionMessage(c))
     })
     
-    glob.env$dimUiIds <- c(glob.env$dimUiIds,dim)
+    glob.env$dimUiIds <- c(glob.env$dimUiIds,gdim)
     
     if (!is.null(maxHeight)) {
         style <- paste0("overflow-x:", overflowX, "; overflow-y:hidden; height: ", maxHeight, "px;")
@@ -64,10 +67,21 @@ getDimUI <- function(dim, useWellPanel = FALSE, maxHeight = NULL, overflowX = 'h
     }
     
     shiny::div(
-        id = paste0(dim,'Dimensie'),
-        shiny::uiOutput(paste0(dim,"DimHeader")),
-        shiny::uiOutput(paste0(dim,"DimBody")),
-        shiny::uiOutput(paste0(dim,'DimFooter')),
+        id = paste0(gdim,'Dimensie'),
+        if (!skipTopRow)
+            HTML(paste0(
+                '<table width = "100%">'
+                , '<tbody>'
+                , '<tr>'
+                , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimName")), '</td>'
+                , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimLinks")), '</td>'
+                , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimPresList")), '</td>'
+                , '<td class="db-header" style="padding-top: 30px"></td>'
+                , '</tr></tbody></table>')
+            ),
+        shiny::uiOutput(paste0(gdim,"DimHeader")),
+        shiny::uiOutput(paste0(gdim,"DimBody")),
+        shiny::uiOutput(paste0(gdim,'DimFooter')),
         style = style
     )
 

@@ -7,7 +7,7 @@
 addPresentation(env, dim, uiId = dim, type, as, name = "",
   isDefault = FALSE, height = NULL, width = NULL, useLevels = NULL,
   navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL,
-  highChartsOpts = NULL)
+  highChartsOpts = NULL, checkUiId = TRUE)
 }
 \arguments{
 \item{env}{sterschema object, gecreeerd met \code{\link{new.star}}.}
@@ -76,14 +76,15 @@ getoond worden op het scherm. Hoe de navigatie in dat geval moet verlopen kan vi
         \item fontWeight: string, mag zijn: normal of bold. default normal.
         \item align: string, bepaalt uitlijning in kolom: left, center of right. 
         \item cursor: string, te hanteren cursor voor deze kolom als muis over de kolom gaat.
-        \item visible: boolean, als FALSE is kolom niet zichtbaar in UI. 
+        \item visible: boolean, als FALSE is kolom niet zichtbaar in UI, default TRUE. 
+        \item print: boolean, als FALSE wordt kolom niet in printbare documenten (pdf etc) getoond, default TRUE.
     }
     \item pageLength: integer, aantal regels per pagina in het geval van een langere lijst van dimView-members.
     \item pageLengthList: numeric, vector met pagina lengtes waaruit gebruiker kan kiezen.
     \item serverSideTable: boolean, Als TRUE wordt de data slechts gedeeltelijk geladen in client. Toe te passen voor (zeer) grote dimViews.
 }}
 
-\item{highChartOpts}{}
+\item{checkUiId}{boolean, als TRUE: controleer of uiId in de client voorkomt, default TRUE.}
 }
 \value{
 gewijzigd sterschema object.
