@@ -199,7 +199,7 @@ makeDtWidget <- function(env,dim,prep) {
     height <- NULL
     
     if (print)
-        height <- 100
+        height <- (nrow(prep$tab) + 1) * 14 
     
     dt <- DT::datatable(
         prep$tab,
@@ -694,7 +694,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
         hasFormatting <- FALSE
     }
 
-    if (dd$type != 'output' && dd$selectMode != 'none' && dd$level %in% dd$selectableLevels) {
+    if (!print && dd$type != 'output' && dd$selectMode != 'none' && dd$level %in% dd$selectableLevels) {
         tab[,2] <- paste0('<span class = "underline-on-hover">',tab[,2],'</span>')
     }
 
@@ -705,6 +705,9 @@ prepDt <- function(env,dim,pres,print = NULL) {
         selection = selection,
         meas = meas,
         print = print,
+        level = dd$level,
+        parent = dd$parent,
+        visCols = visCols,
         hasFormatting = hasFormatting,
         page = (firstRow - 1) %/% pageLength)
     
