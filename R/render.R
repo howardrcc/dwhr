@@ -131,6 +131,8 @@ renderDims <- function(env,input,output) {
                     
                     txt <- paste0('<div>')
                     
+                    i <- 0
+                    
                     for (ll in links) {
                         
                         if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink') {
@@ -144,6 +146,11 @@ renderDims <- function(env,input,output) {
                         if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadButton') {
                             txt <- paste0(txt,shiny::downloadButton(outputId = ll$id, label = ll$label))
                         }
+                        
+                        i <- i + 1
+                        
+                        if (i < length(links))
+                            txt <- paste0(txt,'&nbsp&nbsp&nbsp&nbsp')
                     }
                     
                     txt <- paste0(txt,'</div>')
