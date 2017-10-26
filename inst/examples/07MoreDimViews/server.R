@@ -5,14 +5,14 @@ library(dwhr)
 # laden data
 
 per <- read.csv(
-    file = paste0(getwd(),"/../../data/ds_d_periode.txt"),
+    file = paste0(getwd(),"/data/ds_d_periode.txt"),
     header = FALSE,
     sep = ";",
     col.names = c("maandId","level1Label","level2Label"),
     stringsAsFactors = FALSE)
 
 leeft <- read.csv(
-    file = paste0(getwd(),"/../../data/ds_d_leeftijd.txt"),
+    file = paste0(getwd(),"/data/ds_d_leeftijd.txt"),
     header = FALSE,
     sep = ";",
     col.names = c("leeftijd","level1Label","level2Label"),
