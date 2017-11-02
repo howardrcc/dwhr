@@ -134,23 +134,31 @@ renderDims <- function(env,input,output) {
                     
                     for (ll in links) {
                         
-                        if(is.null(ll$visFun) || do.call(ll$visFun,list(env = env),envir = env$ce)) {
-                            
-                            if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink') {
-                                txt <- paste0(txt,shiny::actionLink(inputId = ll$id, label = ll$label))
-                            }
-                            
-                            if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadLink') {
-                                txt <- paste0(txt,shiny::downloadLink(outputId = ll$id, label = ll$label))
-                            }
-                            
-                            if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadButton') {
-                                txt <- paste0(txt,shiny::downloadButton(outputId = ll$id, label = ll$label))
-                            }
+                        vis <- ifelse(!is.null(ll$visFun),do.call(ll$visFun,list(env = env),envir = env$ce),TRUE) 
                         
-                            if (i < length(links))
-                                txt <- paste0(txt,'&nbsp&nbsp&nbsp&nbsp')
+                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink') {
+                            if (vis) 
+                                txt <- paste0(txt,shiny::actionLink(inputId = ll$id, label = ll$label))
+                            else 
+                                txt <- paste0(txt,ll$label)
                         }
+                        
+                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadLink') {
+                            if (vis)
+                                txt <- paste0(txt,shiny::downloadLink(outputId = ll$id, label = ll$label))
+                            else
+                                txt <- paste0(txt,ll$label)
+                        }
+                        
+                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadButton') {
+                            if (vis)
+                                txt <- paste0(txt,shiny::downloadButton(outputId = ll$id, label = ll$label))
+                            else
+                                txt <- paste0(txt,ll$label)
+                        }
+                        
+                        if (i < length(links))
+                            txt <- paste0(txt,'&nbsp&nbsp&nbsp&nbsp')
                         
                         i <- i + 1
                         
