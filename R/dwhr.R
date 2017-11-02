@@ -1866,3 +1866,165 @@ runExampleDwhr <- function (example = NA, port = NULL, launch.browser = getOptio
     }
 }
 
+#'
+#' Wijzig stijl of zichtbaarheid van een kolom in een dataTable presentatie.
+#'
+#' @param env sterschema object, gecreeerd met \code{\link{new.star}}.
+#' @param dim string, dimView id gecreeerd met \code{\link{addDimView}}.
+#' @param pres string, naam van de dataTable presentatie zoals gecreerd met \code{\link{addPresentation}} en
+#' waarin te wijzigen kolom voorkomt. 
+#' @param viewColumn string, identificatie van de kolom. Dit is de naam zoals in eerste instantie meegegeven aan \code{\link{addMeasure}} 
+#' of aan \code{\link{addMeasureDerrived}} of zoals die in deze functies wordt afgeleid en die bovendien voorkomt in eerder opgegeven presentatie. 
+#' @param fgStyle list, specificatie van de nieuwe foreground style van deze viewColumn. List heeft zelfde structuur als bij de bgStyle parameter. 
+#'
+#' @export
+#' 
+changeDtFgStyle <- function(env,dim,pres,viewColumn,fgStyle = NULL) {
+    
+    withCallingHandlers({
+        class(env) == 'star' || stop('env is not of class star')
+        
+        assert_is_a_string(dim)
+        dim %in% names(env$dims) || stop('Unknown dim')
+        dd <- env$dims[[dim]]
+        class(dd) == 'dimView' || stop('dim is not of class dimView')
+        
+        assert_is_a_string(pres)
+        
+        pl <- dd$presList
+        presAs <- sapply(pl,function(x) x$as)
+        pres %in% presAs || dwhrStop('Prestentation does not exist')
+        presNum <- which(presAs == pres)
+        
+        pl[[presNum]]$type == 'dataTable' || dwhrStop('Presentation is not of type dataTable')
+        
+        assert_is_a_string(viewColumn)
+        presVc <- sapply(pl[[presNum]]$dataTableOpts$measures,function(x) x$viewColumn)
+        viewColumn %in% presVc || dwhrStop('viewColumn invalid')
+        measNum <- which(presVc == viewColumn)
+
+        if (!is.null(fgStyle)) {
+            fgStyle  <- .setStyle(fgStyle)
+        }
+    },
+    
+    error = function(c) {
+        dwhrStop(conditionMessage(c))
+    })
+    
+    pl[[presNum]]$dataTableOpts$measures[[measNum]]$fgStyle.cuts <- NULL
+    pl[[presNum]]$dataTableOpts$measures[[measNum]]$fgStyle.values <- NULL
+    pl[[presNum]]$dataTableOpts$measures[[measNum]]$fgStyle.levels <- NULL
+    pl[[presNum]]$dataTableOpts$measures[[measNum]]$fgStyle.valueColumn <- NULL
+    
+    if (!is.null(fgStyle)) {
+        pl[[presNum]]$dataTableOpts$measures[[measNum]]$fgStyle <- fgStyle
+        pl[[presNum]]$dataTableOpts$measures[[measNum]] <- rlist::list.flatten(pl[[presNum]]$dataTableOpts$measures[[measNum]])
+    }   
+    
+    dd$presList <- pl
+    
+}
+
+#' @rdname changeDtFgStyle
+#' 
+#' @param bgStyle list, specificatie van de nieuwe background style van deze viewColumn. List kent volgende waarden:
+#' \itemize{
+#'    \item cuts: numeric, vector van waarden waar de kolomwaarde over verdeeld wordt.
+#'    \item levels: numeric, vector van waarden waar de kolomwaarde mee overeen moet stemmen.  Of cuts wordt opgegven of levels, 1 van beiden. 
+#'    \item values: character, vector met kleuren waar de kolomwaarde op afgebeeld wordt via ofwel cuts ofwel levels. In het geval van cuts moet de vector van kleuren 
+#' 1 langer zijn dan de vector cuts. Bij gebruik van levels moet de vector van kleuren even lang zijn als de levels-vector.
+#'    \item valueColumn: Normaal wordt de waarde uit de viewColumn zelf gehaald, de waarde kan echter ook uit een andere viewColumn komen.
+#'}
+#'
+#' @export
+#' 
+changeDtBgStyle <- function(env,dim,pres,viewColumn,bgStyle = NULL) {
+    
+    withCallingHandlers({
+        class(env) == 'star' || stop('env is not of class star')
+        
+        assert_is_a_string(dim)
+        dim %in% names(env$dims) || stop('Unknown dim')
+        dd <- env$dims[[dim]]
+        class(dd) == 'dimView' || stop('dim is not of class dimView')
+        
+        assert_is_a_string(pres)
+        
+        pl <- dd$presList
+        presAs <- sapply(pl,function(x) x$as)
+        pres %in% presAs || dwhrStop('Prestentation does not exist')
+        presNum <- which(presAs == pres)
+        
+        pl[[presNum]]$type == 'dataTable' || dwhrStop('Presentation is not of type dataTable')
+        
+        assert_is_a_string(viewColumn)
+        presVc <- sapply(pl[[presNum]]$dataTableOpts$measures,function(x) x$viewColumn)
+        viewColumn %in% presVc || dwhrStop('viewColumn invalid')
+        measNum <- which(presVc == viewColumn)
+        
+        if (!is.null(bgStyle)) {
+            bgStyle  <- .setStyle(bgStyle)
+        }
+    },
+    
+    error = function(c) {
+        dwhrStop(conditionMessage(c))
+    })
+    
+    pl[[presNum]]$dataTableOpts$measures[[measNum]]$bgStyle.cuts <- NULL
+    pl[[presNum]]$dataTableOpts$measures[[measNum]]$bgStyle.values <- NULL
+    pl[[presNum]]$dataTableOpts$measures[[measNum]]$bgStyle.levels <- NULL
+    pl[[presNum]]$dataTableOpts$measures[[measNum]]$bgStyle.valueColumn <- NULL
+    
+    if (!is.null(bgStyle)) {
+        pl[[presNum]]$dataTableOpts$measures[[measNum]]$bgStyle <- bgStyle
+        pl[[presNum]]$dataTableOpts$measures[[measNum]] <- rlist::list.flatten(pl[[presNum]]$dataTableOpts$measures[[measNum]])
+    }   
+    
+    dd$presList <- pl
+    
+}
+
+#' @rdname changeDtFgStyle
+#' 
+#' @param visible boolean, controleert de zichtbaarheid van een datatable kolom
+#' 
+#' @export
+#'
+setDtVisible <- function(env,dim,pres,viewColumn,visible) {
+    
+    withCallingHandlers({
+        class(env) == 'star' || stop('env is not of class star')
+        
+        assert_is_a_string(dim)
+        dim %in% names(env$dims) || stop('Unknown dim')
+        dd <- env$dims[[dim]]
+        class(dd) == 'dimView' || stop('dim is not of class dimView')
+        
+        assert_is_a_string(pres)
+        
+        pl <- dd$presList
+        presAs <- sapply(pl,function(x) x$as)
+        pres %in% presAs || dwhrStop('Prestentation does not exist')
+        presNum <- which(presAs == pres)
+        
+        pl[[presNum]]$type == 'dataTable' || dwhrStop('Presentation is not of type dataTable')
+        
+        assert_is_a_string(viewColumn)
+        presVc <- sapply(pl[[presNum]]$dataTableOpts$measures,function(x) x$viewColumn)
+        viewColumn %in% presVc || dwhrStop('viewColumn invalid')
+        measNum <- which(presVc == viewColumn)
+        
+        assert_is_a_bool(visible)
+    },
+    
+    error = function(c) {
+        dwhrStop(conditionMessage(c))
+    })
+    
+    pl[[presNum]]$dataTableOpts$measures[[measNum]]$visible <- visible
+    dd$presList <- pl
+    
+}
+

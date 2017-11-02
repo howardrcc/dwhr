@@ -236,7 +236,7 @@ makeDtWidget <- function(env,dim,prep) {
     
     if ('colorBarColor1' %in% names(meas)) {
         
-        for (fc in meas$as[!is.na(meas$colorBarColor1)]) {
+        for (fc in meas$as[!is.na(meas$colorBarColor1) & meas$visible]) {
             
             color1 <- meas$colorBarColor1[meas$as == fc]
             color2 <- meas$colorBarColor2[meas$as == fc]
@@ -277,7 +277,7 @@ makeDtWidget <- function(env,dim,prep) {
     
     if ('bgStyle.values' %in% names(meas)) {
         
-        for (fc in meas$as[!is.na(meas$bgStyle.values)]) {
+        for (fc in meas$as[!is.na(meas$bgStyle.values) & meas$visible]) {
             
             cuts <- meas$bgStyle.cuts[meas$as == fc]
             levels <- meas$bgStyle.levels[meas$as == fc]
@@ -325,7 +325,7 @@ makeDtWidget <- function(env,dim,prep) {
     
     if ('fgStyle.values' %in% names(meas)) {
         
-        for (fc in meas$as[!is.na(meas$fgStyle.values)]) {
+        for (fc in meas$as[!is.na(meas$fgStyle.values) & meas$visible]) {
             
             cuts <- meas$fgStyle.cuts[meas$as == fc]
             levels <- meas$fgStyle.levels[meas$as == fc]

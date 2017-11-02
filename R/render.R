@@ -123,34 +123,37 @@ renderDims <- function(env,input,output) {
                     printDebug(env = env, dim, eventIn = 'renderLinks')
                     
                     dd$reactive$presChange
+                    dd$reactive$levelChange
                     
                     presList <- dd$presList
-                    
-                    presType <- presList[[dd$pres]]$type
                     links <- presList[[dd$pres]]$navOpts$links
                     
                     txt <- paste0('<div>')
                     
-                    i <- 0
+                    i <- 1
                     
                     for (ll in links) {
                         
-                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink') {
-                            txt <- paste0(txt,shiny::actionLink(inputId = ll$id, label = ll$label))
-                        }
+                        if(is.null(ll$visFun) || do.call(ll$visFun,list(env = env),envir = env$ce)) {
+                            
+                            if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink') {
+                                txt <- paste0(txt,shiny::actionLink(inputId = ll$id, label = ll$label))
+                            }
+                            
+                            if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadLink') {
+                                txt <- paste0(txt,shiny::downloadLink(outputId = ll$id, label = ll$label))
+                            }
+                            
+                            if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadButton') {
+                                txt <- paste0(txt,shiny::downloadButton(outputId = ll$id, label = ll$label))
+                            }
                         
-                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadLink') {
-                            txt <- paste0(txt,shiny::downloadLink(outputId = ll$id, label = ll$label))
-                        }
-                        
-                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadButton') {
-                            txt <- paste0(txt,shiny::downloadButton(outputId = ll$id, label = ll$label))
+                            if (i < length(links))
+                                txt <- paste0(txt,'&nbsp&nbsp&nbsp&nbsp')
                         }
                         
                         i <- i + 1
                         
-                        if (i < length(links))
-                            txt <- paste0(txt,'&nbsp&nbsp&nbsp&nbsp')
                     }
                     
                     txt <- paste0(txt,'</div>')

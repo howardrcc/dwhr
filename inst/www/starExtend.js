@@ -256,8 +256,26 @@ shinyjs.blockUI = function() {
     $('[data-toggle="tooltip"]').tooltip('destroy');
 };
 
-shinyjs.tooltip = function() {
-    $('[data-toggle="tooltip"]').tooltip({trigger: 'hover', delay: {show: 200}});
+shinyjs.tooltip = function(params) {
+    
+    if (params === null) {
+        trigger = 'hover';
+    } else {
+        trigger = params.trigger;
+    }
+    
+    $('[data-toggle="tooltip"]').tooltip({trigger: trigger, delay: {show: 200}});
+};
+
+shinyjs.popover = function(params) {
+    
+    if (params === null) {
+        trigger = 'hover';
+    } else {
+        trigger = params.trigger;
+    }
+    
+    $('[data-toggle="popover"]').popover({trigger: trigger, html: true, delay: {show: 200}});
 };
 
 shinyjs.hideDim = function(params) {
