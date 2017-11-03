@@ -229,7 +229,7 @@ addDimView <- function(
             if (!code %in% names(data)) {
                 data[[code]] <<- apply(data[,c(label),drop = FALSE],1,digest::digest)
             }
-            length(unique(data[[code]])) == length(unique(data[[label]])) || stop(paste0('level',x,'Code is no key for level',x,'Label'))
+            length(unique(data[[code]])) >= length(unique(data[[label]])) || stop(paste0('level',x,'Code is no key for level',x,'Label'))
         })
 
         # filter dimension data according to facts
@@ -2011,10 +2011,10 @@ setDtVisible <- function(env,dim,pres,viewColumn,visible) {
         
         pl[[presNum]]$type == 'dataTable' || dwhrStop('Presentation is not of type dataTable')
         
-        assert_is_a_string(viewColumn)
+        assert_is_character(viewColumn)
         presVc <- sapply(pl[[presNum]]$dataTableOpts$measures,function(x) x$viewColumn)
         viewColumn %in% presVc || dwhrStop('viewColumn invalid')
-        measNum <- which(presVc == viewColumn)
+        measNum <- which(presVc %in% viewColumn)
         
         assert_is_a_bool(visible)
     },
@@ -2023,7 +2023,9 @@ setDtVisible <- function(env,dim,pres,viewColumn,visible) {
         dwhrStop(conditionMessage(c))
     })
     
-    pl[[presNum]]$dataTableOpts$measures[[measNum]]$visible <- visible
+    for (x in measNum)
+        pl[[presNum]]$dataTableOpts$measures[[x]]$visible <- visible
+    
     dd$presList <- pl
     
 }

@@ -434,7 +434,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
     #
 
     formattedColumns <- grep('*_fc',names(tab),value = TRUE)
-    textColumns <- meas$viewColumn[meas$category == 'text' & (meas$print | !print)]
+    textColumns <- meas$viewColumn[meas$category == 'text' & (meas$print | !print) & meas$visible]
         
     if (length(textColumns) > 0) {
         tab[[textColumns]] <- as.character(tab[[textColumns]])
@@ -476,8 +476,27 @@ prepDt <- function(env,dim,pres,print = NULL) {
 
     tab$zoom[tab$cnt == 0] <- ''
     
-    # een na diepste nivo checken of gelijk aan diepste nivo.
+    # een twee na diepste nivo checken of gelijk aan diepste nivo.
     # dit om hierarchie met variabele diepte te maken
+    
+    if(lvl == length(dd$levelNames) - 3) {
+        colA <- paste0('level',lvl,'Label')
+        colB <- paste0('level',lvl + 1,'Label')
+        colC <- paste0('level',lvl + 2,'Label')
+        z <- data.table(dd$data)
+        
+        # selecteer kolommen met gelijke inhoud
+        eq1 <- z[[colA]][z[[colA]] == z[[colB]] & z[[colA]] == z[[colC]]]
+        cnts <- z[,eval(parse(text=paste0("length(unique(",colC,"))"))), by = colA]
+        # diepste nivo moet evenveel records hebben als parent
+        eq2 <- cnts[[colA]][cnts[[colA]] %in% eq1 & cnts$V1 == 1]
+        
+        tab$zoom[tab$member %in% eq2] <- '' 
+        
+    }
+    
+    # een na diepste nivo checken of gelijk aan diepste nivo.
+    
     if(lvl == length(dd$levelNames) - 2) {
         colA <- paste0('level',lvl,'Label')
         colB <- paste0('level',lvl + 1,'Label')
