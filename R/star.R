@@ -583,37 +583,39 @@ dimSetHasSubselect <- function(env,dim) {
 
     dd <- env$dims[[dim]]
     
-    level <- dd$level
-    l <- dd$selected
-
-    x <- unique(l[,c('level','parent')])
-    x$level <- x$level - 1
-    x <- x[x$level >= 0,]
-
-    names(x) <- c('level','label')
-
-    #todo functie gebruiken als dimensie dieper is dan 2 levels
-
-    if (nrow(x[x$level > 0,]) > 0 && nrow(x[x$level == 0,]) == 0) {
-        x[nrow(x)+1,] = list(level = 0, label = dd$rootLabel)
+    getAncestors <- function(level,label) {
+        ancestors <- c()
+        p <- label
+        pc <- dd$pc
+        
+        if (level >= 1) {
+            for (i in level:1) {
+                ancestors <- c(unique(pc$parentLabel[pc$level == i & pc$label == p]),ancestors)
+                p <- ancestors[1]
+            }
+        }
+        ancestors
     }
     
-    if (nrow(x[x$level > 0,]) > 0 && nrow(x[x$level == 1,]) == 0) {
-        x <- rbind(x,data.frame(
-            level = 1,
-            label = unique(dd$data$level1Label[dd$data$level2Label %in% x$label[x$level == 2]])
-        ))
-    }
+    hss <- NULL
+    selected <- dd$selected
     
-    a <- env$dims[[dim]]$hasSubselect
-    a <- a$label[a$level == level]
-    b <- x$label[x$level == level]
+    for (n in 1:nrow(selected)) {
+        
+        ancestors <- getAncestors(selected$level[n],selected$label[n])
 
-    if (!identical(a[order(a,method = 'radix')], b[order(b,method = 'radix')])) {
-        env$dims[[dim]]$reactive$dimRefresh <- env$dims[[dim]]$reactive$dimRefresh + 1
+        if (!is.null(ancestors)) {
+            hss <- rbind(
+                hss,
+                data.frame(
+                    level = 0:(length(ancestors) - 1),
+                    label = ancestors,
+                    stringsAsFactors = FALSE))
+        }
+            
     }
 
-    env$dims[[dim]]$hasSubselect <- x[order(x$level, x$label ,method = 'radix'),]
+    env$dims[[dim]]$hasSubselect <- unique(hss)
 
 }
 
