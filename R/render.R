@@ -128,7 +128,7 @@ renderDims <- function(env,input,output) {
                     presList <- dd$presList
                     links <- presList[[dd$pres]]$navOpts$links
                     
-                    txt <- paste0('<div>')
+                    txt <- paste0('<div class="',gdim,'Links">')
                     
                     i <- 1
                     
