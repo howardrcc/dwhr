@@ -93,10 +93,8 @@ wrapUp <- function() {
     
     if (glob.env$sessionCount == 0) {
         
-        if (!is.null(glob.env$dbhandle)) {
-            print('Closing ODBC connections')
-            RODBC::odbcCloseAll()
-        }
+        print('Closing ODBC connections')
+        RODBC::odbcCloseAll()
         
         if (exists('globalCache', env = glob.env)) {
             for (id in names(glob.env$globalCache)) {
@@ -130,40 +128,71 @@ initGlob <- function() {
         
         isDefinedGlobal('securityModel','none')
         isDefinedGlobal('omgeving','ACC')
-        isDefinedGlobal('hasODBC',FALSE)
         isDefinedGlobal('debug',FALSE)
         isDefinedGlobal('debugDims',NULL)
         isDefinedGlobal('debugDumpReactive',FALSE)
         
-        glob.env$dbhandle <- NULL
         glob.env$sessionCount <- 0
         glob.env$dashboardName <- basename(getwd())
         glob.env$dimUiIds <- c()
         glob.env$globalCache <- list()
         glob.env$reservedColumnPatterns <- c('*_fc','*_org','*_tooltip','*_text','*_sort')
         
-        # account data
-
-        if (glob.env$omgeving == 'PRD') {
-            glob.env$odbcDsn <- 'PRD1'
-            glob.env$odbcUser <- 'sa'
-            glob.env$odbcPwd <- 'saPRD3'
-        } else {
-            glob.env$odbcDsn <- 'ACC1'
-            glob.env$odbcUser <- 'etl'
-            glob.env$odbcPwd <- 'etlACC1'
-        }
+        glob.env$securityModel %in% c('none','proxy') || dwhrStop('Invalid securityModel')
         
-        if (glob.env$hasODBC) {
-            sql <- paste0("exec R.dbo.get_startpunt '",glob.env$omgeving,"'")
-            glob.env$dbhandle <- RODBC::odbcDriverConnect(paste0("DSN=",glob.env$odbcDsn,";DATABASE=R;UID=",glob.env$odbcUser,";PWD=",glob.env$odbcPwd))
-            glob.env$portalUrl <- RODBC::sqlQuery(glob.env$dbhandle, sql)$startpunt
+        # account data
+        
+        credFile <- paste0(getwd(),'/data/dbCred.rds')
+        
+        if (glob.env$securityModel == 'proxy') {
+            
+            if (is.na(file.info(credFile)$mtime)) {
+                
+                dwhrStop(paste0('credentials file: ', credFile, ' not found'))
+            }
+            
+            dbCred <- readRDS(credFile)
+            
+            omg <- glob.env$omgeving
+            
+            sql <- paste0("exec R.dbo.get_startpunt '",omg,"'")
+            handle <- RODBC::odbcDriverConnect(paste0("DSN=",dbCred[[omg]]$dsn,";DATABASE=R;UID=",dbCred[[omg]]$user,";PWD=",dbCred[[omg]]$pwd))
+            glob.env$portalUrl <- RODBC::sqlQuery(handle, sql)$startpunt
+    
+            glob.env$dbCred <- dbCred
+            glob.env$dbCred[[omg]]$handle <- handle
+            
         } else {
+            if (!is.na(file.info(credFile)$mtime)) {
+                
+                dbCred <- readRDS(credFile)
+                glob.env$dbCred <- dbCred
+            }
+
             glob.env$portalUrl <- 'http://www.example.com'
         }
     }
     
 }
+
+#'
+#' get database handle voor omgeving
+#' 
+#' @export
+getDbHandle <- function(omg) {
+    omg %in% names(glob.env$dbCred) || dwhrStop(paste0('No credentials for omg:', omg))
+    
+    if (is.null(glob.env$dbCred[[omg]]$handle)) {
+        
+        dbCred <- glob.env$dbCred
+        glob.env$dbCred[[omg]]$handle <- RODBC::odbcDriverConnect(paste0("DSN=",dbCred[[omg]]$dsn,";DATABASE=R;UID=",dbCred[[omg]]$user,";PWD=",dbCred[[omg]]$pwd))
+        
+    }
+    
+    glob.env$dbCred[[omg]]$handle
+    
+}
+ 
 
 #'
 #' authenticate dwhr session
@@ -185,7 +214,7 @@ authenticate <- function(session) {
     
     glob.env$sessionCount <- glob.env$sessionCount + 1
     
-    if (glob.env$securityModel == 'none' || !glob.env$hasODBC) {
+    if (glob.env$securityModel == 'none') {
         ses$authenticated <- TRUE
         ses$dashUser <- 'unknown'
         return(TRUE)
@@ -201,8 +230,9 @@ authenticate <- function(session) {
         ts <- ses$urlQuery$t
     }
 
-    sql <- paste0("exec R.dbo.check_hash '",user,"','",glob.env$dashboardName,"','",ts,"','",hash,"','",glob.env$omgeving,"'")
-    res <- RODBC::sqlQuery(glob.env$dbhandle, sql)
+    omg <- glob.env$omgeving
+    sql <- paste0("exec R.dbo.check_hash '",user,"','",glob.env$dashboardName,"','",ts,"','",hash,"','",omg,"'")
+    res <- RODBC::sqlQuery(glob.env$dbCred[[omg]]$handle, sql)
     
     if (res$status %in% c(3,4,5)) {
         
