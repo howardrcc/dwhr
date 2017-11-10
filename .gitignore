@@ -3,4 +3,5 @@
 .RData
 .Ruserdata
 .Rbuildignore
+inst/examples/08DataFromDb/data
 
