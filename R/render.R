@@ -134,11 +134,13 @@ renderDims <- function(env,input,output) {
                     
                     for (ll in links) {
                         
+                        
                         vis <- ifelse(!is.null(ll$visFun),do.call(ll$visFun,list(env = env),envir = env$ce),TRUE) 
+                        style <- ifelse(!is.null(ll$styleFun),do.call(ll$styleFun,list(env = env),envir = env$ce),'')
                         
                         if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink') {
                             if (vis) 
-                                txt <- paste0(txt,shiny::actionLink(inputId = ll$id, label = ll$label))
+                                txt <- paste0(txt,span(shiny::actionLink(inputId = ll$id, label = ll$label)),style = style)
                             else 
                                 txt <- paste0(txt,ll$label)
                         }
