@@ -1130,7 +1130,7 @@ processDataTable <- function(env,dim,pres){
             container = as.character(prep$container),
             tab = as.matrix(prep$tab),
             selected = s,
-            dim = dim,
+            dim = env$dims[[dim]]$gdim,
             page = prep$page)
 
         env$dtPrev[[dim]] <- prep
