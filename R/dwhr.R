@@ -171,7 +171,7 @@ addDimView <- function(
     env, dim, name, data, levelNames, initLevel = 0, initParent = "", selectLevel = 0,
     selectLabel = levelNames[1], state = 'enabled', type = 'bidir', selectMode = 'single', useLevels = NULL,
     cntName = 'cnt', itemName = 'Naam', ignoreDims = NULL, leafOnly = FALSE, fixedMembers = FALSE,
-    na.rm = FALSE, orderBy = 'name', selectableLevels = NULL, footerLevels = NA_integer_ , presListType = 'dropdown') {
+    na.rm = TRUE, orderBy = 'name', selectableLevels = NULL, footerLevels = NA_integer_ , presListType = 'dropdown') {
 
     withCallingHandlers({
         class(env) == 'star' || stop('env is not of class star')
