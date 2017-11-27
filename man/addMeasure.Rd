@@ -38,6 +38,7 @@ addTextColumn(env, dim, textColumn, as, viewColumn, sort = NULL,
   \item count: aantal feitenregels.
   \item median: mediaan van factColumn.
   \item mean: gemiddelde van factColumn.
+  \item userFunc: naam van custom aggregate functie. Functie moet gedefineerd zijn in de calling environment en moet een scalar retourneren.
 }}
 
 \item{as}{character, getoonde naam van de meetwaarde in de UI.}

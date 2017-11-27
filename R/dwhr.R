@@ -700,6 +700,7 @@ addDimView <- function(
 #'   \item count: aantal feitenregels.
 #'   \item median: mediaan van factColumn.
 #'   \item mean: gemiddelde van factColumn.
+#'   \item userFunc: naam van custom aggregate functie. Functie moet gedefineerd zijn in de calling environment en moet een scalar retourneren.
 #'}
 #' @param as character, getoonde naam van de meetwaarde in de UI.
 #' @param viewColumn character, naam van de technische kolom zoals gebruikt in de dimView. Als dit niet door gebruiker opgegeven wordt, wordt er een naam gegenereerd. De generatie van 
@@ -762,7 +763,11 @@ addMeasure <- function(env, dim, factColumn, fun, as = factColumn, viewColumn = 
         sort <- .setSort(dd,length(as),sort)
 
         assert_is_character(fun)
-        assert_is_subset(fun,domains[['aggregateFun']])
+        
+        for (x in fun) {
+            x %in% domains[['aggregateFun']] || class(get(x, envir = env$ce)) == 'function' ||  stop('Invalid function')   
+        }
+        
         length(fun) %in% c(1,length(factColumn)) || stop('Invalid length fun')
 
         viewColumn <- .setViewColumn(dd,levels,as,isNull(viewColumn,paste0(fun,'_',factColumn)))

@@ -342,8 +342,8 @@ getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL
                     measFun <- paste0(measFun,"max(",factColumn,")")
                 }
                 
-                if (fun == 'custom') {
-                    measFun <- paste0(measFun,"custom(",factColumn,")")
+                if (!fun %in% domains[['aggregateFun']]) {
+                    measFun <- paste0(measFun,"custom('",fun,"',",factColumn,")")
                 }
             }
 
@@ -351,8 +351,8 @@ getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL
 
         measFun <- paste0(measFun,')')
         
-        custom <- function(col) {
-            do.call('customAggregate',list(col),envir = env$ce)
+        custom <- function(fun,col) {
+            do.call(fun,list(col),envir = env$ce)
         }
         
         if(addSummary) {
