@@ -141,7 +141,7 @@ renderDims <- function(env,input,output) {
                             if (vis) 
                                 txt <- paste0(txt,shiny::actionLink(inputId = ll$id, label = ll$label,style = style))
                             else 
-                                txt <- paste0(txt,ll$label)
+                                txt <- paste0(txt,span(id = ll$id,ll$label))
                         }
                         
                         if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadLink') {

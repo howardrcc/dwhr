@@ -111,10 +111,15 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
             if (is.numeric(df[[vc]])) {
 
                 if(!is.na(formatRef)) {
-
+                    
                     for (rw in row.names(df)) {
 
-                        format <- df[rw,formatRef]
+                        if ('format' %in% names(measures) && !is.na(measures$format[measures$viewColumn == vc])) {  # overrule format
+                            format <- measures$format[measures$viewColumn == vc]
+                        } else {
+                            format <- df[rw,formatRef]
+                        }
+                        
                         if (format == '')
                             format <- 'standard'
 
