@@ -100,6 +100,7 @@ renderDims <- function(env,input,output) {
                     printDebug(env = env, dim, eventIn = 'renderName')
                     
                     dd$reactive$presChange
+                    dd$reactive$nameChange
                     
                     presList <- dd$presList
                     presType <- presList[[dd$pres]]$type
@@ -123,7 +124,7 @@ renderDims <- function(env,input,output) {
                     printDebug(env = env, dim, eventIn = 'renderLinks')
                     
                     dd$reactive$presChange
-                    dd$reactive$levelChange
+                    dd$reactive$linksChange
                     
                     presList <- dd$presList
                     links <- presList[[dd$pres]]$navOpts$links
