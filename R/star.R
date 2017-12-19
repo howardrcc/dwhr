@@ -814,3 +814,47 @@ getZoom <- function(env,dim) {
     
 }
 
+#'
+#' @export
+#' 
+EVAL <- function(...){
+    browser()
+    eval(parse(text = paste0('c(',...,')',collapse = ','),envir = parent.frame(1)))
+}
+
+#'
+#' @export
+#' 
+dwhrMerge <- function(cumDT,incDT,keyCols,noDeletes = TRUE) {
+
+    mutCols <- setdiff(names(cumDT),keyCols)
+    
+    if (!'data.table' %in% class(cumDT)) {
+        if (!'data.frame' %in% class(cumDT)) {
+            dwhrStop('invalid dataType of cumDT for dwhrMerge')
+        } 
+        
+        cumDT <- data.table(cumDT)
+    } 
+    
+    if (!'data.table' %in% class(incDT)) {
+        if (!'data.frame' %in% class(incDT)) {
+            dwhrStop('invalid dataType of incDT for dwhrMerge')
+        } 
+        
+        incDT <- data.table(incDT)
+    } 
+        
+    # update
+browser()
+    eval(parse(text = paste0(
+        "cumDT[incDT,c(",
+        paste0(mutCols, collapse = ","),
+        ") := list(",
+        paste0("i.",mutCols, collapse = ","),
+        "), on = c(",
+        paste0("'",keyCols,"'",collapse = ","),
+        ")]")))
+    
+}
+
