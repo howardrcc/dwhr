@@ -817,44 +817,45 @@ getZoom <- function(env,dim) {
 #'
 #' @export
 #' 
-EVAL <- function(...){
-    browser()
-    eval(parse(text = paste0('c(',...,')',collapse = ','),envir = parent.frame(1)))
-}
-
-#'
-#' @export
-#' 
 dwhrMerge <- function(cumDT,incDT,keyCols,noDeletes = TRUE) {
 
     mutCols <- setdiff(names(cumDT),keyCols)
     
     if (!'data.table' %in% class(cumDT)) {
-        if (!'data.frame' %in% class(cumDT)) {
-            dwhrStop('invalid dataType of cumDT for dwhrMerge')
-        } 
-        
-        cumDT <- data.table(cumDT)
+        dwhrStop('dwhMerge: cumDT must be of class data.table.')
     } 
     
     if (!'data.table' %in% class(incDT)) {
-        if (!'data.frame' %in% class(incDT)) {
-            dwhrStop('invalid dataType of incDT for dwhrMerge')
-        } 
-        
-        incDT <- data.table(incDT)
+        dwhrStop('dwhMerge: incDT must be of class data.table.')
     } 
-        
+    
+
+    if (!identical(sort(names(cumDT)), sort(names(incDT)))) {
+        dwhrStop('dwhMerge: column names differ')
+    }
+  
+    incDT <- copy(incDT[,names(cumDT), with = FALSE])
+
+    if (!identical(sapply(cumDT,class), sapply(incDT,class))) {
+        dwhrStop('dwhMerge: types differ')
+    }
+
     # update
-browser()
+    
+
     eval(parse(text = paste0(
-        "cumDT[incDT,c(",
-        paste0(mutCols, collapse = ","),
-        ") := list(",
+        "cumDT[incDT,mutCols := list(",
         paste0("i.",mutCols, collapse = ","),
         "), on = c(",
         paste0("'",keyCols,"'",collapse = ","),
-        ")]")))
+        "),with = FALSE]")))
+    
+    # insert
+
+    rbindlist(list(cumDT,eval(parse(text = paste0(
+        "incDT[!cumDT,on = c(",
+        paste0("'",keyCols,"'",collapse = ","),
+        ")]")))))
     
 }
 
