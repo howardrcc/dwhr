@@ -155,6 +155,7 @@ new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = 
 #'niet aggregeerbaar zijn. De footer wordt dan in de UI niet getoond.
 #'@param fixedMembers boolean, als TRUE worden alle dimensie-members getoont in de UI ongeachtof feiten bestaan voor de members of niet. Correspondeert met een left-
 #'outer join tussen dimensie en feiten-tabel.
+#'@param keepUnused boolean, als TRUE: niet gebruikte records in data (geen facts) worden niet opgeschoond, default FALSE. 
 #'@param na.rm boolean, als TRUE worden NA values verwijderd voor het uitvoeren van de aggregatie-functie.
 #'@param selectableLevels integer, bepaalt welke nivo's van de dimView selecteerbaar zijn, staat standaard op alle nivo's.
 #'@param footerLevels integer, bepaalt welke nivo's een footer krijgen, staat standaard op alle nivo's.
@@ -170,7 +171,7 @@ new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = 
 addDimView <- function(
     env, dim, name, data, levelNames, initLevel = 0, initParent = "", selectLevel = 0,
     selectLabel = levelNames[1], state = 'enabled', type = 'bidir', selectMode = 'single', useLevels = NULL,
-    cntName = 'cnt', itemName = 'Naam', ignoreDims = NULL, leafOnly = FALSE, fixedMembers = FALSE,
+    cntName = 'cnt', itemName = 'Naam', ignoreDims = NULL, leafOnly = FALSE, fixedMembers = FALSE, keepUnused = FALSE,
     na.rm = TRUE, orderBy = 'name', selectableLevels = NULL, footerLevels = NA_integer_ , presListType = 'dropdown') {
 
     withCallingHandlers({
@@ -202,6 +203,7 @@ addDimView <- function(
         assert_is_character(isNull(ignoreDims,''))
         assert_is_a_bool(leafOnly)
         assert_is_a_bool(fixedMembers)
+        assert_is_a_bool(keepUnused)
         assert_is_a_bool(na.rm)
         assert_is_a_string(orderBy)
         assert_is_subset(orderBy,domains[['orderBy']])
@@ -229,16 +231,20 @@ addDimView <- function(
             if (!code %in% names(data)) {
                 data[[code]] <<- apply(data[,c(label),drop = FALSE],1,digest::digest)
             }
+
             length(unique(data[[code]])) >= length(unique(data[[label]])) || stop(paste0('level',x,'Code is no key for level',x,'Label'))
         })
 
-        # filter dimension data according to facts
+        # filter dimension data 
+        
         keyColumn <- names(data)[1]
 
         if(!fixedMembers) {
             keyColumn %in% names(env$facts) || stop(paste0('keyColumn ', dim, ' is not a foreign key in fact-table'))
-            data <- data[data[[keyColumn]] %in% unique(env$facts[[keyColumn]]),]
-            nrow(data) > 0 || stop('dimension and facts are completely disjoint')
+            if (!keepUnused) {
+                data <- data[data[[keyColumn]] %in% unique(env$facts[[keyColumn]]),]
+                nrow(data) > 0 || stop('dimension and facts are completely disjoint')
+            }
         }
 
         # foreignkey check
@@ -1816,6 +1822,37 @@ clone.star <- function(from, toId, facts = NULL, dimViews = NULL, checkUiId = FA
     
     to
 
+}
+
+#'
+#' @export
+#'
+redoDimView <- function(env,dv) {
+    
+    call <- env$dims[[dv]]$call
+    mCalls <- env$dims[[dv]]$measureCalls
+    dmCalls <- env$dims[[dv]]$derrivedMeasureCalls
+    pCalls <- env$dims[[dv]]$presentationCalls
+    
+    env$dims[[dv]] <- NULL
+    
+    call$env <- env
+    eval(call, envir = env$ce)
+    
+    for(mCall in mCalls) {
+        mCall$env <- env
+        eval(mCall, envir = env$ce)
+    }
+    
+    for(dmCall in dmCalls) {
+        dmCall$env <- env
+        eval(dmCall, envir = env$ce)
+    }
+    
+    for(pCall in pCalls) {
+        pCall$env <- env
+        eval(pCall, envir = env$ce)
+    }
 }
 
 #'

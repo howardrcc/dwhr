@@ -142,6 +142,9 @@ cacheFind <- function(env, dim) {
 
 }
 
+#'
+#' @export
+#' 
 getSelectedIds <- function(env, dim, selected = NULL) {
 
     data <- env$dims[[dim]]$data
@@ -820,7 +823,7 @@ getZoom <- function(env,dim) {
 dwhrMerge <- function(cumDT,incDT,keyCols,noDeletes = TRUE) {
 
     mutCols <- setdiff(names(cumDT),keyCols)
-    
+
     if (!'data.table' %in% class(cumDT)) {
         dwhrStop('dwhMerge: cumDT must be of class data.table.')
     } 
@@ -829,7 +832,6 @@ dwhrMerge <- function(cumDT,incDT,keyCols,noDeletes = TRUE) {
         dwhrStop('dwhMerge: incDT must be of class data.table.')
     } 
     
-
     if (!identical(sort(names(cumDT)), sort(names(incDT)))) {
         dwhrStop('dwhMerge: column names differ')
     }
@@ -844,15 +846,15 @@ dwhrMerge <- function(cumDT,incDT,keyCols,noDeletes = TRUE) {
     
 
     eval(parse(text = paste0(
-        "cumDT[incDT,mutCols := list(",
+        "cumDT[incDT,(mutCols) := list(",
         paste0("i.",mutCols, collapse = ","),
         "), on = c(",
         paste0("'",keyCols,"'",collapse = ","),
-        "),with = FALSE]")))
+        ")]")))
     
     # insert
 
-    rbindlist(list(cumDT,eval(parse(text = paste0(
+    cumDT <- rbindlist(list(cumDT,eval(parse(text = paste0(
         "incDT[!cumDT,on = c(",
         paste0("'",keyCols,"'",collapse = ","),
         ")]")))))
