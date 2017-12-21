@@ -76,10 +76,14 @@ new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = 
     env$customPatterns <- list()
     env$hcPrev <- list()
     env$hcPrep <- list()
+    
+    env$reactive <- shiny::reactiveValues(factsChange = 0)
 
     env$factsFiltered <- shiny::reactive({
 
         f <- env$facts
+        
+        env$reactive$factsChange
 
         for (d in dimTypeSelect(env,c('bidir','input'))) {
             env$dims[[d]]$reactive$selectedIdsChange
@@ -172,7 +176,8 @@ addDimView <- function(
     env, dim, name, data, levelNames, initLevel = 0, initParent = "", selectLevel = 0,
     selectLabel = levelNames[1], state = 'enabled', type = 'bidir', selectMode = 'single', useLevels = NULL,
     cntName = 'cnt', itemName = 'Naam', ignoreDims = NULL, leafOnly = FALSE, fixedMembers = FALSE, keepUnused = FALSE,
-    na.rm = TRUE, orderBy = 'name', selectableLevels = NULL, footerLevels = NA_integer_ , presListType = 'dropdown') {
+    na.rm = TRUE, orderBy = 'name', selectableLevels = NULL, footerLevels = NA_integer_ , presListType = 'dropdown',
+    returnPrepData = FALSE) {
 
     withCallingHandlers({
         class(env) == 'star' || stop('env is not of class star')
@@ -441,6 +446,14 @@ addDimView <- function(
     error = function(c) {
         dwhrStop(conditionMessage(c))
     })
+    
+    
+    if (returnPrepData) {
+        return(list(
+            data = data,
+            pc = pc
+        ))
+    }
 
     l <- new.env(parent = emptyenv())
     class(l) <- 'dimView'
@@ -1827,32 +1840,13 @@ clone.star <- function(from, toId, facts = NULL, dimViews = NULL, checkUiId = FA
 #'
 #' @export
 #'
-redoDimView <- function(env,dv) {
+getDimViewPrepData <- function(env,dv) {
     
     call <- env$dims[[dv]]$call
-    mCalls <- env$dims[[dv]]$measureCalls
-    dmCalls <- env$dims[[dv]]$derrivedMeasureCalls
-    pCalls <- env$dims[[dv]]$presentationCalls
     
-    env$dims[[dv]] <- NULL
-    
+    call$returnPrepData <- TRUE
     call$env <- env
-    eval(call, envir = env$ce)
-    
-    for(mCall in mCalls) {
-        mCall$env <- env
-        eval(mCall, envir = env$ce)
-    }
-    
-    for(dmCall in dmCalls) {
-        dmCall$env <- env
-        eval(dmCall, envir = env$ce)
-    }
-    
-    for(pCall in pCalls) {
-        pCall$env <- env
-        eval(pCall, envir = env$ce)
-    }
+    return(eval(call, envir = env$ce))
 }
 
 #'
