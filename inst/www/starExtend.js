@@ -19,8 +19,8 @@ clearPlotbands = function(chart,id,color) {
     var len = chart.xAxis[0].plotLinesAndBands.length;
     var newPb = [];
 
-    for ( i = 0; i < len; i++) {
-        pb = chart.xAxis[0].plotLinesAndBands[i].options;
+    for (i = 0; i < len; i++) {
+        var pb = chart.xAxis[0].plotLinesAndBands[i].options;
 
         if (pb.id == id) {
             pb.color = color;
@@ -32,7 +32,7 @@ clearPlotbands = function(chart,id,color) {
     }
 
 
-    for ( i = 0; i < newPb.length; i++) {
+    for (i = 0; i < newPb.length; i++) {
         chart.xAxis[0].removePlotBand(i);
         chart.xAxis[0].addPlotBand(newPb[i]);
     }
@@ -41,10 +41,10 @@ clearPlotbands = function(chart,id,color) {
 
 clearSelection = function(serie,id,color) {
 
-  len = serie.data.length;
+  var len = serie.data.length;
   if (serie.type == 'pie') {
-      for ( i = 0; i< len; i++) {
-          if( i == id) {
+      for (i = 0; i< len; i++) {
+          if(i == id) {
               serie.data[i].slice(true);
           } else {
               serie.data[i].slice(false);
@@ -52,7 +52,7 @@ clearSelection = function(serie,id,color) {
       }
    } else {
      if (serie.type == 'treemap') {
-        for ( i = 0; i< len; i++) {
+        for (i = 0; i< len; i++) {
             if( i == id) {
                 serie.data[i].update({color: color});
             } else {
@@ -64,18 +64,18 @@ clearSelection = function(serie,id,color) {
 };
 
 pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,color) {
-    container = '#'.concat(dim,'DimChart');
-    eventName = dim.concat('HighchartClick');
-    chart = $(container).highcharts();
-    drill = false;
-    select = false;
-    unSelect = false;
+    var container = '#'.concat(dim,'DimChart');
+    var eventName = dim.concat('HighchartClick');
+    var chart = $(container).highcharts();
+    var drill = false;
+    var select = false;
+    var unSelect = false;
 
     if (!event.ctrlKey) {
 
         if(chart.xAxis[0].plotLinesAndBands.length > 0) {
 
-            pbColor = chart.xAxis[0].plotLinesAndBands[point.x].options.color;
+            var pbColor = chart.xAxis[0].plotLinesAndBands[point.x].options.color;
 
             if (pbColor == color && unSelectable) {
                 unSelect = true;
@@ -90,7 +90,7 @@ pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,c
 
         if (point.series.type == 'treemap') {
 
-            pColor = point.color;
+            var pColor = point.color;
             if(pColor == color && unSelectable) {
                 unSelect = true;
                 clearSelection(point.series,-1,color);
@@ -105,7 +105,7 @@ pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,c
 
         if (point.series.type == 'pie') {
 
-            pSliced = point.sliced;
+            var pSliced = point.sliced;
             if(pSliced && unSelectable) {
                 unSelect = true;
                 clearSelection(point.series,-1);
@@ -134,17 +134,17 @@ pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,c
 
 
 plotBandSingleSelect = function(dim,plotBand,event,selectable,unSelectable,drillable,color) {
-    container = '#'.concat(dim,'DimChart');
-    eventName = dim.concat('HighchartPbClick');
-    data = plotBand.options.from;
-    chart = $(container).highcharts();
-    drill = false;
-    select = false;
-    unSelect = false;
+    var container = '#'.concat(dim,'DimChart');
+    var eventName = dim.concat('HighchartPbClick');
+    var data = plotBand.options.from;
+    var chart = $(container).highcharts();
+    var drill = false;
+    var select = false;
+    var unSelect = false;
 
     if (!event.ctrlKey) {
 
-        pBColor = plotBand.options.color;
+        var pBColor = plotBand.options.color;
 
         if (pBColor == color && unSelectable) {
             unSelect = true;
@@ -180,15 +180,15 @@ shinyjs.dumpToConsole = function(params) {
 
 shinyjs.updateTitle = function(params) {
     var container = '#' + params.dim + 'DimChart';
-    chart = $(container).highcharts();
+    var chart = $(container).highcharts();
 
     chart.setTitle(params.titleOpts,null,params.redraw);
 
 };
 
 shinyjs.updateSeriesData = function(params) {
-    container = '#'.concat(params.dim,'DimChart');
-    chart = $(container).highcharts();
+    var container = '#'.concat(params.dim,'DimChart');
+    var chart = $(container).highcharts();
 
     for (i = 0; i < params.seriesData.length; i++) {
         chart.series[i].setData(params.seriesData[i],params.redraw,false,false);
@@ -198,8 +198,8 @@ shinyjs.updateSeriesData = function(params) {
 };
 
 shinyjs.updateSeriesOpts = function(params) {
-    container = '#'.concat(params.dim,'DimChart');
-    chart = $(container).highcharts();
+    var container = '#'.concat(params.dim,'DimChart');
+    var chart = $(container).highcharts();
 
     for (i = 0; i < params.seriesOpts.length; i++) {
         chart.series[i].update(params.seriesOpts[i],params.redraw);
@@ -224,9 +224,8 @@ shinyjs.updateYAxis = function(params) {
 shinyjs.updateXPlotBands = function(params) {
 
   //  $.unblockUI();
-    container = '#'.concat(params.dim,'DimChart');
-    chart = $(container).highcharts();
-
+    var container = '#'.concat(params.dim,'DimChart');
+    var chart = $(container).highcharts();
     var len = chart.xAxis[0].plotLinesAndBands.length;
 
     for ( i = 0; i < len; i++) {
@@ -234,7 +233,7 @@ shinyjs.updateXPlotBands = function(params) {
     }
 
     for ( i = 0; i < params.plotBands.length; i++) {
-        pb = params.plotBands[i];
+        var pb = params.plotBands[i];
         pb.events.click = eval('(' + pb.events.click + ')');
         chart.xAxis[0].addPlotBand(pb);
     }
@@ -258,13 +257,15 @@ shinyjs.blockUI = function() {
 
 shinyjs.tooltip = function(params) {
     
+    var trigger;
+    
     if (params === null) {
         trigger = 'hover';
     } else {
         trigger = params.trigger;
     }
     
-    $('[data-toggle="tooltip"]').tooltip({trigger: trigger, delay: {show: 200}});
+    $('[data-toggle="tooltip"]').tooltip({trigger: trigger, delay: {show: 400}});
 };
 
 shinyjs.popover = function(params) {
@@ -279,14 +280,14 @@ shinyjs.popover = function(params) {
 };
 
 shinyjs.hideDim = function(params) {
-    container = '#'.concat(params.dim,'Dimensie');
+    var container = '#'.concat(params.dim,'Dimensie');
     $(container).fadeTo(0,0).addClass("hide-db");
 };
 
 shinyjs.showDim = function(params) {
-    container = '#'.concat(params.dim,'Dimensie');
+    var container = '#'.concat(params.dim,'Dimensie');
     $(container).removeClass("hide-db");
-    $(container).fadeTo(2000,1);
+    $(container).fadeTo(500,1);
 };
 
 shinyjs.updateDT = function(params) {
