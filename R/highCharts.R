@@ -59,7 +59,7 @@ pointSingleSelectJS <- function(env,dim,color,serieType) {
     selectable <- 'true'
     unSelectable <- 'true'
     drillable <- 'true'
-    
+
     if (!0 %in% dd$selectableLevels) {
         unSelectable <- 'false'
     }
@@ -763,12 +763,13 @@ renderHighchartDim <- function(env, dim, input,output) {
                 } else {
 
                     l <- data.frame(
-                        level = lvl,
+                        level = as.numeric(lvl),
                         parent = parent,
                         label = dd$membersFiltered$member[e],
                         stringsAsFactors = FALSE)
 
                     s <- dd$selected
+                    s$level <- as.numeric(s$level)
 
                     if (identical(s,l)) {
                         dd$selected <- dd$rootSelected
@@ -910,12 +911,13 @@ renderHighchartDim <- function(env, dim, input,output) {
                 } else {
 
                     l <- data.frame(
-                        level = lvl,
+                        level = as.numeric(lvl),
                         parent = parent,
                         label = dd$membersFiltered$member[e],
                         stringsAsFactors = FALSE)
 
                     s <- dd$selected
+                    s$level <- as.numeric(s$level)
 
                     if (identical(s,l)) {
                         dd$selected <- dd$rootSelected
