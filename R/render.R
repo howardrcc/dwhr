@@ -159,6 +159,14 @@ renderDims <- function(env,input,output) {
                                 txt <- paste0(txt,ll$label)
                         }
                         
+                        if (!is.null(ll$id) && ll$type == 'dropDown') {
+                    
+                            if (vis)
+                                txt <- paste0(txt,shiny::selectizeInput(inputId = ll$id, label = ll$label, choices = c('test' = '', 'lk;sadjlkdjf','aklsdjkldsjaflkdjf')))
+                            else
+                                txt <- paste0(txt,ll$label)
+                        }
+                        
                         if (i < length(links))
                             txt <- paste0(txt,'&nbsp&nbsp&nbsp&nbsp')
                         

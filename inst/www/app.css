@@ -50,3 +50,7 @@ width: 97%;
     text-decoration: underline;
 }
 
+.popover{
+    max-width:600px;
+}
+

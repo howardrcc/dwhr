@@ -171,6 +171,18 @@ initGlob <- function() {
 
             glob.env$portalUrl <- 'http://www.example.com'
         }
+        
+     
+        glob.env$adUser <- as.data.table(read.csv(  
+            file = paste0(getwd(),"/../data/userInfo/ds_ad_user.txt"),
+            header = FALSE,
+            sep = ";",
+            col.names = 
+                c("usr",
+                  "functie",
+                  "naam"), 
+            stringsAsFactors = FALSE))
+        
     }
     
 }
@@ -217,6 +229,8 @@ authenticate <- function(session) {
     if (glob.env$securityModel == 'none') {
         ses$authenticated <- TRUE
         ses$dashUser <- 'unknown'
+        ses$dashUserName <- 'onbekend'
+        ses$dashUserFunc <- 'geen'
         return(TRUE)
     }
 
@@ -243,6 +257,8 @@ authenticate <- function(session) {
         }
         ses$authenticated <- FALSE
         ses$dashUser <- 'none'
+        ses$dashUserName <- 'geen'
+        ses$dashUserFunc <- 'geen'
         return(FALSE)
     }
     
@@ -256,6 +272,9 @@ authenticate <- function(session) {
     
     ses$authenticated <- TRUE
     ses$dashUser <- user
+    adU <- glob.env$adUser[glob.env$adUser$usr == toupper(user),]
+    ses$dashUserName = adU$naam
+    ses$dashUserFunc = adu$functie
     return(TRUE)
 
 }
