@@ -129,7 +129,7 @@ renderDims <- function(env,input,output) {
                     presList <- dd$presList
                     links <- presList[[dd$pres]]$navOpts$links
                     
-                    txt <- paste0('<div class="',gdim,'Links">')
+                    txt <- paste0('<span class="',gdim,'Links">')
                     
                     i <- 1
                     
@@ -174,7 +174,7 @@ renderDims <- function(env,input,output) {
                         
                     }
                     
-                    txt <- paste0(txt,'</div>')
+                    txt <- paste0(txt,'</span>')
                     HTML(txt)
                 
                 })
