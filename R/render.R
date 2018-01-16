@@ -129,7 +129,7 @@ renderDims <- function(env,input,output) {
                     presList <- dd$presList
                     links <- presList[[dd$pres]]$navOpts$links
                     
-                    txt <- paste0('<span class="',gdim,'Links">')
+                    txt <- paste0('<div class="',gdim,'Links"><table width = "100%><tr>')
                     
                     i <- 1
                     
@@ -138,11 +138,15 @@ renderDims <- function(env,input,output) {
                         vis <- ifelse(!is.null(ll$visFun),do.call(ll$visFun,list(env = env),envir = env$ce),TRUE) 
                         style <- ifelse(!is.null(ll$styleFun),do.call(ll$styleFun,list(env = env),envir = env$ce),'')
                         
+                        style <- paste0(style,' margin: 10px;')
+                        
+                        txt <- paste0(txt,'<td class="db-header">')
+                        
                         if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink') {
                             if (vis) 
                                 txt <- paste0(txt,shiny::actionLink(inputId = ll$id, label = ll$label,style = style))
                             else 
-                                txt <- paste0(txt,span(id = ll$id,ll$label))
+                                txt <- paste0(txt,span(id = ll$id,ll$label,style = style))
                         }
                         
                         if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadLink') {
@@ -162,19 +166,21 @@ renderDims <- function(env,input,output) {
                         if (!is.null(ll$id) && ll$type == 'dropDown') {
                     
                             if (vis)
-                                txt <- paste0(txt,shiny::selectizeInput(inputId = ll$id, label = ll$label, choices = c('test' = '', 'lk;sadjlkdjf','aklsdjkldsjaflkdjf')))
+                                txt <- paste0(txt,shiny::selectizeInput(inputId = ll$id, label = ll$label, choices = c('test' = '', 'lk;sadjlkdjf','aklsdjkldsjaflkdjf'),style = style))
                             else
                                 txt <- paste0(txt,ll$label)
                         }
                         
-                        if (i < length(links))
-                            txt <- paste0(txt,'&nbsp&nbsp&nbsp&nbsp')
+                        # if (i < length(links))
+                        #     txt <- paste0(txt,'&nbsp&nbsp&nbsp&nbsp')
+                        # 
                         
+                        txt <- paste0(txt,'</td>')
                         i <- i + 1
                         
                     }
                     
-                    txt <- paste0(txt,'</span>')
+                    txt <- paste0(txt,'</tr></table>')
                     HTML(txt)
                 
                 })
