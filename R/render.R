@@ -129,51 +129,51 @@ renderDims <- function(env,input,output) {
                     presList <- dd$presList
                     links <- presList[[dd$pres]]$navOpts$links
                     
-                    txt <- paste0('<div class="',gdim,'Links"><table width = "100%><tr>')
+                    txt <- paste0('<div class="',gdim,'Links"><table width = "100%"><tr><td width = "100%"></td>')
                     
                     i <- 1
                     
                     for (ll in links) {
                         
                         vis <- ifelse(!is.null(ll$visFun),do.call(ll$visFun,list(env = env),envir = env$ce),TRUE) 
-                        style <- ifelse(!is.null(ll$styleFun),do.call(ll$styleFun,list(env = env),envir = env$ce),'')
                         
-                        style <- paste0(style,' margin: 10px;')
+                        txt <- paste0(txt,'<td>')
                         
-                        txt <- paste0(txt,'<td class="db-header">')
-                        
-                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink') {
-                            if (vis) 
-                                txt <- paste0(txt,shiny::actionLink(inputId = ll$id, label = ll$label,style = style))
-                            else 
-                                txt <- paste0(txt,span(id = ll$id,ll$label,style = style))
+                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink' && vis) {
+                            txt <- paste0(txt,shiny::actionLink(inputId = ll$id, label = ll$label))
                         }
                         
-                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadLink') {
-                            if (vis)
-                                txt <- paste0(txt,shiny::downloadLink(outputId = ll$id, label = ll$label))
-                            else
-                                txt <- paste0(txt,ll$label)
+                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadLink' && vis) {
+                            txt <- paste0(txt,shiny::downloadLink(outputId = ll$id, label = ll$label))
                         }
                         
-                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadButton') {
-                            if (vis)
-                                txt <- paste0(txt,shiny::downloadButton(outputId = ll$id, label = ll$label))
-                            else
-                                txt <- paste0(txt,ll$label)
+                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadButton' && vis) {
+                            txt <- paste0(txt,shiny::downloadButton(outputId = ll$id, label = ll$label))
                         }
                         
-                        if (!is.null(ll$id) && ll$type == 'dropDown') {
-                    
-                            if (vis)
-                                txt <- paste0(txt,shiny::selectizeInput(inputId = ll$id, label = ll$label, choices = c('test' = '', 'lk;sadjlkdjf','aklsdjkldsjaflkdjf'),style = style))
-                            else
-                                txt <- paste0(txt,ll$label)
-                        }
+                        if (!is.null(ll$id) && ll$type == 'dropDown' && vis) {
+                            
+                            if (!is.null(ll$choiceFun)) {
+                                choices <- do.call(ll$choiceFun,list(env = env),envir = env$ce) 
+                                if (!is.null(ll$placeholder)) {
+                                    nm <- isNull(names(choices),rep('',length(choices)))
+                                    choices <- c('',choices)
+                                    names(choices) <- c(ll$placeholder,nm) 
+                                }
+                            } else {
+                                choices <- c(a = '?')
+                            }
+                            
+                            txt <- paste0(txt,shiny::selectizeInput(
+                                inputId = ll$id, 
+                                label = ll$label, 
+                                choices = choices,
+                                options = list(dropdownParent = 'body')))
+                        } 
                         
-                        # if (i < length(links))
-                        #     txt <- paste0(txt,'&nbsp&nbsp&nbsp&nbsp')
-                        # 
+                        if (i < length(links))
+                            txt <- paste0(txt,'<td>&nbsp&nbsp&nbsp&nbsp</td>')
+
                         
                         txt <- paste0(txt,'</td>')
                         i <- i + 1

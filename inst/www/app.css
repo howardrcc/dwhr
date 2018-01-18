@@ -54,12 +54,4 @@ width: 97%;
     max-width:600px;
 }
 
-.selectize-dropdown, .selectize-input { 
-  line-height: 14px; 
-}
-
-.form-control {
-    height: 23px;
-    padding-top: 0;
-}
-    
+   
