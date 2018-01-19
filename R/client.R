@@ -84,6 +84,25 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
         shiny::uiOutput(paste0(gdim,'DimFooter')),
         style = style
     )
+    # shiny::div(
+    #     id = paste0(gdim,'Dimensie'),
+    #     if (!skipTopRow)
+    #         fluidRow(
+    #             column(
+    #                 width = 4,
+    #                 shiny::uiOutput(paste0(gdim,"DimName"))),
+    #             column(
+    #                 width = 6,
+    #                 shiny::uiOutput(paste0(gdim,"DimLinks"))),
+    #             column(
+    #                 width = 2,
+    #                 shiny::uiOutput(paste0(gdim,"DimPresList")))
+    #         ),
+    #     shiny::uiOutput(paste0(gdim,"DimHeader")),
+    #     shiny::uiOutput(paste0(gdim,"DimBody")),
+    #     shiny::uiOutput(paste0(gdim,'DimFooter')),
+    #     style = style
+    # )
 
 }
 
@@ -284,4 +303,32 @@ authenticate <- function(session) {
 #' 
 portalUrl <- function(){
     glob.env$portalUrl
+}
+
+
+#'
+#' @export
+#' 
+mySelectInput <-function (inputId, label, choices, selected = NULL, multiple = FALSE, 
+           width = NULL, options = NULL) 
+{
+    selected <- shiny:::restoreInput(id = inputId, default = selected)
+    choices <- shiny:::choicesWithNames(choices)
+    
+    if (is.null(selected)) {
+        if (!multiple) 
+            selected <- shiny:::firstChoice(choices)
+    } else {
+        selected <- as.character(selected)
+    }
+    
+    selectTag <- tags$select(id = inputId, class = "form-control form-control-sm", shiny:::selectOptions(choices, selected))
+    
+    if (multiple) 
+        selectTag$attribs$multiple <- "multiple"
+    
+    res <- div(class = "form-group form-group-sm shiny-input-container", style = if (!is.null(width)) 
+        paste0("width: ", validateCssUnit(width), ";"), shiny:::controlLabel(inputId,label), div(selectTag))
+
+    shiny:::selectizeIt(inputId, res, options, nonempty = !multiple && !("" %in% choices))
 }

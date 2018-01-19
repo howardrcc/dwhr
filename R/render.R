@@ -129,60 +129,59 @@ renderDims <- function(env,input,output) {
                     presList <- dd$presList
                     links <- presList[[dd$pres]]$navOpts$links
                     
-                    txt <- paste0('<div class="',gdim,'Links"><table width = "100%"><tr><td width = "100%"></td>')
-                    
-                    i <- 1
+                    elems <- list()
                     
                     for (ll in links) {
                         
-                        vis <- ifelse(!is.null(ll$visFun),do.call(ll$visFun,list(env = env),envir = env$ce),TRUE) 
+                        eleObject <- list(width = ll$width)
                         
-                        txt <- paste0(txt,'<td>')
-                        
-                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink' && vis) {
-                            txt <- paste0(txt,shiny::actionLink(inputId = ll$id, label = ll$label))
-                        }
-                        
-                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadLink' && vis) {
-                            txt <- paste0(txt,shiny::downloadLink(outputId = ll$id, label = ll$label))
-                        }
-                        
-                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadButton' && vis) {
-                            txt <- paste0(txt,shiny::downloadButton(outputId = ll$id, label = ll$label))
-                        }
-                        
-                        if (!is.null(ll$id) && ll$type == 'dropDown' && vis) {
+                        if(ifelse(!is.null(ll$visFun),do.call(ll$visFun,list(env = env),envir = env$ce),TRUE)) {
                             
-                            if (!is.null(ll$choiceFun)) {
-                                choices <- do.call(ll$choiceFun,list(env = env),envir = env$ce) 
-                                if (!is.null(ll$placeholder)) {
-                                    nm <- isNull(names(choices),rep('',length(choices)))
-                                    choices <- c('',choices)
-                                    names(choices) <- c(ll$placeholder,nm) 
-                                }
-                            } else {
-                                choices <- c(a = '?')
+                            if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink') {
+                                ele <- shiny::actionLink(inputId = ll$id, label = ll$label)
                             }
                             
-                            txt <- paste0(txt,shiny::selectizeInput(
-                                inputId = ll$id, 
-                                label = ll$label, 
-                                choices = choices,
-                                options = list(dropdownParent = 'body')))
-                        } 
+                            if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadLink') {
+                                ele <- shiny::downloadLink(outputId = ll$id, label = ll$label)
+                            }
+                            
+                            if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadButton') {
+                                ele <- shiny::downloadButton(outputId = ll$id, label = ll$label)
+                            }
+                            
+                            if (!is.null(ll$id) && ll$type == 'dropDown') {
+                                
+                                if (!is.null(ll$choiceFun)) {
+                                    choices <- do.call(ll$choiceFun,list(env = env),envir = env$ce) 
+                                    if (!is.null(ll$placeholder)) {
+                                        nm <- isNull(names(choices),rep('',length(choices)))
+                                        choices <- c('',choices)
+                                        names(choices) <- c(ll$placeholder,nm) 
+                                    }
+                                } else {
+                                    choices <- c(a = '?')
+                                }
+                                
+                                ele <- shiny::selectizeInput(
+                                    inputId = ll$id, 
+                                    label = ll$label, 
+                                    choices = choices,
+                                    options = list(dropdownParent = 'body'))
+                            } 
+                            
+                        } else {
+                            ele <- ''
+                        }
                         
-                        if (i < length(links))
-                            txt <- paste0(txt,'<td>&nbsp&nbsp&nbsp&nbsp</td>')
-
-                        
-                        txt <- paste0(txt,'</td>')
-                        i <- i + 1
+                        eleObject$ele <- ele
+                        elems[[length(elems) + 1]] <- eleObject
                         
                     }
+          
+                    shiny::div(shiny::fluidRow(lapply(elems,function(x) {
+                        shiny::column(width = x$width, x$ele)
+                    })), class = paste0(gdim,'Links'))
                     
-                    txt <- paste0(txt,'</tr></table>')
-                    HTML(txt)
-                
                 })
                 
                     
