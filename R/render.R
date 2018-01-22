@@ -180,7 +180,7 @@ renderDims <- function(env,input,output) {
           
                     shiny::div(shiny::fluidRow(lapply(elems,function(x) {
                         shiny::column(width = x$width, x$ele)
-                    })), class = paste0(gdim,'Links'))
+                    }), style = 'float:right;'), class = paste0(gdim,'Links'))
                     
                 })
                 
