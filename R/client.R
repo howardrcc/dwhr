@@ -293,7 +293,7 @@ authenticate <- function(session) {
     ses$dashUser <- user
     adU <- glob.env$adUser[glob.env$adUser$usr == toupper(user),]
     ses$dashUserName = adU$naam
-    ses$dashUserFunc = adu$functie
+    ses$dashUserFunc = adU$functie
     return(TRUE)
 
 }
