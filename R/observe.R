@@ -453,6 +453,21 @@ startObserversPres <- function(env,dim,pres) {
 
         obs <- c(obs,dimLink3)
     }
+    
+    dimLink4 <- paste0(gdim,'DimLink4')
+    
+    if (!(dimLink4 %in% obs) && !hideBreadCrumb && maxLevel >= 4) {
+        
+        shiny::observeEvent(inp[[dimLink4]] , {
+            dd$level <- 4
+            dd$parent <- dd$ancestors[5]
+            dd$ancestors <- dd$ancestors[1:5]
+            dd$reactive$levelChange <- dd$reactive$levelChange + 1
+            printDebug(env = env, dim, eventIn = 'dimLink4', eventOut = 'levelChange')
+        })
+        
+        obs <- c(obs,dimLink4)
+    }
 
     noFilter <- paste0(gdim,'NoFilter')
 

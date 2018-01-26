@@ -481,8 +481,27 @@ prepDt <- function(env,dim,pres,print = NULL) {
 
     tab$zoom[tab$cnt == 0] <- ''
     
-    # een twee na diepste nivo checken of gelijk aan diepste nivo.
+    # drie na diepste nivo checken of gelijk aan diepste nivo.
     # dit om hierarchie met variabele diepte te maken
+    
+    if(lvl == length(dd$levelNames) - 4) {
+        colA <- paste0('level',lvl,'Label')
+        colB <- paste0('level',lvl + 1,'Label')
+        colC <- paste0('level',lvl + 2,'Label')
+        colD <- paste0('level',lvl + 3,'Label')
+        z <- data.table(dd$data)
+        
+        # selecteer kolommen met gelijke inhoud
+        eq1 <- z[[colA]][z[[colA]] == z[[colB]] & z[[colA]] == z[[colC]] & z[[colA]] == z[[colD]]]
+        cnts <- z[,eval(parse(text=paste0("length(unique(",colD,"))"))), by = colA]
+        # diepste nivo moet evenveel records hebben als parent
+        eq2 <- cnts[[colA]][cnts[[colA]] %in% eq1 & cnts$V1 == 1]
+        
+        tab$zoom[tab$member %in% eq2] <- '' 
+        
+    }
+    
+    # twee na diepste nivo checken of gelijk aan diepste nivo.
     
     if(lvl == length(dd$levelNames) - 3) {
         colA <- paste0('level',lvl,'Label')

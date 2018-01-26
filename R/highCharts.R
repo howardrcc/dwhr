@@ -122,8 +122,10 @@ getCustomPattern <- function(env,dim,stroke,width) {
                                   , path = list( d = 'M 0 0 L 10 10 M 9 -1 L 11 1 M -1 9 L 1 11'
                                                , stroke = stroke
                                                , strokeWidth = width))
-
-    paste0('url(',userData$baseUrl,'#',id,')')
+    if (isNull(env$dims[[dim]]$print,FALSE)) 
+        paste0('url(#',id,')')
+    else
+        paste0('url(',userData$baseUrl,'#',id,')')
 }
 
 
