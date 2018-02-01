@@ -210,7 +210,7 @@ renderDims <- function(env,input,output) {
 
                     if(!hideBreadCrumb) {
                     
-                        txt <- paste0(txt,'<div style="padding-bottom:4px;" id="',dim, 'Breadcrumb">')
+                        txt <- paste0(txt,'<div style="padding-bottom:4px;" id="',gdim, 'Breadcrumb">')
 
                         if (!hideAll) {
                             if (level == 0) {
