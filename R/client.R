@@ -106,26 +106,6 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
 
 }
 
-wrapUp <- function() {
-    glob.env$sessionCount <- glob.env$sessionCount - 1
-    print(paste0('exit: ',glob.env$sessionCount))    
-    
-    if (glob.env$sessionCount == 0) {
-        
-        print('Closing ODBC connections')
-        RODBC::odbcCloseAll()
-        
-        if (exists('globalCache', env = glob.env)) {
-            for (id in names(glob.env$globalCache)) {
-                saveRDS(glob.env$globalCache[[id]],getCacheFile(id))
-            }
-        }
-        
-        rm(glob.env, envir = .GlobalEnv)
-        stopApp()
-    }
-
-}
 
 initGlob <- function() {
     
@@ -230,15 +210,40 @@ getDbHandle <- function(omg) {
 #'
 #' @export
 authenticate <- function(session) {
-
+    
+    ce <- parent.frame() 
+    
+    session$onSessionEnded(function() {
+        glob.env$sessionCount <- glob.env$sessionCount - 1
+        print(paste0('exit: ',glob.env$sessionCount))    
+        
+        if(exists(paste0('sessionEndHook'),envir = ce)) {
+            do.call(paste0('sessionEndHook'),list(session = session),envir = ce)
+        }
+        
+        if (glob.env$sessionCount == 0) {
+            
+            print('Closing ODBC connections')
+            RODBC::odbcCloseAll()
+            
+            if (exists('globalCache', env = glob.env)) {
+                for (id in names(glob.env$globalCache)) {
+                    saveRDS(glob.env$globalCache[[id]],getCacheFile(id))
+                }
+            }
+            
+            rm(glob.env, envir = .GlobalEnv)
+            stopApp()
+        }
+        
+    })
+    
     ses <- session$userData
     
     if (exists('authenticated', envir = ses))
         return(ses$authenticated)
     
     ses$authenticated <- FALSE
-    session$onSessionEnded(wrapUp)
-    
     ses$cdata <- session$clientData
     ses$urlQuery <- parseQueryString(shiny::isolate(ses$cdata$url_search))
     ses$baseUrl <- ''

@@ -861,3 +861,44 @@ dwhrMerge <- function(cumDT,incDT,keyCols,noDeletes = TRUE) {
     
 }
 
+#'
+#' @export
+#' 
+latexEscape <- function(paragraph) {
+    
+    # Replace a \ with $\backslash$
+    # This is made more complicated because the dollars will be escaped
+    # by the subsequent replacement. Easiest to add \backslash
+    # now and then add the dollars
+    
+    paragraph <- gsub('\\\\','\\\\backslash',paragraph)
+    #$paragraph =~ s/\\/\\backslash/g;
+    
+    # Must be done after escape of \ since this command adds latex escapes
+    # Replace characters that can be escaped
+    
+    paragraph <- gsub('([$#&%_{}])',"\\\\\\1",paragraph)
+    #$paragraph =~ s/([\$\#&%_{}])/\\$1/g;
+    
+    # Replace ^ characters with \^{} so that $^F works okay
+    paragraph <- gsub('(\\^)','\\\\\\1\\{\\}',paragraph)
+    #$paragraph =~ s/(\^)/\\$1\{\}/g;
+    
+    # Replace tilde (~) with \texttt{\~{}}
+    paragraph <- gsub('~','\\\\texttt\\{\\\\~\\{\\}\\}',paragraph)
+    #$paragraph =~ s/~/\\texttt\{\\~\{\}\}/g;
+    
+    # Now add the dollars around each \backslash
+    paragraph <- gsub('(\\\\backslash)','$\\1$',paragraph)
+    #$paragraph =~ s/(\\backslash)/\$$1\$/g;
+    
+    # replace > < and |
+    
+    paragraph <- gsub('<','\\\\textless',paragraph)
+    paragraph <- gsub('>','\\\\textgreater',paragraph)
+    paragraph <- gsub('\\|','\\\\textbar',paragraph)
+    
+    paragraph;
+}
+
+
