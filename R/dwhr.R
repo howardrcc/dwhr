@@ -1867,7 +1867,12 @@ navigate <- function(env,dim,level,parent) {
         if (level >= 1) {
             for (i in level:1) {
                 p <- ancestors[1]
-                ancestors <- c(unique(dd$pc$parentLabel[dd$pc$level == i - 1 & dd$pc$label == p]),ancestors)
+                p0 <- unique(dd$pc$parentLabel[dd$pc$level == i - 1 & dd$pc$label == p])
+                
+                if (length(p0) == 0) 
+                    return(FALSE)
+                
+                ancestors <- c(p0,ancestors)
             }
         }
         
@@ -1878,7 +1883,7 @@ navigate <- function(env,dim,level,parent) {
         
     }
     
-    env
+    TRUE
 }
 
 #'
