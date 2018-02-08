@@ -252,9 +252,9 @@ authenticate <- function(session) {
     
     if (glob.env$securityModel == 'none') {
         ses$authenticated <- TRUE
-        ses$dashUser <- 'unknown'
-        ses$dashUserName <- 'onbekend'
-        ses$dashUserFunc <- 'geen'
+        ses$dashUser <- 'dev'
+        ses$dashUserName <- 'dev'
+        ses$dashUserFunc <- 'ontwikkelaar'
         return(TRUE)
     }
 
@@ -280,9 +280,9 @@ authenticate <- function(session) {
             shinyjs::runjs(paste0('window.top.location.replace("',res$redir,'");'))
         }
         ses$authenticated <- FALSE
-        ses$dashUser <- 'none'
-        ses$dashUserName <- 'geen'
-        ses$dashUserFunc <- 'geen'
+        ses$dashUser <- 'dev'
+        ses$dashUserName <- 'dev'
+        ses$dashUserFunc <- 'ontwikkelaar'
         return(FALSE)
     }
     
