@@ -301,7 +301,7 @@ addDimView <- function(
         }
         
         if (!is.null(footerLevels)) {
-            if(!is.na(footerLevels)) {
+            if(!any(is.na(footerLevels))) {
                 if (!all(footerLevels %in% useLevels)) {
                     warning(paste0(dim,': footerLevels out of range, footerLevels set to useLevels'))
                     footerLevels <- useLevels
@@ -1348,6 +1348,10 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 } else {
                     dataTableOpts$measures[[i]]$print <- TRUE
                 }
+                
+                if ('tooltip' %in% names(x)) {
+                    assert_is_a_string(x$tooltip)
+                }
 
                 dataTableOpts$measures[[i]] <- rlist::list.flatten(dataTableOpts$measures[[i]])
                 dataTableOpts$measures[[i]]$colOrder <- i
@@ -1510,7 +1514,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
 #'
 #' @param env sterschema object, gecreeerd met \code{\link{new.star}}.
 #' @param dim string, dimView id gecreeerd met \code{\link{addDimView}}.
-#' @param as character, naam van de meetwaarde in de UI.
+#' @param viewColumn character, naam van de technische meetwaarde.
 #' @param format character, nieuw te gebruiken format.
 #' \itemize{
 #'   \item standard: waarde getoond as is.
@@ -1528,15 +1532,15 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
 #'
 #' @export
 #'
-changeFormatMeasure <- function(env, dim,as,format) {
+changeFormatMeasure <- function(env, dim, viewColumn, format) {
     dd <- env$dims[[dim]]
     domainCheck(format,'format')
     ml <- dd$measList
-    ml$format[ml$as %in% as] <- format
+    ml$format[ml$viewColumn %in% viewColumn] <- format
     dd$measList <- ml
 
     if (isNull(dd$syncNav,FALSE) && (as.character(sys.call(-3)) != 'changeFormatMeasure')) {
-        lapply(union(dd$parentDim,dd$childDims), function(x) changeFormatMeasure(env = env, dim = x, as = as, format = format))
+        lapply(union(dd$parentDim,dd$childDims), function(x) changeFormatMeasure(env = env, dim = x, viewColumn = viewColumn, format = format))
     }
     env
 

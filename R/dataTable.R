@@ -426,7 +426,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
         zoom = '+',
         addFormatting(env,dim,dd$membersFiltered,measures,FALSE),
         stringsAsFactors = FALSE)
-
+    
     #
     # set firstrow & page
     #
@@ -708,6 +708,19 @@ prepDt <- function(env,dim,pres,print = NULL) {
     if ('member_tooltip' %in% names(tab)) {
         ttcnr <- which(names(tab) %in% 'member_tooltip') - 1
         columnDefs[[length(columnDefs) + 1]] <- list(targets = 1, render = renderJS(ttcnr))
+    }
+    
+    if ('tooltip' %in% names(meas)) {
+        tt <- meas[!is.na(meas$tooltip),][,c('viewColumn','as','tooltip')]
+        
+        if (nrow(tt) > 0) {
+            for (i in 1:nrow(tt)) {
+                sourceCol <- meas$as[meas$viewColumn == tt$tooltip[i]]
+                sourceColnr <- which(names(tab) %in% sourceCol) - 1
+                targetColnr <- which(names(tab) %in% tt$as[i]) - 1
+                columnDefs[[length(columnDefs) + 1]] <- list(targets = targetColnr, render = renderJS(sourceColnr))
+            }
+        }
     }
 
     options <- list( dom = dom
@@ -1124,7 +1137,7 @@ processDataTable <- function(env,dim,pres){
 
     if (is.null(prep))
         prep <- prepDt(env,dim,pres)
-
+    
     opt1 <- env$dtPrev[[dim]]$options
     opt2 <- prep$options
 
@@ -1135,7 +1148,8 @@ processDataTable <- function(env,dim,pres){
         identical(opt1,opt2) &&
         identical(env$dtPrev[[dim]]$meas,prep$meas) &&
         !prep$hasFormatting &&
-        !isNull(dd$serverSideTable,FALSE)
+        !isNull(dd$serverSideTable,FALSE) &&
+        !prep$print
         ) {
 
         printDebug(env = env, dim, eventIn = 'DatatableUpdate')

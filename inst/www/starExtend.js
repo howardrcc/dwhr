@@ -252,7 +252,7 @@ shinyjs.redraw = function(params) {
 
 shinyjs.blockUI = function() {
     $.blockUI({ message: null, overlayCSS: { backgroundColor: "#ffffff", opacity:0 }, timeout:1000});
-    $('[data-toggle="tooltip"]').tooltip('destroy');
+    $('.tooltip').tooltip('destroy');
 };
 
 shinyjs.tooltip = function(params) {
@@ -264,8 +264,8 @@ shinyjs.tooltip = function(params) {
     } else {
         trigger = params.trigger;
     }
-    
-    $('[data-toggle="tooltip"]').tooltip({trigger: trigger, delay: {show: 400}});
+    $('.tooltip').tooltip('destroy');
+    $('[data-toggle="tooltip"]').tooltip({trigger: trigger, delay: {show: 0}});
 };
 
 shinyjs.popover = function(params) {
@@ -312,6 +312,6 @@ shinyjs.updateDT = function(params) {
     }
     datatable.columns.adjust().draw();
     datatable.page(params.page).draw(false);
-    $('[data-toggle="tooltip"]').tooltip('destroy');
+    $('.tooltip').tooltip('destroy');
     $('[data-toggle="tooltip"]').tooltip({trigger : 'hover'});
 };

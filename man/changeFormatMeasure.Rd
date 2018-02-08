@@ -4,14 +4,14 @@
 \alias{changeFormatMeasure}
 \title{Wijzig format van bestaande meetwaarde}
 \usage{
-changeFormatMeasure(env, dim, as, format)
+changeFormatMeasure(env, dim, viewColumn, format)
 }
 \arguments{
 \item{env}{sterschema object, gecreeerd met \code{\link{new.star}}.}
 
 \item{dim}{string, dimView id gecreeerd met \code{\link{addDimView}}.}
 
-\item{as}{character, naam van de meetwaarde in de UI.}
+\item{viewColumn}{character, naam van de technische meetwaarde.}
 
 \item{format}{character, nieuw te gebruiken format.
 \itemize{

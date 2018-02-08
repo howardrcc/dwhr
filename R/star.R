@@ -59,7 +59,7 @@ domains <- list(
     selectMode = c('single','multi','none'),
     dataTableOpts =  c('measures', 'pageLength', 'pageLengthList','serverSideTable'),
     dataTableMeasures = c('colorBarColor1','colorBarColor2','viewColumn','format', 'orderable',
-                          'bgStyle','fgStyle','width','fontWeight','align','cursor','visible','print'),
+                          'bgStyle','fgStyle','width','fontWeight','align','cursor','visible','print','tooltip'),
     dataTableStyle = c('cuts','levels','values','valueColumn'),
     dataTableFormats = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3','hidden','paperclip'),
     fontWeight = c('bold','normal'),
@@ -395,6 +395,7 @@ getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL
                     footer <- tmp[eval(expr = parse(text = parentFilter)),
                                   eval(expr = parse(text = measFun)),
                                   eval(expr = parse(text = byText))]
+                    
                 }
             }
             

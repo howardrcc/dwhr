@@ -113,7 +113,7 @@ readyJS <- function(dim) {
 }
 
 
-getCustomPattern <- function(env,dim,stroke,width) {
+getCustomPattern <- function(env,dim,stroke,width,print) {
     # door base tag in shinyserver-pro werken relatieve urls binnen svg niet -> absolute url gebruiken
     userData <- env$session$userData
     
@@ -122,7 +122,7 @@ getCustomPattern <- function(env,dim,stroke,width) {
                                   , path = list( d = 'M 0 0 L 10 10 M 9 -1 L 11 1 M -1 9 L 1 11'
                                                , stroke = stroke
                                                , strokeWidth = width))
-    if (isNull(env$dims[[dim]]$print,FALSE)) 
+    if (print) 
         paste0('url(#',id,')')
     else
         paste0('url(',userData$baseUrl,'#',id,')')
@@ -227,7 +227,7 @@ makeHcWidget <- function(env,dim,prep){
         prep$chartOpts$hc = a
         prep$chartOpts$events$redraw <- readyJS(gdim)
         
-        if (print || isNull(env$dims[[dim]]$print,FALSE)) {
+        if (print) {
             prep$chartOpts$width = 800
         }
         
@@ -303,11 +303,12 @@ makeHcWidget <- function(env,dim,prep){
 #'
 #' @export
 #'
-prepHc <- function(env, dim, pres, print = FALSE) {
+prepHc <- function(env, dim, pres, print = NULL) {
 
     dd <- env$dims[[dim]]
     gdim <- dd$gdim
     
+    print <- isNull(print,isNull(dd$print,FALSE))
     presList <- dd$presList
     presType <- presList[[pres]]$type
 
@@ -463,7 +464,7 @@ prepHc <- function(env, dim, pres, print = FALSE) {
             
             if (!is.null(seriesList[['color']])) {
                 if (length(pattern) > 0 && pattern == 'stripe1') {
-                    seriesList[['color']] <- getCustomPattern(env,dim,seriesList[['color']],2)
+                    seriesList[['color']] <- getCustomPattern(env,dim,seriesList[['color']],2,print)
                 }
             }
             
@@ -997,7 +998,7 @@ processHighCharts <- function(env,dim,pres){
         useUpdate <- FALSE
     }
 
-    if((is.null(useUpdate) || useUpdate) && length(setdiff(newLength,prevLength)) == 0) {
+    if((is.null(useUpdate) || useUpdate) && length(setdiff(newLength,prevLength)) == 0 && !chart$print) {
 
         change <- FALSE
         chart <- removeCallbacks(chart)
