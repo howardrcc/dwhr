@@ -626,8 +626,22 @@ dimSetHasSubselect <- function(env,dim) {
         }
             
     }
+    
+    hss <- unique(hss)
+    
+    a <- dd$hasSubselect
+    a <- isNull(a$label[a$level == dd$level],character(0))
+    b <- isNull(hss$label[hss$level == dd$level],character(0))
 
-    env$dims[[dim]]$hasSubselect <- unique(hss)
+    if (!(length(a) == 0 && length(b) == 0) && 
+        dd$parent %in% dd$hasSubselect$label && 
+        !identical(a[order(a,method = 'radix')], b[order(b,method = 'radix')])) {
+        
+        printDebug(env = env, dim, eventIn = 'subSelectChange', eventOut = 'dimRefresh')
+        dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
+    }
+    
+    dd$hasSubselect <- hss
 
 }
 

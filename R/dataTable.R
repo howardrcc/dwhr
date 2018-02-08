@@ -203,8 +203,14 @@ makeDtWidget <- function(env,dim,prep) {
     
     height <- NULL
     
-    if (print)
+    if (print) {
         height <- (nrow(prep$tab) + 1) * 14 
+        cursor <- 'default'
+        color <- 'black'
+    } else {
+        cursor <- 'pointer'
+        color <- 'blue'
+    }
     
     dt <- DT::datatable(
         prep$tab,
@@ -221,16 +227,16 @@ makeDtWidget <- function(env,dim,prep) {
             columns = 1,
             valueColumns = 'subsel',
             backgroundColor = DT::styleEqual(c(1,0),c('lightGrey','white')),
-            cursor = 'pointer',
-            color = 'blue',
+            cursor = cursor,
+            color = color,
             fontWeight = 'bold')
     
     if (dd$type != 'output' && dd$selectMode != 'none' && dd$level %in% dd$selectableLevels) {
         dt <- dt %>%
             DT::formatStyle(
                 columns = 2,
-                cursor = 'pointer',
-                color = 'blue')
+                cursor = cursor,
+                color = color)
     }
     
     meas <- prep$meas
