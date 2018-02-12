@@ -619,6 +619,8 @@ prepDt <- function(env,dim,pres,print = NULL) {
     # footer stuff
     #
 
+    footer <- NA
+    
     if (nrow(tab) > 1 && lvl %in% dd$footerLevels) {
         
         footer <- addFormatting(env,dim,dd$footer,measures,TRUE)
@@ -737,7 +739,6 @@ prepDt <- function(env,dim,pres,print = NULL) {
                      , pagingType = pagingType
                      , lengthMenu = pageLengthList
                      , info = FALSE
-                    # , scrollX = TRUE
                      , pageLength = pageLength
                      , columnDefs = columnDefs
                      , displayStart = firstRow - 1
@@ -771,7 +772,8 @@ prepDt <- function(env,dim,pres,print = NULL) {
         parent = dd$parent,
         visCols = visCols,
         hasFormatting = hasFormatting,
-        page = (firstRow - 1) %/% pageLength)
+        page = (firstRow - 1) %/% pageLength,
+        footer = footer)
     
     ret$widget <- makeDtWidget(env,dim,ret)
 
