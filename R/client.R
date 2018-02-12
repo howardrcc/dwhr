@@ -176,6 +176,7 @@ initGlob <- function() {
             file = paste0(getwd(),"/../data/userInfo/ds_ad_user.txt"),
             header = FALSE,
             sep = ";",
+            encoding = 'UTF-8',
             col.names = 
                 c("usr",
                   "functie",
