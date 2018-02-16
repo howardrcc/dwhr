@@ -22,7 +22,10 @@ dwhrInit <- function() {
             id = "loading-content",
             h2("Laden dashboard ...")
         ),
-        shiny::tags$head(shiny::tags$script(src = "dwhRs/jquery.blockUI.js"))
+        shiny::tags$head(
+            shiny::tags$script(src = "dwhRs/jquery.blockUI.js"),
+            shiny::tags$script(src = "dwhRs/bluebird.min.js"),
+            shiny::tags$script(src = "dwhRs/html2canvas.min.js"))
     )
 }
 
