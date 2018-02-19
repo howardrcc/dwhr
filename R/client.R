@@ -25,6 +25,7 @@ dwhrInit <- function() {
         shiny::tags$head(
             shiny::tags$script(src = "dwhRs/jquery.blockUI.js"),
             shiny::tags$script(src = "dwhRs/bluebird.min.js"),
+            shiny::tags$script(src = "dwhRs/imagesloaded.pkgd.min.js"),
             shiny::tags$script(src = "dwhRs/html2canvas.min.js"))
     )
 }
