@@ -10,25 +10,26 @@ dwhrInit <- function() {
     glob.env$dimUiIds <- c()
     shiny::tagList(
         shinyjs::useShinyjs(),
-        rintrojs::introjsUI(includeOnly = TRUE),
         shinyjs::extendShinyjs(script = system.file('www/starExtend.js', package = 'dwhr')),
-        shiny::tags$head(shiny::tags$link(rel = "stylesheet", type = "text/css", href = "dwhRs/app.css")),
         
-        #includeCSS(system.file('www/app.css', package = 'dwhr')),
-
         # Loading message
 
         div(
             id = "loading-content",
             h2("Laden dashboard ...")
         ),
+        
         shiny::tags$head(
+            shiny::tags$link(rel = "stylesheet", type = "text/css", href = "dwhRs/app.css"),
             shiny::tags$script(src = "dwhRs/jquery.blockUI.js"),
             shiny::tags$script(src = "dwhRs/bluebird.min.js"),
             shiny::tags$script(src = "dwhRs/html2canvas.min.js"),
             shiny::tags$script(src = "dwhRs/rgbcolor.js"),
             shiny::tags$script(src = "dwhRs/StackBlur.js"),
-            shiny::tags$script(src = "dwhRs/canvg.min.js"))
+            shiny::tags$script(src = "dwhRs/canvg.min.js"),
+            shiny::tags$link(rel = "stylesheet", type = "text/css", href = "dwhRs/introjs.min.css"),
+            shiny::tags$script(src = "dwhRs/intro.min.js")
+        )
     )
 }
 
