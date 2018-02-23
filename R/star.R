@@ -161,17 +161,9 @@ getSelectedIds <- function(env, dim, selected = NULL) {
 
         for (lvl in 1:max(s$level)) {
 
-            colsX <- c()
-            colsY <- c()
-
-            if (lvl == 1) {
-                colsX <- c('level1Label')
-                colsY <- c('label')
-            } else {
-                colsX <- c(paste0('level',lvl - 1,'Label'),paste0('level',lvl,'Label'))
-                colsY <- c('parent','label')
-            }
-
+            colsX <- c(paste0('level',lvl - 1,'Label'),paste0('level',lvl,'Label'))
+            colsY <- c('parent','label')
+            
             ids <- union(ids,merge(data,s[s$level == lvl,],by.x = colsX, by.y = colsY)[[keyColumn]])
 
         }}
@@ -282,7 +274,7 @@ getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL
                 if (lvl > 1) {
                     tmp <- tmp[data.table::data.table(data)[eval(expr = parse(text = parentFilter))], on = keyColumn, nomatch=0]
                 } else {
-                    tmp <- tmp[data.table::data.table(data), on = keyColumn, nomatch=0]
+                    tmp <- tmp[data.table::data.table(data), on = keyColumn, nomatch=0,allow.cartesian=TRUE]
                 }
             }
         } else {

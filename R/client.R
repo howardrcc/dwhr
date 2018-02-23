@@ -113,7 +113,9 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
 
 }
 
-
+#'
+#' @export
+#' 
 initGlob <- function() {
     
     options(warnPartialMatchDollar = TRUE)
