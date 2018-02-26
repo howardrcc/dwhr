@@ -490,12 +490,18 @@ prepDt <- function(env,dim,pres,print = NULL) {
     # drie na diepste nivo checken of gelijk aan diepste nivo.
     # dit om hierarchie met variabele diepte te maken
     
+    parent <- dd$parent
+    if (lvl > 0)
+        parentFilter <- paste0('level', lvl - 1, 'Label == parent')
+    else
+        parentFilter <- ''
+    
     if(lvl == length(dd$levelNames) - 4) {
         colA <- paste0('level',lvl,'Label')
         colB <- paste0('level',lvl + 1,'Label')
         colC <- paste0('level',lvl + 2,'Label')
         colD <- paste0('level',lvl + 3,'Label')
-        z <- data.table(dd$data)
+        z <- data.table(dd$data)[eval(expr = parse(text = parentFilter)),]
         
         # selecteer kolommen met gelijke inhoud
         eq1 <- z[[colA]][z[[colA]] == z[[colB]] & z[[colA]] == z[[colC]] & z[[colA]] == z[[colD]]]
@@ -513,7 +519,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
         colA <- paste0('level',lvl,'Label')
         colB <- paste0('level',lvl + 1,'Label')
         colC <- paste0('level',lvl + 2,'Label')
-        z <- data.table(dd$data)
+        z <- data.table(dd$data)[eval(expr = parse(text = parentFilter)),]
         
         # selecteer kolommen met gelijke inhoud
         eq1 <- z[[colA]][z[[colA]] == z[[colB]] & z[[colA]] == z[[colC]]]
@@ -530,7 +536,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
     if(lvl == length(dd$levelNames) - 2) {
         colA <- paste0('level',lvl,'Label')
         colB <- paste0('level',lvl + 1,'Label')
-        z <- data.table(dd$data)
+        z <- data.table(dd$data)[eval(expr = parse(text = parentFilter)),]
         
         # selecteer kolommen met gelijke inhoud
         eq1 <- z[[colA]][z[[colA]] == z[[colB]]]
