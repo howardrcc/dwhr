@@ -376,7 +376,7 @@ getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL
                 
                 parentFilter <- paste0('level', lvl - 1, 'Label == parent')
                 byText <- paste0('level',lvl,'Label')
-                
+             
                 body <- tmp[eval(expr = parse(text = parentFilter)),
                             eval(expr = parse(text = measFun)),
                             eval(expr = parse(text = byText))]
@@ -394,7 +394,7 @@ getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL
             names(body) <- c('member',measCols)
             body$member <- as.character(body$member)
             
-            lookup <- dd$pc[dd$pc$level == lvl,][,c('label','code')]
+            lookup <- unique(dd$pc[dd$pc$level == lvl,][,c('label','code')])
             names(lookup) <- c('member','memberKey')
             
             body <- as.data.frame(body[lookup,on = 'member',nomatch = 0])
@@ -515,7 +515,7 @@ getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL
     } else {
         res <- gcache
     }
-# browser()
+ 
     res
 }
 
