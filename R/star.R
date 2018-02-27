@@ -197,7 +197,7 @@ appendZeroRow <- function(member,dim,df) {
 #'
 #' @export
 #' 
-getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL, selected = NULL) {
+getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL) {
     dd <- env$dims[[dim]]
 
     f <- NULL
@@ -209,10 +209,9 @@ getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL
 
     s <- NA
     footer <- NA
-    summary <- NULL
     adhoc <- FALSE
 
-    if (!is.null(level) || !is.null(parent) || !is.null(selected) || addSummary) {
+    if (!is.null(level) || !is.null(parent) || !is.null(selected)) {
         adhoc <- TRUE
         gcache <- NULL
     } else {
@@ -224,7 +223,18 @@ getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL
     }
 
     lvl <- isNull(level,dd$level)
-    parent <- isNull(parent,dd$parent)
+    
+    if (is.null(parent)) {
+        parent <- dd$parent
+        if (lvl > 1) {
+            gparent <- rev(dd$ancestors)[2]
+        } else {
+            gparent <- NULL
+        }
+    } else {
+        gparent <- NULL
+    }
+    
 
     maxLvl <- dd$maxLevel
 
@@ -260,27 +270,26 @@ getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL
         
         cnt1 <- nrow(tmp)
         
-        if(!addSummary) {              
-            
+        if (is.null(gparent)) {
             parentFilter <- paste0('level', lvl - 1, 'Label == parent')
-            
-            if (dd$fixedMembers) {
-                if (lvl > 1) {
-                    tmp <- tmp[data.table::data.table(data)[eval(expr = parse(text = parentFilter))], on = keyColumn]
-                } else {
-                    tmp <- tmp[data.table::data.table(data), on = keyColumn]
-                }
+        } else {
+            parentFilter <- paste0('level', lvl - 1, 'Label == parent & level', lvl - 2, 'Label == gparent')
+        }
+        
+        if (dd$fixedMembers) {
+            if (lvl > 1) {
+                tmp <- tmp[data.table::data.table(data)[eval(expr = parse(text = parentFilter))], on = keyColumn]
             } else {
-                if (lvl > 1) {
-                    tmp <- tmp[data.table::data.table(data)[eval(expr = parse(text = parentFilter))], on = keyColumn, nomatch=0]
-                } else {
-                    tmp <- tmp[data.table::data.table(data), on = keyColumn, nomatch=0,allow.cartesian=TRUE]
-                }
+                tmp <- tmp[data.table::data.table(data), on = keyColumn]
             }
         } else {
-            tmp <- tmp[data.table::data.table(data), on = keyColumn, nomatch=0]
+            if (lvl > 1) {
+                tmp <- tmp[data.table::data.table(data)[eval(expr = parse(text = parentFilter))], on = keyColumn, nomatch=0]
+            } else {
+                tmp <- tmp[data.table::data.table(data), on = keyColumn, nomatch=0,allow.cartesian=TRUE]
+            }
         }
-
+        
         cnt2 <- nrow(tmp)
 
         if(cnt1 != 0 && cnt2 == 0 && !(adhoc)) {
@@ -295,7 +304,7 @@ getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL
 
             printDebug(env = env, dim, eventIn = 'getMembers', eventOut = 'levelChange', info = 'parent not found')
 
-            return(getMembers(env, dim, addSummary))
+            return(getMembers(env, dim))
         }
 
         measFun <- 'list(cnt = .N'
@@ -350,45 +359,31 @@ getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL
             do.call(fun,list(col),envir = env$ce)
         }
         
-        if(addSummary) {
-
-            colsBy <- c()
-
-            for (q in 0:maxLvl) {
-                colsBy <- c(colsBy,paste0('level',q,'Label'))
+        
+        if (lvl == 0) {
+            
+            body <- tmp[,eval(expr = parse(text = measFun)),by = level0Label]
+            
+            if(lvl %in% dd$footerLevels) {
+                footer <- body
             }
-
-            summary <- tmp[,eval(expr = parse(text = measFun)),by = colsBy]
-            summary <- as.data.frame(summary)
-            names(summary) <- c(colsBy,measCols)
-
+            
         } else {
-
-            if (lvl == 0) {
-
-                body <- tmp[,eval(expr = parse(text = measFun)),by = level0Label]
-
-                if(lvl %in% dd$footerLevels) {
-                    footer <- body
-                }
-
-            } else {
+            
+            parentFilter <- paste0('level', lvl - 1, 'Label == parent')
+            byText <- paste0('level',lvl,'Label')
+            
+            body <- tmp[eval(expr = parse(text = parentFilter)),
+                        eval(expr = parse(text = measFun)),
+                        eval(expr = parse(text = byText))]
+            
+            if(lvl %in% dd$footerLevels) {
+                byText <- paste0('level',lvl - 1,'Label')
                 
-                parentFilter <- paste0('level', lvl - 1, 'Label == parent')
-                byText <- paste0('level',lvl,'Label')
-             
-                body <- tmp[eval(expr = parse(text = parentFilter)),
-                            eval(expr = parse(text = measFun)),
-                            eval(expr = parse(text = byText))]
+                footer <- tmp[eval(expr = parse(text = parentFilter)),
+                              eval(expr = parse(text = measFun)),
+                              eval(expr = parse(text = byText))]
                 
-                if(lvl %in% dd$footerLevels) {
-                    byText <- paste0('level',lvl - 1,'Label')
-                    
-                    footer <- tmp[eval(expr = parse(text = parentFilter)),
-                                  eval(expr = parse(text = measFun)),
-                                  eval(expr = parse(text = byText))]
-                    
-                }
             }
             
             names(body) <- c('member',measCols)
@@ -440,75 +435,55 @@ getMembers <- function(env, dim, addSummary = FALSE, level = NULL, parent = NULL
             e$dim <- dim
 
             environment(e[[fun]]) <- e  # set the parent env for userFunc
-            
-            if(addSummary) {
                 
-                e$type <- 'summary'
-                e$df <- summary
-                smry <- do.call(what = fun, args = list(), envir = e)
-                if (is.vector(smry) && length(smry) == nrow(summary)) {
-                    summary[[vc]] <- smry
+            if(lvl %in% dd$footerLevels) {
+                e$type <- 'footer'
+                e$df <- footer
+                ftr <- do.call(what = fun, args = list(),  envir = e)
+                if (is.vector(ftr) && length(ftr) == 1) {
+                    footer[[vc]] <- ftr
                 } else {
-                    warning(paste0('userFunc: ', fun, ' has invalid summary length'))
-                    summary[[vc]] <- 0
+                    warning(paste0('userFunc: ', fun, ' has invalid footer length'))
+                    footer[[vc]] <- 0
                 }
-                e$summary <- summary
-                
-            } else {
-                
-                if(lvl %in% dd$footerLevels) {
-                    e$type <- 'footer'
-                    e$df <- footer
-                    ftr <- do.call(what = fun, args = list(),  envir = e)
-                    if (is.vector(ftr) && length(ftr) == 1) {
-                        footer[[vc]] <- ftr
-                    } else {
-                        warning(paste0('userFunc: ', fun, ' has invalid footer length'))
-                        footer[[vc]] <- 0
-                    }
-                    e$footer <- footer
-                }
-                
-                e$type <- 'body'
-                e$df <- body
-                bdy <- do.call(what = fun, args = list(), envir = e)
-                if (is.vector(bdy) && length(bdy) == nrow(body)) {
-                    body[[vc]] <- bdy
-                } else {
-                    warning(paste0('userFunc: ', fun, ' has invalid body length'))
-                    body[[vc]] <- 0
-                }
+                e$footer <- footer
             }
-
-        }
-
-        if(!addSummary) {
-            if (length(sortColumn) != 0) {
-                body <- body[order(body[[sortColumn]],method = 'radix'),]
+            
+            e$type <- 'body'
+            e$df <- body
+            bdy <- do.call(what = fun, args = list(), envir = e)
+            if (is.vector(bdy) && length(bdy) == nrow(body)) {
+                body[[vc]] <- bdy
             } else {
-                if (dd$orderBy == 'name') {
-                    body <- body[order(body[['member']],method = 'radix'),]
-                } else {
-                    body <- body[order(body[['memberKey']],method = 'radix'),]
-                }
-                
-                # check bestaan ordercolumns
-                
-                if (!dd$orderViewColumn %in% names(body)) {
-                    dd$orderColumn <- dd$itemName
-                    if (dd$orderBy == 'name')
-                        dd$orderViewColumn <- 'member'
-                    else
-                        dd$orderViewColumn <- 'memberKey'
-                    dd$orderColumnDir <- 'asc'
-                }
+                warning(paste0('userFunc: ', fun, ' has invalid body length'))
+                body[[vc]] <- 0
+            }
+        }
+        
+        if (length(sortColumn) != 0) {
+            body <- body[order(body[[sortColumn]],method = 'radix'),]
+        } else {
+            if (dd$orderBy == 'name') {
+                body <- body[order(body[['member']],method = 'radix'),]
+            } else {
+                body <- body[order(body[['memberKey']],method = 'radix'),]
+            }
+            
+            # check bestaan ordercolumns
+            
+            if (!dd$orderViewColumn %in% names(body)) {
+                dd$orderColumn <- dd$itemName
+                if (dd$orderBy == 'name')
+                    dd$orderViewColumn <- 'member'
+                else
+                    dd$orderViewColumn <- 'memberKey'
+                dd$orderColumnDir <- 'asc'
             }
         }
 
         res = list(
             body = body,
-            footer = footer,
-            summary = summary)
+            footer = footer)
 
         cacheDim(env,dim,res)
 
@@ -587,7 +562,7 @@ dimSetHasSubselect <- function(env,dim) {
 
     dd <- env$dims[[dim]]
     
-    getAncestors <- function(level,label) {
+    getAncestors <- function(level,label,parent) {
         ancestors <- c()
         p <- label
         pc <- dd$pc
@@ -595,6 +570,10 @@ dimSetHasSubselect <- function(env,dim) {
         if (level >= 1) {
             for (i in level:1) {
                 ancestors <- c(unique(pc$parentLabel[pc$level == i & pc$label == p]),ancestors)
+                
+                if (i == level && length(ancestors) > 1) {
+                    ancestors <- ancestors[ancestors == parent]
+                }
                 p <- ancestors[1]
             }
         }
@@ -606,7 +585,7 @@ dimSetHasSubselect <- function(env,dim) {
     
     for (n in 1:nrow(selected)) {
         
-        ancestors <- getAncestors(selected$level[n],selected$label[n])
+        ancestors <- getAncestors(selected$level[n],selected$label[n],selected$parent[n])
 
         if (!is.null(ancestors)) {
             hss <- rbind(

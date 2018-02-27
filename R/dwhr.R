@@ -1856,14 +1856,14 @@ getDimViewPrepData <- function(env,dv) {
 #'
 #' @export
 #'
-navigate <- function(env,dim,level,parent) {
+navigate <- function(env, dim, level, parent, gparent = NULL) {
     
     dd <- env$dims[[dim]]
     
     if (dd$level != level || dd$parent != parent) {
 
         ancestors <- c(parent)
-        
+
         if (level >= 1) {
             for (i in level:1) {
                 p <- ancestors[1]
@@ -1871,6 +1871,13 @@ navigate <- function(env,dim,level,parent) {
                 
                 if (length(p0) == 0) 
                     return(FALSE)
+                
+                if (length(p0) > 1) {
+                    if (i == level && !is.null(gparent)) {
+                        p0 <- p0[p0 == gparent]
+                    }
+                    p0 <- p0[1]
+                }
                 
                 ancestors <- c(p0,ancestors)
             }
