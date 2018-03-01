@@ -216,6 +216,7 @@ makeDtWidget <- function(env,dim,prep) {
         prep$tab,
         container = prep$container,
         options = prep$options,
+        extensions = "RowGroup",
         rownames = FALSE,
         escape = FALSE,
         class = 'compact stripe hover row-border',

@@ -444,6 +444,8 @@ prepHc <- function(env, dim, pres, print = NULL) {
             
             seriesData <- list()
             
+            ttViewColumn <- seriesOpts[[serieNum]]$ttViewColumn
+            
             # check datalabel instelling (formatter?)
             
             dl <- seriesOpts[[serieNum]]$dataLabels$enabled
@@ -558,6 +560,10 @@ prepHc <- function(env, dim, pres, print = NULL) {
                                 }
                             }
                             
+                            if (!is.null(ttViewColumn)) {
+                                point$xtraData <- tab[[ttViewColumn]][rec]
+                            }
+                            
                             seriesData[[rec]] <- point
                         }
                     }
@@ -568,7 +574,11 @@ prepHc <- function(env, dim, pres, print = NULL) {
             seriesList$name = colName
             seriesList$data = seriesData
             
-            seriesList$tooltip$pointFormat = fmtTooltip
+            if (!is.null(ttViewColumn)) {
+                seriesList$tooltip$pointFormatter <- highcharter::JS("function() {return ttPointFormatter(this);}")
+            } else {
+                seriesList$tooltip$pointFormat <- fmtTooltip
+            }
             
             if (is.null(seriesList$dataLabels$format)) {
                 seriesList$dataLabels$format = fmt

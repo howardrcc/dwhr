@@ -14,6 +14,22 @@ Math.easeOutBounce = function (pos) {
     return (7.5625 * (pos -= (2.625 / 2.75)) * pos + 0.984375);
 };
 
+
+ttPointFormatter = function(point) {
+    if ( point.xtraData === null || point.xtraData === '') 
+        return null;
+ 
+    if (point.xtraData.length > 700)
+        return "<div style='width: 450px; white-space:normal; text-align:center;'>" + point.xtraData + '</div>';
+        
+    if (point.xtraData.length > 100)
+        return "<div style='width: 300px; white-space:normal; text-align:center;'>" + point.xtraData + '</div>';
+    
+    return "<div style='white-space:normal; text-align:center;'>" + point.xtraData + '</div>';
+
+    
+};
+
 clearPlotbands = function(chart,id,color) {
 
     var len = chart.xAxis[0].plotLinesAndBands.length;
