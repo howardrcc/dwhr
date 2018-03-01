@@ -6,6 +6,7 @@
 \alias{addSortColumn}
 \alias{addTooltipColumn}
 \alias{addTextColumn}
+\alias{addRowGroupColumn}
 \title{Toevoegen van meetwaarden of ander kolom-type aan dimView-object.}
 \usage{
 addMeasure(env, dim, factColumn, fun, as = factColumn, viewColumn = NULL,
@@ -21,6 +22,8 @@ addTooltipColumn(env, dim, tooltipColumn, levels = NULL)
 
 addTextColumn(env, dim, textColumn, as, viewColumn, sort = NULL,
   levels = NULL)
+
+addRowGroupColumn(env, dim, rowGroupColumn, levels = NULL)
 }
 \arguments{
 \item{env}{sterschema object, gecreeerd met \code{\link{new.star}}.}
@@ -96,11 +99,13 @@ voor 1 level, wordt er een foutmelding gegenereerd.}
 \item{tooltipColumn}{string, te gebruiken kolom uit de dimensie-data die als tooltip gehanteerd wordt voor de dimview-member.}
 
 \item{textColumn}{string, extra textuele kolom voor dimview.}
+
+\item{rowGroupColumn}{string, extra groeperings kolom voor dimView}
 }
 \value{
 gewijzigd sterschema object.
 }
 \description{
 Deze functies voegen meetwaarden, afgeleide meetwaarden of een ander type kolom zoals 
-sort-column, tooltip-column of text-column toe aan een bestaand dimView object
+sort-column, tooltip-column text-column of grouping-column toe aan een bestaand dimView object
 }

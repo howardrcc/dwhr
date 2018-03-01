@@ -707,7 +707,7 @@ addDimView <- function(
 #' Toevoegen van meetwaarden of ander kolom-type aan dimView-object.
 #'
 #' Deze functies voegen meetwaarden, afgeleide meetwaarden of een ander type kolom zoals 
-#' sort-column, tooltip-column of text-column toe aan een bestaand dimView object
+#' sort-column, tooltip-column text-column of grouping-column toe aan een bestaand dimView object
 #'
 #' @param env sterschema object, gecreeerd met \code{\link{new.star}}.
 #' @param dim string, dimView id gecreeerd met \code{\link{addDimView}}.
@@ -1138,6 +1138,61 @@ addTextColumn <- function(env, dim, textColumn, as, viewColumn, sort = NULL, lev
     env$dims[[dim]]$measList <- ml
     env
 
+}
+
+#' @rdname addMeasure
+#'
+#' @param rowGroupColumn string, extra groeperings kolom voor dimView
+#'
+#' @export
+addRowGroupColumn <- function(env, dim, rowGroupColumn, levels = NULL) {
+    
+    
+    withCallingHandlers({
+        
+        class(env) == 'star' || stop('env is not of class star')
+        
+        assert_is_a_string(dim)
+        assert_is_a_string(rowGroupColumn)
+        
+        dd <- env$dims[[dim]]
+        class(dd) == 'dimView' || stop('dim is not of class dimView')
+        rowGroupColumn %in% names(dd$data) || stop('Invalid rowGroupColumn')
+        levels <- .setLevels(dd,levels)
+        
+        ml <- dd$measList
+        
+        as <- .setAs(dd,levels,'rowGroupColumn')
+        viewColumn <- as
+    
+        
+    },
+    error = function(c) {
+        dwhrStop(conditionMessage(c))
+    })
+    
+    dd$measureCalls[[length(dd$measureCalls) + 1]] <- match.call()
+    sort <- max(ml$sort) + 1
+    
+    ml <- rbind(
+        ml,
+        data.frame(
+            factColumn = rowGroupColumn,
+            viewColumn = viewColumn,
+            fun = 'max',
+            as = as,
+            sort = sort,
+            type = 'direct',
+            category = 'group',
+            processingOrder = 0,
+            format = 'standard',
+            formatRef = NA,
+            applyToLevels = vec2Bit(levels),
+            stringsAsFactors = FALSE))
+    
+    dd$measList <- ml
+    env
+    
 }
 
 #'

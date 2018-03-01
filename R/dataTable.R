@@ -212,6 +212,12 @@ makeDtWidget <- function(env,dim,prep) {
         color <- 'blue'
     }
     
+    if (class(prep$options$rowGroup) == 'list') {
+        cl <- 'compact hover row-border'
+    } else {
+        cl <- 'compact stripe hover row-border'
+    }
+    
     dt <- DT::datatable(
         prep$tab,
         container = prep$container,
@@ -219,7 +225,7 @@ makeDtWidget <- function(env,dim,prep) {
         extensions = "RowGroup",
         rownames = FALSE,
         escape = FALSE,
-        class = 'compact stripe hover row-border',
+        class = cl,
         selection = prep$selection,
         callback = callbackJS(env,dim),
         height = height
@@ -411,6 +417,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
     orderColumnDir <- dd$orderColumnDir
 
     measList <- getMeasList(env,dim)
+    #browser(expr = {dim == 'kpi'})
 
     if ('sort' %in% measList$category) {
         orderable <- FALSE
@@ -420,7 +427,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
 
     meas <- rbind(
         merge(measList, measures,by.x = 'viewColumn', by.y = 'viewColumn'),
-        merge(measList[measList$category %in% c('tooltip','sort'),], measures,by.x = 'viewColumn', by.y = 'viewColumn', all.x = TRUE))
+        merge(measList[measList$category %in% c('group','tooltip','sort'),], measures,by.x = 'viewColumn', by.y = 'viewColumn', all.x = TRUE))
     
     meas$visible[is.na(meas$visible)] <- FALSE
     meas$print[is.na(meas$print)] <- FALSE
@@ -737,12 +744,24 @@ prepDt <- function(env,dim,pres,print = NULL) {
             }
         }
     }
+    
+    rowGroup <- FALSE
+    
+    if ('rowGroupColumn' %in% names(tab)) {
+        if (any(tab[['Naam']] != tab[['rowGroupColumn']])) {
+            rgcnr <- which(names(tab) %in% 'rowGroupColumn') - 1
+            rowGroup <- list(dataSrc = rgcnr)
+        }
+    }
+    
+    #browser(expr = {dim == 'kpi'})
 
     options <- list( dom = dom
                      , lengthChange = TRUE
                      , searching = searching
                      , search = list(regex = FALSE, caseInsensitive = TRUE, search = search)
                      , paging = paging
+                     , rowGroup = rowGroup
                      , pagingType = pagingType
                      , lengthMenu = pageLengthList
                      , info = FALSE
