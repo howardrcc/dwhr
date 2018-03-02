@@ -174,7 +174,7 @@ new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = 
 #' @export
 addDimView <- function(
     env, dim, name, data, levelNames, initLevel = 0, initParent = "", selectLevel = 0,
-    selectLabel = levelNames[1], state = 'enabled', type = 'bidir', selectMode = 'single', useLevels = NULL,
+    selectLabel = levelNames[1], selectParent = NULL, state = 'enabled', type = 'bidir', selectMode = 'single', useLevels = NULL,
     cntName = 'cnt', itemName = 'Naam', ignoreDims = NULL, leafOnly = FALSE, fixedMembers = FALSE, keepUnused = FALSE,
     na.rm = TRUE, orderBy = 'name', selectableLevels = NULL, footerLevels = NA_integer_ , presListType = 'dropdown',
     returnPrepData = FALSE) {
@@ -192,6 +192,7 @@ addDimView <- function(
         assert_is_a_number(selectLevel)
         selectLevel <- as.integer(selectLevel)
         assert_is_a_string(selectLabel)
+        assert_is_a_string(isNull(selectParent,''))
         assert_is_a_string(state)
         state %in% c('enabled','disabled','hidden') || stop('invalid state parameter')
         assert_is_a_string(type)
@@ -432,8 +433,15 @@ addDimView <- function(
                 ancestors <- c(unique(pc$parentLabel[pc$level == i - 1 & pc$label == p]),ancestors)
             }
         }
-
-        selectParent <- pc$parentLabel[pc$level == selectLevel & pc$label == selectLabel][1]
+        
+        if (is.null(selectParent)) {
+            selectParent <- pc$parentLabel[pc$level == selectLevel & pc$label == selectLabel][1]
+        } else {
+            if (!(selectParent %in% pc$parentLabel[pc$level == selectLevel & pc$label == selectLabel])) {
+                warning(paste0('selectParent: ', selectParent, ' not found for selectLevel: ',selectLevel,' and selectLabel: ',selectLabel, '. selectParent set to first parent.'))
+                selectParent <- pc$parentLabel[pc$level == selectLevel & pc$label == selectLabel][1]
+            }
+        }
 
         if(is.null(selectParent)) {
             selectParent = ''

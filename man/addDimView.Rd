@@ -5,13 +5,13 @@
 \title{Voeg dimensie view (dimView) toe aan sterschema-object}
 \usage{
 addDimView(env, dim, name, data, levelNames, initLevel = 0, initParent = "",
-  selectLevel = 0, selectLabel = levelNames[1], state = "enabled",
-  type = "bidir", selectMode = "single", useLevels = NULL,
-  cntName = "cnt", itemName = "Naam", ignoreDims = NULL,
-  leafOnly = FALSE, fixedMembers = FALSE, keepUnused = FALSE,
-  na.rm = TRUE, orderBy = "name", selectableLevels = NULL,
-  footerLevels = NA_integer_, presListType = "dropdown",
-  returnPrepData = FALSE)
+  selectLevel = 0, selectLabel = levelNames[1], selectParent = NULL,
+  state = "enabled", type = "bidir", selectMode = "single",
+  useLevels = NULL, cntName = "cnt", itemName = "Naam",
+  ignoreDims = NULL, leafOnly = FALSE, fixedMembers = FALSE,
+  keepUnused = FALSE, na.rm = TRUE, orderBy = "name",
+  selectableLevels = NULL, footerLevels = NA_integer_,
+  presListType = "dropdown", returnPrepData = FALSE)
 }
 \arguments{
 \item{env}{sterschema-object, gemaakt met \code{\link{new.star}}}
