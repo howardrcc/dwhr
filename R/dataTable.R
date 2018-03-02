@@ -212,12 +212,6 @@ makeDtWidget <- function(env,dim,prep) {
         color <- 'blue'
     }
     
-    if (class(prep$options$rowGroup) == 'list') {
-        cl <- 'compact hover row-border'
-    } else {
-        cl <- 'compact stripe hover row-border'
-    }
-    
     dt <- DT::datatable(
         prep$tab,
         container = prep$container,
@@ -225,7 +219,7 @@ makeDtWidget <- function(env,dim,prep) {
         extensions = "RowGroup",
         rownames = FALSE,
         escape = FALSE,
-        class = cl,
+        class = 'compact stripe hover row-border',
         selection = prep$selection,
         callback = callbackJS(env,dim),
         height = height
