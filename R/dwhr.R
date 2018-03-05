@@ -1695,7 +1695,7 @@ setOrdering <- function(env, dim, as,sort, as2 = NULL) {
 #'
 #'@export
 #'
-setSelection <- function(env,dim,sel,single = TRUE,source = 'setSelection') {
+setSelection <- function(env,dim,sel,single = TRUE,source = 'setSelection',dimRefresh = TRUE) {
     
     dd <- env$dims[[dim]]
 
@@ -1706,8 +1706,10 @@ setSelection <- function(env,dim,sel,single = TRUE,source = 'setSelection') {
         dd$rowLastAccessed$value[dd$rowLastAccessed$level == sel$level] <- sel$label
         dd$reactive$selectChange <- dd$reactive$selectChange + 1
         printDebug(env = env, dim, eventIn = 'setSelection', eventOut = 'selectChange', info = paste0('selected: (',sel$level,',',sel$label,')'))
-        dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
-        printDebug(env = env, dim, eventIn = 'setSelection', eventOut = 'dimRefresh')
+        if (dimRefresh) {
+            dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
+            printDebug(env = env, dim, eventIn = 'setSelection', eventOut = 'dimRefresh')
+        }
     }
 
 }

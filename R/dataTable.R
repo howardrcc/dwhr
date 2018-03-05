@@ -472,7 +472,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
         }
 
     }
-
+#browser(expr = {env$id == 's2'})
     tab <- tab[,c('zoom','member','memberKey',measViewColNames)]
     visCols <- c(0,1,which(names(tab) %in% union(formattedColumns,textColumns)) - 1)
 
