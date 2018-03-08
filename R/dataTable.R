@@ -558,8 +558,16 @@ prepDt <- function(env,dim,pres,print = NULL) {
     # add subsel
     #
 
-    ss <- dd$hasSubselect$label[dd$hasSubselect$level == lvl]
-    tab$subSel <- as.numeric(tab$member %in% ss)
+    ss <- dd$hasSubselect
+    
+    ssLabels <- ss$label[ss$level == lvl]
+    
+    if (lvl > 0)
+        ssParents <- ss$label[ss$level == lvl - 1]
+    else
+        ssParents <- parent
+    
+    tab$subSel <- as.numeric(tab$member %in% ssLabels & parent %in% ssParents)
 
     #
     # set selected items

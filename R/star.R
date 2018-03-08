@@ -564,17 +564,17 @@ dimSetHasSubselect <- function(env,dim) {
     
     getAncestors <- function(level,label,parent) {
         ancestors <- c()
-        p <- label
+
         pc <- dd$pc
-        
+  
         if (level >= 1) {
             for (i in level:1) {
-                ancestors <- c(unique(pc$parentLabel[pc$level == i & pc$label == p]),ancestors)
+                par <- pc$parentLabel[pc$level == i & pc$label == label & pc$parentLabel == parent][1]
+                gpar <- pc$gparentLabel[pc$level == i & pc$label == label  & pc$parentLabel == parent][1]
                 
-                if (i == level && length(ancestors) > 1) {
-                    ancestors <- ancestors[ancestors == parent]
-                }
-                p <- ancestors[1]
+                label <- par
+                parent <- gpar
+                ancestors <- c(label,ancestors)
             }
         }
         ancestors
@@ -582,7 +582,7 @@ dimSetHasSubselect <- function(env,dim) {
     
     hss <- NULL
     selected <- dd$selected
-    
+
     for (n in 1:nrow(selected)) {
         
         ancestors <- getAncestors(selected$level[n],selected$label[n],selected$parent[n])

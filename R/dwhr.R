@@ -381,6 +381,8 @@ addDimView <- function(
 
         pc <- data.frame(
             level = 0,
+            gparentLabel = '',
+            gparentCode = '',
             parentLabel = '',
             parentCode = '',
             label = rootLabel,
@@ -391,6 +393,8 @@ addDimView <- function(
             pc,
             data.frame(
                 level = 1,
+                gparentLabel = '',
+                gparentCode = '',
                 parentLabel = rootLabel,
                 parentCode = 'root',
                 label = unique(data$level1Label),
@@ -399,14 +403,24 @@ addDimView <- function(
 
         if (maxLevel >= 2) {
             for (lvl in 2:maxLevel) {
-                c1 <- paste0('level',lvl - 1,'Label')
-                c2 <- paste0('level',lvl - 1,'Code')
-                c3 <- paste0('level',lvl,'Label')
-                c4 <- paste0('level',lvl,'Code')
-
-                l2 <- unique(data[c(c1,c2,c3,c4)])
-                l2$level <- lvl
-                names(l2) = c('parentLabel','parentCode','label','code','level')
+                c1 <- paste0('level',lvl - 2,'Label')
+                c2 <- paste0('level',lvl - 2,'Code')
+                c3 <- paste0('level',lvl - 1,'Label')
+                c4 <- paste0('level',lvl - 1,'Code')
+                c5 <- paste0('level',lvl,'Label')
+                c6 <- paste0('level',lvl,'Code')
+                
+                if (lvl == 2) {
+                    l2 <- unique(data[c(c3,c4,c5,c6)])
+                    l2$gparent <- rootLabel
+                    l2$gparentCode <- 'root'
+                    l2$level <- lvl
+                    names(l2) = c('parentLabel','parentCode','label','code','gparentLabel','gparentCode','level')
+                } else {
+                    l2 <- unique(data[c(c1,c2,c3,c4,c5,c6)])
+                    l2$level <- lvl
+                    names(l2) = c('gparentLabel','gparentCode','parentLabel','parentCode','label','code','level')
+                }
 
                 pc <- rbind(pc,l2)
             }
