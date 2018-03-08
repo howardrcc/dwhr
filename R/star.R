@@ -385,39 +385,39 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL) {
                               eval(expr = parse(text = byText))]
                 
             }
+        }
+        
+        names(body) <- c('member',measCols)
+        body$member <- as.character(body$member)
+        
+        lookup <- unique(dd$pc[dd$pc$level == lvl,][,c('label','code')])
+        names(lookup) <- c('member','memberKey')
+        
+        body <- as.data.frame(body[lookup,on = 'member',nomatch = 0])
+        
+        if(lvl %in% dd$footerLevels) {
+            footer <- as.data.frame(footer)
+        }
+        
+        if (dim %in% selectableDims(env) && !(dd$type == 'output')) {
             
-            names(body) <- c('member',measCols)
-            body$member <- as.character(body$member)
+            diff <- setdiff(s$label[s$level == lvl &
+                                        s$parent == parent],body$member)
             
-            lookup <- unique(dd$pc[dd$pc$level == lvl,][,c('label','code')])
-            names(lookup) <- c('member','memberKey')
-            
-            body <- as.data.frame(body[lookup,on = 'member',nomatch = 0])
-            
-            if(lvl %in% dd$footerLevels) {
-                footer <- as.data.frame(footer)
-            }
-            
-            if (dim %in% selectableDims(env) && !(dd$type == 'output')) {
-                
-                diff <- setdiff(s$label[s$level == lvl &
-                                            s$parent == parent],body$member)
-                
-                if (length(diff) > 0) {
-                    for (s in diff) {
-                        body <- appendZeroRow(s,dim,body)
-                    }
+            if (length(diff) > 0) {
+                for (s in diff) {
+                    body <- appendZeroRow(s,dim,body)
                 }
-                
             }
             
-            if (nrow(body) == 0) {
-                body <- appendZeroRow('Onbekend',dim,body)
-            }
-            
-            if(lvl %in% dd$footerLevels && nrow(footer) == 0) {
-                footer <- appendZeroRow('Onbekend',dim,footer)
-            }
+        }
+        
+        if (nrow(body) == 0) {
+            body <- appendZeroRow('Onbekend',dim,body)
+        }
+        
+        if(lvl %in% dd$footerLevels && nrow(footer) == 0) {
+            footer <- appendZeroRow('Onbekend',dim,footer)
         }
 
         meas <- ml[ml$type == 'indirect',]
