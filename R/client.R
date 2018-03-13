@@ -91,25 +91,6 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
         shiny::uiOutput(paste0(gdim,'DimFooter')),
         style = style
     )
-    # shiny::div(
-    #     id = paste0(gdim,'Dimensie'),
-    #     if (!skipTopRow)
-    #         fluidRow(
-    #             column(
-    #                 width = 4,
-    #                 shiny::uiOutput(paste0(gdim,"DimName"))),
-    #             column(
-    #                 width = 6,
-    #                 shiny::uiOutput(paste0(gdim,"DimLinks"))),
-    #             column(
-    #                 width = 2,
-    #                 shiny::uiOutput(paste0(gdim,"DimPresList")))
-    #         ),
-    #     shiny::uiOutput(paste0(gdim,"DimHeader")),
-    #     shiny::uiOutput(paste0(gdim,"DimBody")),
-    #     shiny::uiOutput(paste0(gdim,'DimFooter')),
-    #     style = style
-    # )
 
 }
 
@@ -296,13 +277,15 @@ authenticate <- function(session) {
         return(FALSE)
     }
     
-    ses$baseUrl <- shiny::isolate(paste0(
-        ses$cdata$url_protocol,'//',
-        ses$cdata$url_hostname,':',
-        ses$cdata$url_port,
-        '/boRedir?docId=',res$docid,'&server=',res$server))
-    
-    updateQueryString(paste0('/boRedir?docId=',res$docid,'&server=',res$server),'replace')
+    if (shiny::serverInfo()$edition != 'OS') {
+        ses$baseUrl <- shiny::isolate(paste0(
+            ses$cdata$url_protocol,'//',
+            ses$cdata$url_hostname,':',
+            ses$cdata$url_port,
+            '/boRedir?docId=',res$docid,'&server=',res$server))
+        
+        updateQueryString(paste0('/boRedir?docId=',res$docid,'&server=',res$server),'replace')
+    }
     
     ses$authenticated <- TRUE
     ses$dashUser <- user
