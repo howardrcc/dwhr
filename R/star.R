@@ -880,10 +880,13 @@ latexEscape <- function(paragraph) {
     
     # replace > < and |
     
-    paragraph <- gsub('<','\\\\textless',paragraph)
-    paragraph <- gsub('>','\\\\textgreater',paragraph)
-    paragraph <- gsub('\\|','\\\\textbar',paragraph)
+    paragraph <- gsub('<','\\\\textless ',paragraph)
+    paragraph <- gsub('>','\\\\textgreater ',paragraph)
+    paragraph <- gsub('\\|','\\\\textbar ',paragraph)
     
+    # replace \n 
+    
+    paragraph <- gsub('\\n','\\\\newline ',paragraph)
     paragraph;
 }
 
