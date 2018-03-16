@@ -331,3 +331,5 @@ shinyjs.updateDT = function(params) {
     $('.tooltip').tooltip('destroy');
     $('[data-toggle="tooltip"]').tooltip({trigger : 'hover'});
 };
+
+batchStateFinished = false; 
