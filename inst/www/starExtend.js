@@ -30,6 +30,26 @@ ttPointFormatter = function(point) {
     
 };
 
+
+registerAccordion = function() {
+    var acc = document.getElementsByClassName("dwhrAccordion");
+    var i;
+
+    for (i = 0; i < acc.length; i++) {
+        acc[i].addEventListener("click", function() {
+            this.classList.toggle("dwhrActive");
+            var panel = this.nextElementSibling;
+            debugger;
+            if (panel.style.maxHeight === "0px"){
+                panel.style.maxHeight = null;
+            } else {
+                panel.style.maxHeight = "0px";
+            } 
+        });
+    }
+};
+
+
 clearPlotbands = function(chart,id,color) {
 
     var len = chart.xAxis[0].plotLinesAndBands.length;

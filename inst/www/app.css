@@ -69,3 +69,25 @@ width: 97%;
     transform: translate(-50%,0);
     white-space: nowrap;
 }
+
+.dwhrAccordion {
+    cursor: pointer;
+    width: 100%;
+    border: none;
+    transition: 0.4s;
+}
+
+.dwhrAccordion:after {
+    content: "\2212";
+    font-weight: bold;
+    float: left;
+}
+
+.dwhrActive:after {
+    content: '\002B';
+}
+
+.dwhrPanel {
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+}

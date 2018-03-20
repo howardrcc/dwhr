@@ -891,3 +891,11 @@ latexEscape <- function(paragraph) {
 }
 
 
+#'
+#' @export
+#'
+checkVersion = function(pkg_name, min_version) {
+    cur_version = packageVersion(pkg_name)
+    if(cur_version < min_version) stop(sprintf("Package %s needs a newer version, found %s, need at least %s", pkg_name, cur_version, min_version))
+}
+

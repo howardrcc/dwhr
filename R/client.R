@@ -46,7 +46,7 @@ dwhrInit <- function() {
 #' @param overflowX string, css overflow propery in X richting, bepaalt of er wel of niet een horizontale scrollbar getoond wordt bij overflow. 
 #'
 #' @export
-getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflowX = 'hidden') {
+getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflowX = 'hidden', accordion = FALSE) {
     
     withCallingHandlers({
         assert_is_a_string(starId)
@@ -73,22 +73,32 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
         style <- paste0("overflow-x:", overflowX, "; overflow-y:hidden;")
     }
     
+    if (accordion) {
+        class1 <- 'dwhrAccordion'
+        class2 <- 'dwhrPanel'
+    } else {
+        class1 <- ''
+        class2 <- ''
+    }
+    
     shiny::div(
         id = paste0(gdim,'Dimensie'),
         if (!skipTopRow)
-            HTML(paste0(
-                '<table width = "100%">'
-                , '<tbody>'
-                , '<tr>'
-                , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimName")), '</td>'
-                , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimLinks")), '</td>'
-                , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimPresList")), '</td>'
-                , '<td class="db-header" style="padding-top: 42px"></td>'
-                , '</tr></tbody></table>')
-            ),
-        shiny::uiOutput(paste0(gdim,"DimHeader")),
-        shiny::uiOutput(paste0(gdim,"DimBody")),
-        shiny::uiOutput(paste0(gdim,'DimFooter')),
+            div(class = class1,
+                HTML(paste0(
+                    '<table width = "100%">'
+                    , '<tbody>'
+                    , '<tr>'
+                    , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimName")), '</td>'
+                    , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimLinks")), '</td>'
+                    , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimPresList")), '</td>'
+                    , '<td class="db-header" style="padding-top: 42px"></td>'
+                    , '</tr></tbody></table>')
+                )),
+        div(class = class2,
+            shiny::uiOutput(paste0(gdim,"DimHeader")),
+            shiny::uiOutput(paste0(gdim,"DimBody")),
+            shiny::uiOutput(paste0(gdim,'DimFooter'))),
         style = style
     )
 
