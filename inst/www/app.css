@@ -72,22 +72,14 @@ width: 97%;
 
 .dwhrAccordion {
     cursor: pointer;
+    background-color: #f9fafc;
     width: 100%;
     border: none;
-    transition: 0.4s;
-}
-
-.dwhrAccordion:after {
-    content: "\2212";
-    font-weight: bold;
-    float: left;
-}
-
-.dwhrActive:after {
-    content: '\002B';
+    border-bottom: 1px solid white;
+    transition: 2s;
 }
 
 .dwhrPanel {
     overflow: hidden;
-    transition: max-height 0.2s ease-out;
+    transition: max-height 2s ease-in;
 }

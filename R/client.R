@@ -74,9 +74,11 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
     }
     
     if (accordion) {
+        icon <- icon('chevron-down','glyphicon')
         class1 <- 'dwhrAccordion'
         class2 <- 'dwhrPanel'
     } else {
+        icon <- ''
         class1 <- ''
         class2 <- ''
     }
@@ -89,6 +91,7 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
                     '<table width = "100%">'
                     , '<tbody>'
                     , '<tr>'
+                    , '<td class="db-header" style="width: 16px">', icon, '</td>'
                     , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimName")), '</td>'
                     , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimLinks")), '</td>'
                     , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimPresList")), '</td>'

@@ -380,7 +380,8 @@ renderDims <- function(env,input,output) {
         }
 
     }
-
+    
+    shinyjs::runjs('registerAccordion()')
     shinyjs::hide(id = "loading-content", anim = TRUE, animType = "fade",time = 2)
     env
 }

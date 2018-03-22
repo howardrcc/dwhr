@@ -36,16 +36,31 @@ registerAccordion = function() {
     var i;
 
     for (i = 0; i < acc.length; i++) {
-        acc[i].addEventListener("click", function() {
-            this.classList.toggle("dwhrActive");
-            var panel = this.nextElementSibling;
-            debugger;
-            if (panel.style.maxHeight === "0px"){
-                panel.style.maxHeight = null;
-            } else {
-                panel.style.maxHeight = "0px";
-            } 
-        });
+        if (!$(acc[i]).data().listener) {
+            acc[i].addEventListener("click", function() {
+                if (!$(event.srcElement).hasClass('shiny-input-container') &&
+                    !$(event.srcElement).hasClass('selectize-input') &&
+                    event.srcElement.tagName !== "A" &&
+                    event.srcElement.tagName !== "INPUT") {
+                    var panel = this.nextElementSibling;
+             
+                    if (panel.style.maxHeight === "0px"){
+                        $(this).find('.glyphicon').removeClass('fa-chevron-right');
+                        $(this).find('.glyphicon').addClass('fa-chevron-down');
+                        $(this).find('.glyphicon').removeClass('glyphicon-chevron-right');
+                        $(this).find('.glyphicon').addClass('glyphicon-chevron-down');
+                        panel.style.maxHeight = null;
+                    } else {
+                        $(this).find('.glyphicon').removeClass('fa-chevron-down');
+                        $(this).find('.glyphicon').addClass('fa-chevron-right');
+                        $(this).find('.glyphicon').removeClass('glyphicon-chevron-down');
+                        $(this).find('.glyphicon').addClass('glyphicon-chevron-right');
+                        panel.style.maxHeight = "0px";
+                    } 
+                }
+            });
+            $(acc[i]).data("listener", true);
+        }
     }
 };
 
