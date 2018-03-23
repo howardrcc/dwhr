@@ -45,14 +45,10 @@ registerAccordion = function() {
                     var panel = this.nextElementSibling;
              
                     if (panel.style.maxHeight === "0px"){
-                        $(this).find('.glyphicon').removeClass('fa-chevron-right');
-                        $(this).find('.glyphicon').addClass('fa-chevron-down');
                         $(this).find('.glyphicon').removeClass('glyphicon-chevron-right');
                         $(this).find('.glyphicon').addClass('glyphicon-chevron-down');
                         panel.style.maxHeight = null;
                     } else {
-                        $(this).find('.glyphicon').removeClass('fa-chevron-down');
-                        $(this).find('.glyphicon').addClass('fa-chevron-right');
                         $(this).find('.glyphicon').removeClass('glyphicon-chevron-down');
                         $(this).find('.glyphicon').addClass('glyphicon-chevron-right');
                         panel.style.maxHeight = "0px";
