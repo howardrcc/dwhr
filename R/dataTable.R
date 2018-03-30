@@ -1063,6 +1063,7 @@ renderDataTableDim <- function(env,dim,input,output) {
 
             dd$orderViewColumn <- vc
             dd$reactive$orderChange <- dd$reactive$orderChange + 1
+            shinyjs::js$tooltip()
             printDebug(env = env, dim, eventIn = 'dataTableOrderChange', eventOut = 'orderChange', info = paste0('column:',name,',dir:',srt))
 
         }
