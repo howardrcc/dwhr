@@ -899,3 +899,15 @@ checkVersion = function(pkg_name, min_version) {
     if(cur_version < min_version) stop(sprintf("Package %s needs a newer version, found %s, need at least %s", pkg_name, cur_version, min_version))
 }
 
+
+
+#'
+#' @export
+#'
+getReportName <- function(title) {
+    
+    if (omgeving != 'PRD') 
+        return(paste0(title,' <font color="red">TEST</font>'))
+    
+    return(title)
+}

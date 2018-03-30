@@ -505,6 +505,9 @@ startObserversPres <- function(env,dim,pres) {
             if (presType == 'dataTable') {
                 processDataTable(env,dim,dd$pres)
             }
+            if (presType %in% c('radioButton','selectInput')) {
+                 dd$reactive$presChange <- dd$reactive$presChange + 1
+            }
         })
 
         obs <- c(obs,'dimRefresh')
