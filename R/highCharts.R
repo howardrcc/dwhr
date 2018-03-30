@@ -823,10 +823,13 @@ renderHighchartDim <- function(env, dim, input,output) {
             presList <- dd$presList
 
             seriesOpts <- presList[[pres]]$highChartsOpts$series
-
             seriesOpts[[e]]$visible <- FALSE
             dd$presList[[pres]]$highChartsOpts$series <- seriesOpts
-
+            
+            seriesOpts <- env$hcPrev[[dim]]$seriesOpts
+            seriesOpts[[e]]$visible <- FALSE
+            env$hcPrev[[dim]]$seriesOpts <- seriesOpts
+            
         })
 
         obs <- c(obs,highchartsHideEvent)
@@ -837,16 +840,19 @@ renderHighchartDim <- function(env, dim, input,output) {
     if (!(highchartsShowEvent %in% obs)) {
 
         observeEvent(input[[highchartsShowEvent]], {
-         
+ 
             e <- input[[highchartsShowEvent]]$data
 
             pres <- dd$pres
             presList <- dd$presList
 
             seriesOpts <- presList[[pres]]$highChartsOpts$series
-
             seriesOpts[[e]]$visible <- TRUE
             dd$presList[[pres]]$highChartsOpts$series <- seriesOpts
+  
+            seriesOpts <- env$hcPrev[[dim]]$seriesOpts
+            seriesOpts[[e]]$visible <- TRUE
+            env$hcPrev[[dim]]$seriesOpts <- seriesOpts
 
         })
 
