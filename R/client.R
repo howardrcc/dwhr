@@ -85,8 +85,8 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
     
     shiny::div(
         id = paste0(gdim,'Dimensie'),
-        if (!skipTopRow)
-            div(class = class1,
+        div(class = class1,
+            if (!skipTopRow)
                 HTML(paste0(
                     '<table width = "100%">'
                     , '<tbody>'
@@ -97,9 +97,9 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
                     , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimPresList")), '</td>'
                     , '<td class="db-header" style="padding-top: 42px"></td>'
                     , '</tr></tbody></table>')
-                )),
+                ),
+            shiny::uiOutput(paste0(gdim,"DimHeader"))),
         div(class = class2,
-            shiny::uiOutput(paste0(gdim,"DimHeader")),
             shiny::uiOutput(paste0(gdim,"DimBody")),
             shiny::uiOutput(paste0(gdim,'DimFooter'))),
         style = style

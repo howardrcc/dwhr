@@ -241,7 +241,7 @@ renderDims <- function(env,input,output) {
 
                     } else {
 
-                        txt <- paste0(txt,'<div style="padding-bottom:4px;">')
+                        txt <- paste0(txt,'<div style="padding-bottom:4px;">&nbsp')
                     }
 
                     if (any(dd$selected$level > 0) && !hideNoFilter) {
