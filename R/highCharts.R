@@ -97,6 +97,17 @@ pointSingleSelectJS <- function(env,dim,color,serieType) {
 }"))
 }
 
+ttPointFormatter <- function(txt) {
+    
+    if (nchar(txt) > 700)
+        return (paste0("<div style='width: 450px; white-space:normal; text-align:center;'>",txt,'</div>'))
+    
+    if (nchar(txt) > 100)
+        return (paste0("<div style='width: 300px; white-space:normal; text-align:center;'>",txt,'</div>'))
+    
+    return (txt)
+}
+
 fixCreditsJS <- function() {
     highcharter::JS("function() {
     this.credits.element.onclick = function() {
@@ -142,6 +153,26 @@ getFormat <- function(format) {
         decimal2 = '{point.y:,.2f}',
         decimal3 = '{point.y:,.3f}',
         standard = '{point.y}')
+}
+
+getFormat2 <- function(format,value) {
+    
+    if (is.na(value)) 
+        return('NA')
+    
+    switch(
+        format,
+        hidden = '',
+        euro = paste0('\U20AC ', formatC(digits = 0, format = 'f', value, big.mark='.',decimal.mark = ',')),
+        euro2 = paste0('\U20AC ', formatC(digits = 2, format = 'f', value, big.mark='.',decimal.mark = ',')),
+        perc = paste0(formatC(digits = 0, format = 'f', value, big.mark='.',decimal.mark = ','),' %'),
+        perc1 = paste0(formatC(digits = 1, format = 'f', value, big.mark='.',decimal.mark = ','),' %'),
+        perc2 = paste0(formatC(digits = 2, format = 'f', value, big.mark='.',decimal.mark = ','),' %'),
+        integer = formatC(digits = 0, format = 'f', value, big.mark='.',decimal.mark = ','),
+        decimal1 = formatC(digits = 1, format = 'f', value, big.mark='.',decimal.mark = ','),
+        decimal2 = formatC(digits = 2, format = 'f', value, big.mark='.',decimal.mark = ','),
+        decimal3 = formatC(digits = 3, format = 'f', value, big.mark='.',decimal.mark = ','),
+        standard = as.character(value))
 }
 
 getMemberValue <- function(env, dim, memberLevel, memberValue, viewColumn) {
@@ -429,9 +460,8 @@ prepHc <- function(env, dim, pres, print = NULL) {
             colName <- measColNames[which(measCols == presCol)]
             format <- meas$format[meas$as == colName]
             
-            fmt <- getFormat(format)
+            fmtLabel <- getFormat(format)
             
-            fmtTooltip <- paste0('{series.name}:',fmt,'<br/>')
             dt <- tab[pageStart:pageEnd,c(presCol)]
             
             labelsPage <- as.character(labels[pageStart:pageEnd])
@@ -444,7 +474,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
             
             seriesData <- list()
             
-            ttViewColumn <- seriesOpts[[serieNum]]$ttViewColumn
+            ttXtraData <- seriesOpts[[serieNum]]$ttXtraData
             
             # check datalabel instelling (formatter?)
             
@@ -503,8 +533,9 @@ prepHc <- function(env, dim, pres, print = NULL) {
                         id = colName,
                         y = y$value)
                     
-                    fmt <- getFormat(y$format)
-                    fmtTooltip <- paste0('{series.name}:',fmt,'<br/>')
+                    fmt <- getFormat2(y$format,y$value)
+                    seriesData[[1]]$ttXtraData <- paste0(colName,': ',fmt,'<br/>')
+                    
                 }
                 
             } else {   #2D
@@ -524,7 +555,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
                                 point$visible = TRUE
                                 point$id = labelsPage[rec]
                                 i <- i + 1
-                                seriesData[[i]] <- point
+                                #seriesData[[i]] <- point
                             }
                             
                         }
@@ -541,12 +572,13 @@ prepHc <- function(env, dim, pres, print = NULL) {
                                 point$orgColor = colorsPage[rec]
                                 point$id = labelsPage[rec]
                                 i <- i + 1
-                                seriesData[[i]] <- point
+                                #seriesData[[i]] <- point
                             }
                         }
                         
                         if (!(serieType %in% c('pie','treemap'))) {
                             
+                            i <- i + 1
                             point <- list(
                                 name = labelsPage[rec],
                                 id = labelsPage[rec],
@@ -559,13 +591,37 @@ prepHc <- function(env, dim, pres, print = NULL) {
                                     point$dataLabels <- list(enabled = TRUE)
                                 }
                             }
-                            
-                            if (!is.null(ttViewColumn)) {
-                                point$xtraData <- tab[[ttViewColumn]][rec]
-                            }
-                            
-                            seriesData[[rec]] <- point
                         }
+                        
+                        fmt <- getFormat2(format,dt[rec])
+                        point$ttXtraData <- paste0(colName,': ',fmt,'<br/>')
+                        
+                        if (!is.null(ttXtraData)) {
+                            
+                            if (isNull(ttXtraData$enabled,TRUE)) {
+                                
+                                point$ttXtraData <- ''
+                                
+                                if (isNull(ttXtraData$includeSelf,TRUE)) {
+                                    point$ttXtraData <- paste0(colName,': ',fmt,'<br/>')
+                                }
+                                
+                                q <- 1
+                                for (ttX in ttXtraData$viewColumns) {
+                                    ttXName <-measColNames[which(measCols == ttX)]
+                                    ttXFormat <- meas$format[meas$as == ttXName]
+                                    ttXName <- isNull(ttXtraData$name[q],ttXName)
+                                    ttXFmt <- getFormat2(ttXFormat,tab[[ttX]][rec])
+                                    point$ttXtraData <- paste0(point$ttXtraData,ttXName,': ',ttXFmt,'<br/>')
+                                    q <- q + 1
+                                }
+                                
+                                point$ttXtraData <- ttPointFormatter(point$ttXtraData)
+                                
+                            } 
+                        }
+                        
+                        seriesData[[i]] <- point
                     }
                 }
             }
@@ -574,14 +630,10 @@ prepHc <- function(env, dim, pres, print = NULL) {
             seriesList$name = colName
             seriesList$data = seriesData
             
-            if (!is.null(ttViewColumn)) {
-                seriesList$tooltip$pointFormatter <- highcharter::JS("function() {return ttPointFormatter(this);}")
-            } else {
-                seriesList$tooltip$pointFormat <- fmtTooltip
-            }
+            seriesList$tooltip$pointFormatter <- highcharter::JS(paste0("function() {return ttPointFormatter(this);}"))
             
             if (is.null(seriesList$dataLabels$format)) {
-                seriesList$dataLabels$format = fmt
+                seriesList$dataLabels$format = fmtLabel
             }
             
             seriesList$viewColumn <- NULL
@@ -631,7 +683,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
                                                                var number = Math.random();
                                                                Shiny.onInputChange('",gdim,"HighchartShow',{r: number, data: this.options.id})}"))
     } 
-
+    
     ret <- list(
         legendOpts = legendOpts,
         seriesOpts = series,
@@ -703,7 +755,7 @@ renderHighchartDim <- function(env, dim, input,output) {
     obs <- dd$observers
 
     output[[outputChart]] <- highcharter::renderHighchart({
-
+        
         env$hcRenderers[[dim]]$count
 
         pres <- dd$pres

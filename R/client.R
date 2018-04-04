@@ -73,25 +73,19 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
         style <- paste0("overflow-x:", overflowX, "; overflow-y:hidden;")
     }
     
-    if (accordion) {
-        icon <- shiny::icon('chevron-down',lib = 'glyphicon')
-        class1 <- 'dwhrAccordion'
-        class2 <- 'dwhrPanel'
-    } else {
-        icon <- ''
-        class1 <- ''
-        class2 <- ''
-    }
+    acc <- paste0('<td class="db-header" style="width: 16px; cursor: pointer;" onclick="toggleAccordion(this,\'', gdim, 'DwhrPanel\');">', 
+                  shiny::icon('chevron-down',lib = 'glyphicon'), 
+                  '</td>')
     
     shiny::div(
         id = paste0(gdim,'Dimensie'),
-        div(class = class1,
+        div(class = 'dwhrAccordion',
             if (!skipTopRow)
                 HTML(paste0(
                     '<table width = "100%">'
                     , '<tbody>'
                     , '<tr>'
-                    , ifelse(accordion,paste0('<td class="db-header" style="width: 16px">', icon, '</td>'),'')
+                    , ifelse(accordion,acc,'')
                     , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimName")), '</td>'
                     , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimLinks")), '</td>'
                     , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimPresList")), '</td>'
@@ -99,7 +93,7 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
                     , '</tr></tbody></table>')
                 ),
             shiny::uiOutput(paste0(gdim,"DimHeader"))),
-        div(class = class2,
+        div(class = 'dwhrPanel', id = paste0(gdim,'DwhrPanel'),
             shiny::uiOutput(paste0(gdim,"DimBody")),
             shiny::uiOutput(paste0(gdim,'DimFooter'))),
         style = style

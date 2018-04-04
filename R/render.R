@@ -241,12 +241,12 @@ renderDims <- function(env,input,output) {
 
                     } else {
 
-                        txt <- paste0(txt,'<div style="padding-bottom:4px;">&nbsp')
+                        txt <- paste0(txt,'<div style="padding-bottom:4px;">')
                     }
 
                     if (any(dd$selected$level > 0) && !hideNoFilter) {
 
-                        txt <- paste0(txt,'<span style="float:right;">',actionLink(inputId = paste0(gdim,'NoFilter'), label = 'Verwijder Filter', style='color:red'),'</span>')
+                        txt <- paste0(txt,'&nbsp<span style="float:right;">',actionLink(inputId = paste0(gdim,'NoFilter'), label = 'Verwijder Filter', style='color:red'),'</span>')
                     }
 
                     txt <- paste0(txt,"</div>")
@@ -381,7 +381,6 @@ renderDims <- function(env,input,output) {
 
     }
     
-    shinyjs::runjs('registerAccordion()')
     shinyjs::hide(id = "loading-content", anim = TRUE, animType = "fade",time = 2)
     env
 }

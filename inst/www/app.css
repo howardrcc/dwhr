@@ -71,15 +71,12 @@ width: 97%;
 }
 
 .dwhrAccordion {
-    cursor: pointer;
     background-color: #f9fafc;
     width: 100%;
     border: none;
     border-bottom: 1px solid white;
-    transition: 2s;
 }
 
 .dwhrPanel {
     overflow: hidden;
-    transition: max-height 2s ease-in;
 }

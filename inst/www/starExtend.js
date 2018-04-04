@@ -16,47 +16,27 @@ Math.easeOutBounce = function (pos) {
 
 
 ttPointFormatter = function(point) {
-    if ( point.xtraData === null || point.xtraData === '') 
+    
+    if ( typeof point.ttXtraData == "undefined"  || point.ttXtraData === null || point.ttXtraData === '') 
         return null;
  
-    if (point.xtraData.length > 700)
-        return "<div style='width: 450px; white-space:normal; text-align:center;'>" + point.xtraData + '</div>';
-        
-    if (point.xtraData.length > 100)
-        return "<div style='width: 300px; white-space:normal; text-align:center;'>" + point.xtraData + '</div>';
-    
-    return "<div style='white-space:normal; text-align:center;'>" + point.xtraData + '</div>';
+    return point.ttXtraData;
 
-    
 };
 
-
-registerAccordion = function() {
-    var acc = document.getElementsByClassName("dwhrAccordion");
-    var i;
-
-    for (i = 0; i < acc.length; i++) {
-        if (!$(acc[i]).data().listener) {
-            acc[i].addEventListener("click", function() {
-                if (!$(event.srcElement).hasClass('shiny-input-container') &&
-                    !$(event.srcElement).hasClass('selectize-input') &&
-                    event.srcElement.tagName !== "A" &&
-                    event.srcElement.tagName !== "INPUT") {
-                    var panel = this.nextElementSibling;
-             
-                    if (panel.style.maxHeight === "0px"){
-                        $(this).find('.glyphicon').removeClass('glyphicon-chevron-right');
-                        $(this).find('.glyphicon').addClass('glyphicon-chevron-down');
-                        panel.style.maxHeight = null;
-                    } else {
-                        $(this).find('.glyphicon').removeClass('glyphicon-chevron-down');
-                        $(this).find('.glyphicon').addClass('glyphicon-chevron-right');
-                        panel.style.maxHeight = "0px";
-                    } 
-                }
-            });
-            $(acc[i]).data("listener", true);
-        }
+toggleAccordion = function(e,id) {
+    var panel = $('#'.concat(id))[0];  
+  
+    if (panel !== null) {
+        if (panel.style.maxHeight === "0px"){
+            $(e).find('.glyphicon').removeClass('glyphicon-chevron-right');
+            $(e).find('.glyphicon').addClass('glyphicon-chevron-down');
+            panel.style.maxHeight = null;
+        } else {
+            $(e).find('.glyphicon').removeClass('glyphicon-chevron-down');
+            $(e).find('.glyphicon').addClass('glyphicon-chevron-right');
+            panel.style.maxHeight = "0px";
+        }     
     }
 };
 
