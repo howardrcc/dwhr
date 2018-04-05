@@ -40,6 +40,13 @@ toggleAccordion = function(e,id) {
     }
 };
 
+rowGroupEvent = function(gdim,rowGroup) {
+
+    Shiny.onInputChange(gdim.concat('RowGroupEvent'),{
+        r: Math.random(),
+        rowGroup: rowGroup});    
+    
+};
 
 clearPlotbands = function(chart,id,color) {
 
