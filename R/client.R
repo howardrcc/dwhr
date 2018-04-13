@@ -189,6 +189,10 @@ initGlob <- function() {
 #' 
 #' @export
 getDbHandle <- function(omg) {
+    
+    if (is.null(glob.env$dbCred))
+        return()
+    
     omg %in% names(glob.env$dbCred) || dwhrStop(paste0('No credentials for omg:', omg))
     
     if (is.null(glob.env$dbCred[[omg]]$handle)) {
