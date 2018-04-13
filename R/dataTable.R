@@ -849,6 +849,7 @@ renderDataTableDim <- function(env,dim,input,output) {
     cellClicked = paste0(gdim,'Dim_cell_clicked')
 
     shiny::observeEvent(input[[cellClicked]], {
+
         info <- input[[cellClicked]]
         dd <- env$dims[[dim]]
 
@@ -919,7 +920,7 @@ renderDataTableDim <- function(env,dim,input,output) {
             rows <- m[m[,2] == 0,1]
 
             if (length(rows) == 1) {
-                if (level == maxLevel) {
+                if (env$dtPrev[[dim]]$tab[rows,1] != '+') {
                     # op lege kolom geklikt trigger een refresh
                     dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
                     printDebug(env = env, dim, eventIn = 'dataTableCellsSelected', eventOut = 'dimRefresh', info = 'empty column')
@@ -1183,7 +1184,8 @@ processDataTable <- function(env,dim,pres){
         identical(env$dtPrev[[dim]]$meas,prep$meas) &&
         !prep$hasFormatting &&
         !isNull(dd$serverSideTable,FALSE) &&
-        !prep$print
+        !prep$print &&
+        FALSE    # updates voorlopig uitgezet 
         ) {
 
         printDebug(env = env, dim, eventIn = 'DatatableUpdate')

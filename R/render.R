@@ -276,8 +276,7 @@ renderDims <- function(env,input,output) {
                     outputDim <- paste0(gdim,'Dim')
                     outputChart <- paste0(gdim,'DimChart')
 
-
-                    if (is.null(height)) { height <- '300'}
+                    if (is.null(height) || length(height) == 0) { height <- '300px'}
 
                     if (presType %in% c('radioButton','selectInput')) {
 
@@ -292,7 +291,7 @@ renderDims <- function(env,input,output) {
                     switch(
                         presType,
                         dataTable = DT::dataTableOutput(outputDim),
-                        highCharts = highcharter::highchartOutput(outputChart,height = height),
+                        highCharts = highcharter::highchartOutput(outputChart, height = height),
                         radioButton = shiny::radioButtons(
                             inputId = outputSimple,
                             choices = choices,
