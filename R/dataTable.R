@@ -450,9 +450,11 @@ prepDt <- function(env,dim,pres,print = NULL) {
     textColumns <- meas$viewColumn[meas$category == 'text' & (meas$print | !print) & meas$visible]
         
     if (length(textColumns) > 0) {
-        tab[[textColumns]] <- as.character(tab[[textColumns]])
+        for (tc in textColumns) {
+            tab[[tc]] <- as.character(tab[[tc]])
+        }
     }
-
+    
     measColNames <- c()
     measViewColNames <- c()
 
