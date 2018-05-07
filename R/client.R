@@ -136,26 +136,6 @@ initGlob <- function() {
         
         glob.env$securityModel %in% c('none','proxy') || dwhrStop('Invalid securityModel')
         
-        # set hostname for linked dashboards
-        
-        linkTarget <- 'http://umcbiadashp01:3838'
-        
-        if (!shiny::serverInfo()[[1]]) {
-            if (Sys.info()[['sysname']] == 'Linux') {
-                linkTarget <- 'http://127.0.0.1:3838'    
-            } else {
-                linkTarget <- 'http://umcbiadasht01:3838'    
-            }
-            
-        } else {
-            
-            if (glob.env[['omgeving']] == 'ACC') {
-                linkTarget <- 'http://umcbiadasht01:3838'    
-            }
-        }
-        
-        glob.env$linkTarget <- linkTarget
-        
         # account data
         
         credFile <- paste0(getwd(),'/data/dbCred.rds')
