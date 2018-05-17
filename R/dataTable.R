@@ -43,7 +43,6 @@ initCompleteJS <- function(env,dim, row = NULL, pageLength) {
     txt <- paste0("function(settings, json) {
     var api = this.api(); api.page(",page,").draw('page');
     var number = Math.random();
-    $.unblockUI();
     var id = this[0].id
     Shiny.onInputChange('",gdim,"_dt_ready',{r: number, id: id} );
     }")

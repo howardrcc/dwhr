@@ -284,8 +284,8 @@ shinyjs.redraw = function(params) {
 };
 
 
-shinyjs.blockUI = function() {
-    $.blockUI({ message: null, overlayCSS: { backgroundColor: "#ffffff", opacity:0 }, timeout:1000});
+shinyjs.blockUI = function(params) {
+    $("#app-content").block({ message: null, overlayCSS: { backgroundColor: "#ffffff", opacity:0 }, timeout:params.timeout});
     $('.tooltip').tooltip('destroy');
 };
 

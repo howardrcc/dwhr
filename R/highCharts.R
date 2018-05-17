@@ -118,7 +118,6 @@ fixCreditsJS <- function() {
 readyJS <- function(dim) {
     highcharter::JS(paste0("function(){
     var number = Math.random();
-    $.unblockUI();
     Shiny.onInputChange('",dim,"HighchartReady',{r: number});
     }"))
 }
