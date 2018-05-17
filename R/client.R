@@ -128,6 +128,8 @@ initGlob <- function() {
         isDefinedGlobal('debugDims',NULL)
         isDefinedGlobal('debugDumpReactive',FALSE)
         isDefinedGlobal('debounceTimeout',1000)
+        isDefinedGlobal('debounceBackgroundColor',"#ffffff")
+        isDefinedGlobal('debounceOpacity',0)
         
         glob.env$sessionCount <- 0
         glob.env$dashboardName <- basename(getwd())

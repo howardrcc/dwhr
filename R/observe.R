@@ -189,7 +189,10 @@ startObserversData <- function(env,dim) {
 
                 if (!(identical(ids,dd$selectedIds))) {
                     if (dd$debounce) {
-                        shinyjs::js$blockUI(timeout = glob.env$debounceTimeout)
+                        shinyjs::js$blockUI(
+                            timeout = glob.env$debounceTimeout,
+                            backgroundColor = glob.env$debounceBackgroundColor,
+                            opacity = glob.env$debounceOpacity)
                     } else {
                         dd$debounce <- TRUE
                     }
