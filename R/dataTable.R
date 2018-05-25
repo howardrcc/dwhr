@@ -760,6 +760,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
                      , lengthChange = TRUE
                      , searching = searching
                      , search = list(regex = FALSE, caseInsensitive = TRUE, search = search)
+                     , searchDelay = 800
                      , paging = paging
                      , rowGroup = rowGroup
                      , pagingType = pagingType
@@ -1140,6 +1141,8 @@ renderDataTableDim <- function(env,dim,input,output) {
         txt <- input[[searchEvent]]
         dd$prevSearchTxt <- dd$searchTxt
         dd$searchTxt <- txt
+        
+        printDebug(env = env, dim, eventIn = 'dataTableSearch', info = 'Search Event')
 
         if (txt == '' && dd$prevSearchTxt != txt) { # filter is leeggemaakt
 

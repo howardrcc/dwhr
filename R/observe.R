@@ -57,7 +57,7 @@ startObserversData <- function(env,dim) {
             
             printDebug(env = env, dim, eventIn = 'orderChange')
 
-            dd$searchTxt <- ""
+           # dd$searchTxt <- ""
 
             orderColumn <- dd$orderColumn
             orderViewColumn <- dd$orderViewColumn
