@@ -395,7 +395,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
     
     dd$membersFilteredPrev <- NULL
     if (isNull(dd$serverSideTable,FALSE) && dd$searchTxt != '') {
-        tab <- dd$membersFiltered[grep(paste0(".*",dd$searchTxt,".*"),dd$membersFiltered$member),]
+        tab <- dd$membersFiltered[grep(paste0(".*",dd$searchTxt,".*"),dd$membersFiltered$member,ignore.case = TRUE),]
         if (nrow(tab) > 0) {
             dd$membersFilteredPrev <- dd$membersFiltered
             dd$membersFiltered <- tab
