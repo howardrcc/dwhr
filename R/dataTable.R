@@ -410,8 +410,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
     orderColumnDir <- dd$orderColumnDir
 
     measList <- getMeasList(env,dim)
-    #browser(expr = {dim == 'kpi'})
-
+  
     if ('sort' %in% measList$category) {
         orderable <- FALSE
     } else {
@@ -473,7 +472,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
         }
 
     }
-#browser(expr = {env$id == 's2'})
+    
     tab <- tab[,c('zoom','member','memberKey',measViewColNames)]
     visCols <- c(0,1,which(names(tab) %in% union(formattedColumns,textColumns)) - 1)
 
@@ -614,7 +613,10 @@ prepDt <- function(env,dim,pres,print = NULL) {
 
     }
     
-
+    if (isNull(dd$serverSideTable,FALSE) && dd$searchTxt != '') {
+        search <- ''
+    }
+    
     #
     # what is hidden?
     #
@@ -754,8 +756,6 @@ prepDt <- function(env,dim,pres,print = NULL) {
         }
     }
     
-    #browser(expr = {dim == 'kpi'})
-
     options <- list( dom = dom
                      , lengthChange = TRUE
                      , searching = searching
@@ -1082,6 +1082,10 @@ renderDataTableDim <- function(env,dim,input,output) {
         if (dd$state == 'enabled' && !dd$visible) {
             shinyjs::js$showDim(dim = gdim)
             dd$visible <- TRUE
+        }
+        
+        if (isNull(dd$serverSideTable,FALSE) && dd$prevSearchTxt != '') {
+            shinyjs::js$searchDT(id = input[[readyEvent]]$id, txt = dd$prevSearchTxt)
         }
 
         env$dtUiId[[dim]] <- input[[readyEvent]]$id
