@@ -624,7 +624,6 @@ prepDt <- function(env,dim,pres,print = NULL) {
 
     }
     
-    
     #
     # what is hidden?
     #
@@ -1094,6 +1093,10 @@ renderDataTableDim <- function(env,dim,input,output) {
             dd$visible <- TRUE
         }
         
+        if (isNull(dd$serverSideTable,FALSE) && dd$searchTxt != '') {
+            shinyjs::js$searchDT(id = input[[readyEvent]]$id, txt = dd$searchTxt)
+        }
+        
         env$dtUiId[[dim]] <- input[[readyEvent]]$id
         shinyjs::js$tooltip()
     })
@@ -1147,40 +1150,32 @@ renderDataTableDim <- function(env,dim,input,output) {
 
     shiny::observeEvent(input[[searchEvent]], {
         dd <- env$dims[[dim]]
-
+        
         txt <- input[[searchEvent]]
+        
         dd$prevSearchTxt <- dd$searchTxt
         dd$searchTxt <- txt
         
         printDebug(env = env, dim, eventIn = 'dataTableSearch', info = 'Search Event')
         
-        if (!is.null(dd$membersFilteredPrev)) {
-            dd$membersFiltered <- dd$membersFilteredPrev
+        if (txt == '' && dd$prevSearchTxt != txt) { # filter is leeggemaakt
             
-            dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
-            printDebug(env = env, dim, eventIn = 'dataTableSearch', eventOut = 'dimRefresh', info = 'Search change Serverside')
-            
-        } else {
-            
-            if (txt == '' && dd$prevSearchTxt != txt) { # filter is leeggemaakt
+            if (any(dd$selected$level > 0)) {
                 
-                if (any(dd$selected$level > 0)) {
-                    
-                    dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
-                    printDebug(env = env, dim, eventIn = 'dataTableSearch', eventOut = 'dimRefresh', info = 'Search cleared')
-                    
-                } else {
-                    
-                    dd$currentPage <- 1
-                    
-                    if(exists(paste0(dim,'PageChangeHook'),envir = env$ce)) {
-                        do.call(paste0(dim,'PageChangeHook'),list(env = env),envir = env$ce)
-                    }
+                dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
+                printDebug(env = env, dim, eventIn = 'dataTableSearch', eventOut = 'dimRefresh', info = 'Search cleared')
+                
+            } else {
+                
+                dd$currentPage <- 1
+                
+                if(exists(paste0(dim,'PageChangeHook'),envir = env$ce)) {
+                    do.call(paste0(dim,'PageChangeHook'),list(env = env),envir = env$ce)
                 }
-                
             }
+            
         }
-
+        
         shinyjs::js$tooltip()
 
     })
