@@ -182,6 +182,7 @@ getSelectedItems <- function(env,dim){
     level <- dd$level
     parent <- dd$parent
     member <- dd$membersFiltered$member
+    
     s <- dd$selected
 
     s <- s[(s$level == level & s$parent == parent),]
@@ -392,6 +393,15 @@ prepDt <- function(env,dim,pres,print = NULL) {
 
     dd <- env$dims[[dim]]
     
+    dd$membersFilteredPrev <- NULL
+    if (isNull(dd$serverSideTable,FALSE) && dd$searchTxt != '') {
+        tab <- dd$membersFiltered[grep(paste0(".*",dd$searchTxt,".*"),dd$membersFiltered$member),]
+        if (nrow(tab) > 0) {
+            dd$membersFilteredPrev <- dd$membersFiltered
+            dd$membersFiltered <- tab
+        }
+    }
+    
     print <- isNull(print,isNull(dd$print,FALSE))
     presList <- dd$presList
     opts <- presList[[pres]]$dataTableOpts
@@ -432,6 +442,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
         zoom = '+',
         addFormatting(env,dim,dd$membersFiltered,measures,FALSE),
         stringsAsFactors = FALSE)
+    
     
     #
     # set firstrow & page
@@ -613,9 +624,6 @@ prepDt <- function(env,dim,pres,print = NULL) {
 
     }
     
-    if (isNull(dd$serverSideTable,FALSE) && dd$searchTxt != '') {
-        search <- ''
-    }
     
     #
     # what is hidden?
@@ -784,10 +792,12 @@ prepDt <- function(env,dim,pres,print = NULL) {
         hasFormatting <- FALSE
     }
 
+    
     if (!print && dd$type != 'output' && dd$selectMode != 'none' && dd$level %in% dd$selectableLevels) {
         tab[,2] <- paste0('<span class = "underline-on-hover">',tab[,2],'</span>')
     }
-
+    
+   
     ret <- list(
         tab = tab,
         options = options,
@@ -1084,10 +1094,6 @@ renderDataTableDim <- function(env,dim,input,output) {
             dd$visible <- TRUE
         }
         
-        if (isNull(dd$serverSideTable,FALSE) && dd$prevSearchTxt != '') {
-            shinyjs::js$searchDT(id = input[[readyEvent]]$id, txt = dd$prevSearchTxt)
-        }
-
         env$dtUiId[[dim]] <- input[[readyEvent]]$id
         shinyjs::js$tooltip()
     })
@@ -1147,23 +1153,32 @@ renderDataTableDim <- function(env,dim,input,output) {
         dd$searchTxt <- txt
         
         printDebug(env = env, dim, eventIn = 'dataTableSearch', info = 'Search Event')
-
-        if (txt == '' && dd$prevSearchTxt != txt) { # filter is leeggemaakt
-
-            if (any(dd$selected$level > 0)) {
-
-                dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
-                printDebug(env = env, dim, eventIn = 'dataTableSearch', eventOut = 'dimRefresh', info = 'Search cleared')
-
-            } else {
-
-                dd$currentPage <- 1
-
-                if(exists(paste0(dim,'PageChangeHook'),envir = env$ce)) {
-                    do.call(paste0(dim,'PageChangeHook'),list(env = env),envir = env$ce)
+        
+        if (!is.null(dd$membersFilteredPrev)) {
+            dd$membersFiltered <- dd$membersFilteredPrev
+            
+            dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
+            printDebug(env = env, dim, eventIn = 'dataTableSearch', eventOut = 'dimRefresh', info = 'Search change Serverside')
+            
+        } else {
+            
+            if (txt == '' && dd$prevSearchTxt != txt) { # filter is leeggemaakt
+                
+                if (any(dd$selected$level > 0)) {
+                    
+                    dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
+                    printDebug(env = env, dim, eventIn = 'dataTableSearch', eventOut = 'dimRefresh', info = 'Search cleared')
+                    
+                } else {
+                    
+                    dd$currentPage <- 1
+                    
+                    if(exists(paste0(dim,'PageChangeHook'),envir = env$ce)) {
+                        do.call(paste0(dim,'PageChangeHook'),list(env = env),envir = env$ce)
+                    }
                 }
+                
             }
-
         }
 
         shinyjs::js$tooltip()

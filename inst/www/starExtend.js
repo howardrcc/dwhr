@@ -324,14 +324,6 @@ shinyjs.showDim = function(params) {
     $(container).fadeTo(500,1);
 };
 
-
-shinyjs.searchDT = function(params) {
-
-    var datatable = $('#' + params.id).dataTable().api();
-    debugger;
-    datatable.search(params.txt).draw();
-}
-
 shinyjs.updateDT = function(params) {
 
     var datatable = $('#' + params.id).dataTable().api();
