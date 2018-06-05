@@ -172,16 +172,31 @@ initGlob <- function() {
         }
         
      
-        glob.env$adUser <- as.data.table(read.csv(  
-            file = paste0(getwd(),"/../data/userInfo/ds_ad_user.txt"),
-            header = FALSE,
-            sep = ";",
-            encoding = 'UTF-8',
-            col.names = 
-                c("usr",
-                  "functie",
-                  "naam"), 
-            stringsAsFactors = FALSE))
+        adUserFile <- paste0(getwd(),"/../data/userInfo/ds_ad_user.txt")
+        
+        if (file.exists(adUserFile)) {
+            
+            glob.env$adUser <- as.data.table(read.csv(  
+                file = paste0(getwd(),"/../data/userInfo/ds_ad_user.txt"),
+                header = FALSE,
+                sep = ";",
+                encoding = 'UTF-8',
+                col.names = 
+                    c("usr",
+                      "functie",
+                      "naam"), 
+                stringsAsFactors = FALSE))
+        } else {
+            warning('ad-user file not found')
+            
+            glob.env$adUser <- data.table(
+                usr = character(0),
+                functie = character(0),
+                naam = character(0),
+                stringsAsFactors = FALSE
+            )
+            
+        }
         
     }
     
