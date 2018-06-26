@@ -107,7 +107,7 @@ new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = 
 #' Deze functie koppelt dimensie-data aan de feiten-tabel gegeven een sterschema-object \code{env}. Een dimView-object
 #' wordt toegevoegd aan de \code{env$dims} list. Een dimView is een combinatie van een dimensie-kolom (dimView-member) met geaggregeerde 
 #' meetwaarden uit de feiten-tabel. Het dimView object kan meerdere nivo's hebben. Het maximum aantal nivo's is op dit moment
-#' 2. Na het toevoegen van een dimView-object aan het sterschema kunnen er meetwaarden (via \code{\link{addMeasure}}) en 
+#' 5. Na het toevoegen van een dimView-object aan het sterschema kunnen er meetwaarden (via \code{\link{addMeasure}}) en 
 #' afgeleide meetwaarden (via \code{\link{addMeasureDerrived}}) toegevoegd worden.
 #'
 #' @param env sterschema-object, gemaakt met \code{\link{new.star}}
@@ -789,10 +789,11 @@ addMeasure <- function(env, dim, factColumn, fun, as = factColumn, viewColumn = 
         ml <- dd$measList
 
         assert_is_character(factColumn)
-        factColumn %in% names(env$facts) || stop('Invalid factColumn')
-        for (c in factColumn)
+        for (c in factColumn) {
+            c %in% names(env$facts) || stop(paste0(c, ' is not a valid factColumn'))
             if(!is.numeric(env$facts[[c]]))
-                stop('factColumn is not numeric')
+                stop(paste0('factColumn ', c, ' is not numeric'))
+        }
 
         if (dd$leafOnly) {
             levels <- max(dd$useLevels)
