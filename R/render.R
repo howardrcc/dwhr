@@ -38,6 +38,10 @@ renderDims <- function(env,input,output) {
                     renderHighchartDim(env,dim,input,output)
                 }
                 
+                if('dateRangeInput' %in% presTypes) {
+                    renderDateRangeDim(env,dim,input,output)
+                }
+                
                 # dimension preslist
                 
                 outputName = paste0(gdim,'DimPresList')
@@ -275,6 +279,7 @@ renderDims <- function(env,input,output) {
                     outputSimple <- paste0(gdim,'DimSimple')
                     outputDim <- paste0(gdim,'Dim')
                     outputChart <- paste0(gdim,'DimChart')
+                    outputDateRange <- paste0(gdim,'DimDateRange')
 
                     if (is.null(height) || length(height) == 0) { height <- '300px'}
 
@@ -286,6 +291,14 @@ renderDims <- function(env,input,output) {
                         selected <- dd$selected$label
                         inline <- presList[[dd$pres]]$simpleOpts$inline
 
+                    }
+                    
+                    if (presType == 'dateRangeInput') {
+                        
+                        startDate <- presList[[dd$pres]]$dateRangeOpts$start
+                        endDate <- presList[[dd$pres]]$dateRangeOpts$end
+                        minDate <- presList[[dd$pres]]$dateRangeOpts$min
+                        maxDate <- presList[[dd$pres]]$dateRangeOpts$max
                     }
 
                     switch(
@@ -303,7 +316,16 @@ renderDims <- function(env,input,output) {
                             choices = choices,
                             label = dd$name,
                             selected = selected,
-                            selectize = FALSE))
+                            selectize = FALSE),
+                        dateRangeInput = shiny::dateRangeInput(
+                            inputId = outputDateRange,
+                            label = dd$name,
+                            min = minDate,
+                            max = maxDate,
+                            start = startDate,
+                            end = endDate,
+                            language = 'nl'
+                        ))
                 })
 
                 # dimension Footer

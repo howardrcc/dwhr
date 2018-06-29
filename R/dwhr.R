@@ -1292,7 +1292,7 @@ addRowGroupColumn <- function(env, dim, rowGroupColumn, levels = NULL) {
 #'@export
 #'
 addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault = FALSE, height = NULL, width = NULL,
-    useLevels = NULL, navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL, checkUiId = TRUE) {
+    useLevels = NULL, navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL, dateRangeOpts = NULL, checkUiId = TRUE) {
 
     withCallingHandlers({
 
@@ -1315,6 +1315,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
         assert_is_list(isNull(simpleOpts,list()))
         assert_is_list(isNull(dataTableOpts,list()))
         assert_is_list(isNull(highChartsOpts,list()))
+        assert_is_list(isNull(dateRangeOpts,list()))
 
         dd <- env$dims[[dim]]
         class(dd) == 'dimView' || stop('dim is not of class dimView')
@@ -1348,7 +1349,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
 
         navOpts$syncNav || dim != uiId || stop('syncNav not valid for dim == uiId')
 
-        if (is.null(simpleOpts)  + is.null(dataTableOpts) + is.null(highChartsOpts) != 2) {
+        if (is.null(simpleOpts)  + is.null(dataTableOpts) + is.null(highChartsOpts) + is.null(dateRangeOpts) != 3) {
             stop('Invalid options')
         }
 
@@ -1477,6 +1478,32 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 dataTableOpts$serverSideTable <- dd$serverSideTable
             }
         }
+        
+        # dateRangeOpts checks
+        
+        if (!is.null(dateRangeOpts)) {
+            assert_is_subset(names(dateRangeOpts),domains[['dateRangeOpts']])
+            
+            dates <- as.character(unique(dd$data[[paste0('level',dd$maxLevel,'Label')]]))
+            
+            assert_is_character(dates)
+            assert_all_are_date_strings(dates,format = '%Y%m%d')
+            
+            for (nm in c('start', 'end', 'min', 'max')) {
+                
+                if (nm %in% names(dateRangeOpts)) {
+                    assert_is_a_string(dateRangeOpts[[nm]])
+                    assert_all_are_date_strings(dateRangeOpts[[nm]],format = '%Y%m%d')
+                } else {
+                    dateRangeOpts[[nm]] <-
+                        switch(nm,
+                           start = as.character(Sys.Date(),format = "%Y%m%d"),
+                           end = as.character(Sys.Date(),format = "%Y%m%d"),
+                           min = '20000101',
+                           max = '20301212')
+                }
+            }
+        }
 
     },
     error = function(c) {
@@ -1571,7 +1598,8 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
         navOpts = navOpts,
         simpleOpts = simpleOpts,
         dataTableOpts = dataTableOpts,
-        highChartsOpts = highChartsOpts)
+        highChartsOpts = highChartsOpts,
+        dateRangeOpts = dateRangeOpts)
 
     if (isDefault || length(pl) == 1) {
         dd$defPres <- newKey

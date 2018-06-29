@@ -95,6 +95,6 @@ gewijzigd sterschema-object.
 Deze functie koppelt dimensie-data aan de feiten-tabel gegeven een sterschema-object \code{env}. Een dimView-object
 wordt toegevoegd aan de \code{env$dims} list. Een dimView is een combinatie van een dimensie-kolom (dimView-member) met geaggregeerde 
 meetwaarden uit de feiten-tabel. Het dimView object kan meerdere nivo's hebben. Het maximum aantal nivo's is op dit moment
-2. Na het toevoegen van een dimView-object aan het sterschema kunnen er meetwaarden (via \code{\link{addMeasure}}) en 
+5. Na het toevoegen van een dimView-object aan het sterschema kunnen er meetwaarden (via \code{\link{addMeasure}}) en 
 afgeleide meetwaarden (via \code{\link{addMeasureDerrived}}) toegevoegd worden.
 }

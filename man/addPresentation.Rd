@@ -7,7 +7,7 @@
 addPresentation(env, dim, uiId = dim, type, as, name = "",
   isDefault = FALSE, height = NULL, width = NULL, useLevels = NULL,
   navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL,
-  highChartsOpts = NULL, checkUiId = TRUE)
+  highChartsOpts = NULL, dateRangeOpts = NULL, checkUiId = TRUE)
 }
 \arguments{
 \item{env}{sterschema object, gecreeerd met \code{\link{new.star}}.}
