@@ -23,7 +23,8 @@ facts <- data.frame(
     num1 = runif(10000,100,200))
 
 function(input, output, session) {
-
+    source('columnChart.R', local = TRUE)
+    
     authenticate(session)    # heeft user toegang?
 
     s1 <- new.star(starId = 's1',
@@ -34,10 +35,10 @@ function(input, output, session) {
             dim = 'per',
             name = 'Periode',                       # getoonde titel van dimensie
             data = per,                             # dimensie data.frame
-            levelNames = c('Alle perioden', 'Jaar', 'Maand','Dag'),  # getoonde namen van nivo's
             initLevel = 2,
-            initParent = '2017',
-            useLevels = c(0,1,2,3)) %>%
+            keepUnused = TRUE,
+            levelNames = c('Alle perioden','Jaar','maand','Dag'),
+            useLevel = c(0,3)) %>%
         addMeasure(
             dim = 'per',
             factColumn = c('num1','num1','num1'),      # referentie naar fact-column
@@ -45,14 +46,51 @@ function(input, output, session) {
             fun = c('sum','dcount','median'),          # toe te passen aggregatie-functie
             as = c('som','distinct','mediaan'),        # te tonen kolomnaam voor de measure
             format = c('decimal2','decimal2','euro2'), # te tonen format van de measure
-            levels = c(0,2,3)
-            ) %>%
+            levels = c(0,1,2,3)
+            ) 
+    
+    columnChartOpts$series <- list(
+        list(
+            viewColumn = 'abc',
+            type = 'column',                           # columnChart
+            visible = TRUE,
+            dataLabels = list(enabled = TRUE),
+            colorByPoint = TRUE,                       # nodig bij gebruik van colors optie
+            colors = 'YlOrRd',                         # colorBrewer sequentieel palette (zie http://colorbrewer2.org)
+            pointPadding = 0), 
+        list(
+            viewColumn = 'xyz',
+            type = 'column',
+            visible = TRUE,
+            dataLabels = list(enabled = TRUE),
+            color = '#41b6c4',
+            pattern = 'stripe1',                      # stripe pattern
+            pointPadding = 0),
+        list(
+            viewColumn = 'pqr',
+            type = 'column',
+            visible = FALSE,
+            dataLabels = list(enabled = TRUE),
+            color = 'red',
+            pointPadding = 0.1))
+    
+    s1 <- s1 %>%  
         addPresentation(
             dim = 'per' ,
+            type = 'highCharts',                        # presentatie-vorm is een chart
+            as = 'chart1',                             # te tonen label als er meer presentaties zijn
+            isDefault = TRUE,
+            height = 250,
+            highChartsOpts = columnChartOpts) %>%
+        addPresentation(
+            dim = 'per' ,
+            uiId = 'per2',
             type = 'dateRangeInput',                     # presentatie-vorm is een dataRangeInput
             as = 'dateRange1',                          # te tonen label als er meer presentaties zijn
             isDefault = TRUE,
-            dateRangeOpts = list())
+            useLevels = c(3),
+            navOpts = list(syncNav = FALSE),
+            dateRangeOpts = list(start = '2016-01-01'))
             
     
      s1 <- s1 %>% addDimView(
@@ -71,7 +109,7 @@ function(input, output, session) {
              fun = c('sum','dcount','median'),          # toe te passen aggregatie-functie
              as = c('som','distinct','mediaan'),        # te tonen kolomnaam voor de measure
              format = c('decimal2','decimal2','euro2'), # te tonen format van de measure
-             levels = c(0,2)
+             levels = c(0,1,2)
          ) %>%
          addPresentation(
              dim = 'leeft' ,

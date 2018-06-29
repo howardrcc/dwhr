@@ -511,6 +511,23 @@ startObserversPres <- function(env,dim,pres) {
             if (presType %in% c('radioButton','selectInput')) {
                  dd$reactive$presChange <- dd$reactive$presChange + 1
             }
+            if (presType %in% c('dateRangeInput')) {
+                
+                minDate <- min(dd$membersFiltered$member)
+                
+                if (minDate > min(dd$selected$label))
+                    minDate <- min(dd$selected$label)
+                
+                maxDate <- max(dd$membersFiltered$member)
+                
+                if (maxDate > max(dd$selected$label))
+                    maxDate <- max(dd$selected$label)
+                
+                dd$presList[[dd$pres]]$dateRangeOpts$min <- minDate
+                dd$presList[[dd$pres]]$dateRangeOpts$max <- maxDate
+                
+                dd$reactive$presChange <- dd$reactive$presChange + 1
+            }
         })
 
         obs <- c(obs,'dimRefresh')

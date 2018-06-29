@@ -294,11 +294,11 @@ renderDims <- function(env,input,output) {
                     }
                     
                     if (presType == 'dateRangeInput') {
-                        
-                        startDate <- presList[[dd$pres]]$dateRangeOpts$start
-                        endDate <- presList[[dd$pres]]$dateRangeOpts$end
+                        startDate <- min(dd$selected$label)
+                        endDate <- max(dd$selected$label)
                         minDate <- presList[[dd$pres]]$dateRangeOpts$min
                         maxDate <- presList[[dd$pres]]$dateRangeOpts$max
+
                     }
 
                     switch(
@@ -319,7 +319,7 @@ renderDims <- function(env,input,output) {
                             selectize = FALSE),
                         dateRangeInput = shiny::dateRangeInput(
                             inputId = outputDateRange,
-                            label = dd$name,
+                            label = '',
                             min = minDate,
                             max = maxDate,
                             start = startDate,

@@ -4,20 +4,27 @@ renderDateRangeDim <- function(env,dim,input,output)  {
     outputDateRange <- paste0(gdim,'DimDateRange')
     
     observeEvent(input[[outputDateRange]],{
+        
         sel <- input[[outputDateRange]]
-        browser()
-        root <- env$dims[[dim]]$rootLabel
+        dd <- env$dims[[dim]]
         
-       
-        s <- data.frame(level = 1, parent = root, label = sel, stringsAsFactors = FALSE)
-        
-        
-        
-        if(!identical(s,env$dims[[dim]]$selected)) {
-            env$dims[[dim]]$selected <- s
-            env$dims[[dim]]$reactive$selectChange <- env$dims[[dim]]$reactive$selectChange + 1
+        s <- makeDateRangeSelection(env,dim,sel[1],sel[2])
+          
+        if(!identical(s,dd$selected)) {
+            dd$selected <- s
+            dd$reactive$selectChange <- dd$reactive$selectChange + 1
         }
         
     })
+}
+
+makeDateRangeSelection <- function(env,dim,from,to) {
     
+    dd <- env$dims[[dim]]
+    root <- dd$rootLabel
+    
+    dt <- dd$data[['level1Label']]
+    dt <- dt[dt >= from & dt <= to]
+    data.frame(level = 1, parent = root, label = dt, stringsAsFactors = FALSE)
+
 }

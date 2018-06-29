@@ -57,7 +57,7 @@ domains <- list(
     ordering = c('HL','LH','asc','desc'),
     presType = c('dataTable','highCharts','radioButton','selectInput','dateRangeInput'),
     selectMode = c('single','multi','none'),
-    dateRangeOpts = c('start','end','min','max'),
+    dateRangeOpts = c('start','end'),
     dataTableOpts =  c('measures', 'pageLength', 'pageLengthList','serverSideTable'),
     dataTableMeasures = c('colorBarColor1','colorBarColor2','viewColumn','format', 'orderable',
                           'bgStyle','fgStyle','width','fontWeight','align','cursor','visible','print','tooltip'),

@@ -1478,33 +1478,6 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 dataTableOpts$serverSideTable <- dd$serverSideTable
             }
         }
-        
-        # dateRangeOpts checks
-        
-        if (!is.null(dateRangeOpts)) {
-            assert_is_subset(names(dateRangeOpts),domains[['dateRangeOpts']])
-            
-            dates <- as.character(unique(dd$data[[paste0('level',dd$maxLevel,'Label')]]))
-            
-            assert_is_character(dates)
-            assert_all_are_date_strings(dates,format = '%Y%m%d')
-            
-            for (nm in c('start', 'end', 'min', 'max')) {
-                
-                if (nm %in% names(dateRangeOpts)) {
-                    assert_is_a_string(dateRangeOpts[[nm]])
-                    assert_all_are_date_strings(dateRangeOpts[[nm]],format = '%Y%m%d')
-                } else {
-                    dateRangeOpts[[nm]] <-
-                        switch(nm,
-                           start = as.character(Sys.Date(),format = "%Y%m%d"),
-                           end = as.character(Sys.Date(),format = "%Y%m%d"),
-                           min = '20000101',
-                           max = '20301212')
-                }
-            }
-        }
-
     },
     error = function(c) {
         dwhrStop(conditionMessage(c))
@@ -1571,7 +1544,58 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
         dd <- env$dims[[dim]]
 
     }
-
+    
+    withCallingHandlers({
+        
+        # dateRangeOpts checks
+        
+        if (!is.null(dateRangeOpts)) {
+            browser()
+            dd$maxLevel == 1 || stop('dim has too many levels for dateRange presentation')
+            assert_is_subset(names(dateRangeOpts),domains[['dateRangeOpts']])
+            
+            dates <- unique(dd$data[['level1Label']])
+            
+            assert_is_character(dates)
+            assert_all_are_date_strings(dates,format = '%Y-%m-%d')
+            
+            minDate <- min(dd$data[['level1Label']])
+            maxDate <- max(dd$data[['level1Label']])
+            
+            for (nm in c('start', 'end', 'min', 'max')) {
+                
+                if (nm %in% names(dateRangeOpts)) {
+                    assert_is_a_string(dateRangeOpts[[nm]])
+                    assert_all_are_date_strings(dateRangeOpts[[nm]],format = '%Y-%m-%d')
+                } else {
+                    dateRangeOpts[[nm]] <-
+                        switch(nm,
+                               start = minDate,
+                               end = maxDate,
+                               min = minDate,
+                               max = maxDate)
+                }
+            }
+            
+            if (dateRangeOpts[['start']] < minDate)
+                dateRangeOpts[['start']] <- minDate
+            
+            if (dateRangeOpts[['end']] > maxDate)
+                dateRangeOpts[['end']] <- maxDate
+            
+            dd$initLevel <- 1
+            dd$selected <- makeDateRangeSelection(env,dim,dateRangeOpts[['start']],dateRangeOpts[['end']])
+            
+            navOpts$hideBreadCrumb <- TRUE
+            navOpts$hideNoFilter <- TRUE
+            
+        }
+        
+    },
+    error = function(c) {
+        dwhrStop(conditionMessage(c))
+    })
+    
 
     pl <- dd$presList
     as %in% sapply(pl,function(x) x$as) && dwhrStop('Prestentation already exists')
