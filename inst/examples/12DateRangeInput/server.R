@@ -6,7 +6,7 @@ library(dwhr)
 
 per <- readRDS(
     file = paste0(getwd(),"/data/dates.rds"))
-    
+  
 leeft <- read.csv(
     file = paste0(getwd(),"/data/ds_d_leeftijd.txt"),
     header = FALSE,
@@ -38,7 +38,7 @@ function(input, output, session) {
             initLevel = 2,
             keepUnused = TRUE,
             levelNames = c('Alle perioden','Jaar','maand','Dag'),
-            useLevel = c(0,3)) %>%
+            useLevel = c(0,1,2,3)) %>%
         addMeasure(
             dim = 'per',
             factColumn = c('num1','num1','num1'),      # referentie naar fact-column

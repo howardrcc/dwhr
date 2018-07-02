@@ -225,22 +225,23 @@ startObserversData <- function(env,dim) {
                         else
                             dms <- dd$childDims
 
-                        orgLevel <- dd$useLevels[dd$selected$level + 1]
-                        sel <- dd$selected
+                        #orgLevel <- dd$useLevels[dd$selected$level + 1]
+                        #selIds <- dd$selectedIds
+                        
 
                         for (d in dms) {
 
-                            dLevel <- which(env$dims[[d]]$useLevels == orgLevel) - 1
+                            #dLevel <- which(env$dims[[d]]$useLevels == orgLevel) - 1
 
-                            if (length(dLevel) == 1) {
-                                sel$level <- dLevel
-                                pc <- env$dims[[d]]$pc
-                                sel$parent <- pc$parentLabel[pc$level == dLevel & pc$label == sel$label]
-                            } else {
-                                sel <- env$dims[[d]]$rootSelected
-                            }
+                            # if (length(dLevel) == 1) {
+                            #     sel$level <- dLevel
+                            #     pc <- env$dims[[d]]$pc
+                            #     sel$parent <- pc$parentLabel[pc$level == dLevel & pc$label == sel$label]
+                            # } else {
+                            #     sel <- env$dims[[d]]$rootSelected
+                            # }
 
-                            setSelection(env,d,sel, source = 'observeEvent')
+                            setSelection2(env,d,dd$selected,dd$selectedIds, source = 'observeEvent')
 
                         }
                     }

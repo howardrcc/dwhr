@@ -1478,6 +1478,14 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 dataTableOpts$serverSideTable <- dd$serverSideTable
             }
         }
+        
+        # highChartsOpts checks
+        
+        if (!is.null(highChartsOpts)) {
+            
+            (dd$selectMode %in% c('none','single')) || (uiId != dim) | stop('HighCharts presentation not available for multi-select')
+            
+        }
     },
     error = function(c) {
         dwhrStop(conditionMessage(c))
@@ -1500,7 +1508,17 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
             call$ignoreDims <- c(eval(call$ignoreDims),dim,dd$childDims)
             call$name <- name
             call$env <- env
+            
+            if (!is.null(highChartsOpts) && dd$selectMode %in% c('multi')) {
+                warning('multi-select not implemented for highCharts: dimView set to single-select')
+                call$selectMode <- 'single' 
+            }
 
+            if (!is.null(dateRangeOpts) && dd$selectMode %in% c('none','single')) {
+                warning('single-select not available for dateRange: dimView set to multi-select')
+                call$selectMode <- 'multi' 
+            }
+            
             if (length(useLevels) != 0) {
                 navOpts$syncNav && dwhrStop('useLevels not valid when syncNav == T')
                 call$useLevels <- useLevels
@@ -1550,7 +1568,6 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
         # dateRangeOpts checks
         
         if (!is.null(dateRangeOpts)) {
-            browser()
             dd$maxLevel == 1 || stop('dim has too many levels for dateRange presentation')
             assert_is_subset(names(dateRangeOpts),domains[['dateRangeOpts']])
             
@@ -1779,6 +1796,43 @@ setSelection <- function(env,dim,sel,single = TRUE,source = 'setSelection',dimRe
         }
     }
 
+}
+
+setSelection2 <- function(env,dim,sel,selIds,source = 'setSelection',dimRefresh = TRUE) {
+    
+    dd <- env$dims[[dim]]
+    
+    if (!identical(dd$selectedIds, selIds)) {
+        dd$debounce <- FALSE
+        
+        if (any(sel$level == 0)) {
+            
+        } else {
+            
+            for (lvl in 1:dd$maxLevel) {
+                
+                colsX <- c(paste0('level',lvl - 1,'Label'),paste0('level',lvl,'Label'))
+                colsY <- c('parent','label')
+                
+                ids <- union(ids,merge(data,s[s$level == lvl,],by.x = colsX, by.y = colsY)[[keyColumn]])
+                
+                
+            }
+            
+        }
+        
+        browser()
+        dd$selected <- sel
+        dd$selectSource <- source
+        dd$rowLastAccessed$value[dd$rowLastAccessed$level == sel$level] <- sel$label
+        dd$reactive$selectChange <- dd$reactive$selectChange + 1
+        printDebug(env = env, dim, eventIn = 'setSelection', eventOut = 'selectChange', info = paste0('selected: (',sel$level,',',sel$label,')'))
+        if (dimRefresh) {
+            dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
+            printDebug(env = env, dim, eventIn = 'setSelection', eventOut = 'dimRefresh')
+        }
+    }
+    
 }
 
 #'

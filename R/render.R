@@ -294,11 +294,17 @@ renderDims <- function(env,input,output) {
                     }
                     
                     if (presType == 'dateRangeInput') {
-                        startDate <- min(dd$selected$label)
-                        endDate <- max(dd$selected$label)
+                       
                         minDate <- presList[[dd$pres]]$dateRangeOpts$min
                         maxDate <- presList[[dd$pres]]$dateRangeOpts$max
-
+                        
+                        if (any(dd$selected$level == 0)) {
+                            startDate <- minDate
+                            endDate <- maxDate
+                        } else {
+                            startDate <- min(dd$selected$label)
+                            endDate <- max(dd$selected$label)
+                        }
                     }
 
                     switch(
