@@ -1482,8 +1482,8 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
         # highChartsOpts checks
         
         if (!is.null(highChartsOpts)) {
-            
-            (dd$selectMode %in% c('none','single')) || (uiId != dim) | stop('HighCharts presentation not available for multi-select')
+
+            (dd$selectMode %in% c('none','single')) || (uiId != dim) || stop('HighCharts presentation not available for multi-select')
             
         }
     },
@@ -1805,28 +1805,59 @@ setSelection2 <- function(env,dim,sel,selIds,source = 'setSelection',dimRefresh 
     if (!identical(dd$selectedIds, selIds)) {
         dd$debounce <- FALSE
         
-        if (any(sel$level == 0)) {
-            
+       newSel <- NULL
+        
+        if (any(sel$level == 0) || length(selIds) == nrow(dd$data)) {
+            newSel <- dd$rootSelected    
         } else {
+            
+            dt <- data.table(dd$data)
+            keyCol <- dd$keyColumn
             
             for (lvl in 1:dd$maxLevel) {
                 
-                colsX <- c(paste0('level',lvl - 1,'Label'),paste0('level',lvl,'Label'))
-                colsY <- c('parent','label')
+                cols <- c(paste0('level',lvl - 1,'Label'),paste0('level',lvl,'Label'))
+                zz <- dt[dt[[keyCol]] %in% selIds,list(aantal = eval(parse(text = paste0('length(',keyCol,')')))),by = cols]
+                names(zz) <- c('parent','label','aantal')
                 
-                ids <- union(ids,merge(data,s[s$level == lvl,],by.x = colsX, by.y = colsY)[[keyColumn]])
-                
-                
+                newSel <- rbind(
+                    newSel,
+                    data.frame(
+                        level = lvl,
+                        parent = zz$parent,
+                        label = zz$label,
+                        stringsAsFactors = FALSE))
             }
             
         }
+       
+        maxLvl <- max(newSel$level)
+        minLvl <- min(newSel$level)
         
-        browser()
-        dd$selected <- sel
+        if (dd$selectMode == 'single') {
+            
+            while (nrow(newSel[newSel$level == maxLvl,]) > 1 && maxLvl > 0) {
+                maxLvl <- maxLvl - 1
+            } 
+            
+            if (maxLvl == 0)
+                newSel <- dd$rootSelected
+            else
+                newSel <- newSel[newSel$level == maxLvl,]
+                
+            dd$rowLastAccessed$value[dd$rowLastAccessed$level == maxLvl] <- newSel$label
+            
+        } else {
+            
+            dd$rowLastAccessed$value[dd$rowLastAccessed$level == minLvl] <- newSel$label[newSel$level == minLvl][1]            
+            
+        }
+        
+        dd$selected <- newSel
         dd$selectSource <- source
-        dd$rowLastAccessed$value[dd$rowLastAccessed$level == sel$level] <- sel$label
+
         dd$reactive$selectChange <- dd$reactive$selectChange + 1
-        printDebug(env = env, dim, eventIn = 'setSelection', eventOut = 'selectChange', info = paste0('selected: (',sel$level,',',sel$label,')'))
+        printDebug(env = env, dim, eventIn = 'setSelection', eventOut = 'selectChange')
         if (dimRefresh) {
             dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
             printDebug(env = env, dim, eventIn = 'setSelection', eventOut = 'dimRefresh')

@@ -228,7 +228,6 @@ startObserversData <- function(env,dim) {
                         #orgLevel <- dd$useLevels[dd$selected$level + 1]
                         #selIds <- dd$selectedIds
                         
-
                         for (d in dms) {
 
                             #dLevel <- which(env$dims[[d]]$useLevels == orgLevel) - 1
@@ -514,18 +513,18 @@ startObserversPres <- function(env,dim,pres) {
             }
             if (presType %in% c('dateRangeInput')) {
                 
-                minDate <- min(dd$membersFiltered$member)
-                
-                if (minDate > min(dd$selected$label))
-                    minDate <- min(dd$selected$label)
-                
-                maxDate <- max(dd$membersFiltered$member)
-                
-                if (maxDate > max(dd$selected$label))
-                    maxDate <- max(dd$selected$label)
-                
-                dd$presList[[dd$pres]]$dateRangeOpts$min <- minDate
-                dd$presList[[dd$pres]]$dateRangeOpts$max <- maxDate
+                # # minDate <- min(dd$membersFiltered$member)
+                # # 
+                # # if (minDate > min(dd$selected$label))
+                # #     minDate <- min(dd$selected$label)
+                # # 
+                # # maxDate <- max(dd$membersFiltered$member)
+                # # 
+                # # if (maxDate > max(dd$selected$label))
+                # #     maxDate <- max(dd$selected$label)
+                # # 
+                # dd$presList[[dd$pres]]$dateRangeOpts$min <- minDate
+                # dd$presList[[dd$pres]]$dateRangeOpts$max <- maxDate
                 
                 dd$reactive$presChange <- dd$reactive$presChange + 1
             }

@@ -12,6 +12,7 @@ renderDateRangeDim <- function(env,dim,input,output)  {
           
         if(!identical(s,dd$selected)) {
             dd$selected <- s
+            dd$selectSource <- 'dateRangeClick'
             dd$reactive$selectChange <- dd$reactive$selectChange + 1
         }
         
