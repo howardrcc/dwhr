@@ -227,7 +227,7 @@ startObserversData <- function(env,dim) {
 
                         #orgLevel <- dd$useLevels[dd$selected$level + 1]
                         #selIds <- dd$selectedIds
-                        
+             
                         for (d in dms) {
 
                             #dLevel <- which(env$dims[[d]]$useLevels == orgLevel) - 1
@@ -239,7 +239,7 @@ startObserversData <- function(env,dim) {
                             # } else {
                             #     sel <- env$dims[[d]]$rootSelected
                             # }
-
+                            
                             setSelection2(env,d,dd$selected,dd$selectedIds, source = 'observeEvent')
 
                         }

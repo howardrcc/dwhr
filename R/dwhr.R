@@ -1801,7 +1801,7 @@ setSelection <- function(env,dim,sel,single = TRUE,source = 'setSelection',dimRe
 setSelection2 <- function(env,dim,sel,selIds,source = 'setSelection',dimRefresh = TRUE) {
     
     dd <- env$dims[[dim]]
-    
+
     if (!identical(dd$selectedIds, selIds)) {
         dd$debounce <- FALSE
         
@@ -1857,6 +1857,7 @@ setSelection2 <- function(env,dim,sel,selIds,source = 'setSelection',dimRefresh 
         dd$selectSource <- source
 
         dd$reactive$selectChange <- dd$reactive$selectChange + 1
+        
         printDebug(env = env, dim, eventIn = 'setSelection', eventOut = 'selectChange')
         if (dimRefresh) {
             dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1

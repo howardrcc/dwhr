@@ -4,6 +4,9 @@ library(dwhr)
 
 # laden data
 
+
+dwhr::setDebug(TRUE)
+
 per <- readRDS(
     file = paste0(getwd(),"/data/dates.rds"))
   
