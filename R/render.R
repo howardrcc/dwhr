@@ -248,7 +248,7 @@ renderDims <- function(env,input,output) {
                         txt <- paste0(txt,'<div style="padding-bottom:4px;">')
                     }
 
-                    if (any(dd$selected$level > 0) && !hideNoFilter) {
+                    if ((any(dd$selected$level > 0) || nrow(dd$data) <= length(dd$selected$label)) && !hideNoFilter) {
 
                         txt <- paste0(txt,'&nbsp<span style="float:right;">',actionLink(inputId = paste0(gdim,'NoFilter'), label = 'Verwijder Filter', style='color:red'),'</span>')
                     }
@@ -297,14 +297,9 @@ renderDims <- function(env,input,output) {
                        
                         minDate <- presList[[dd$pres]]$dateRangeOpts$min
                         maxDate <- presList[[dd$pres]]$dateRangeOpts$max
+                        startDate <- min(dd$selected$label)
+                        endDate <- max(dd$selected$label)
                         
-                        if (any(dd$selected$level == 0)) {
-                            startDate <- minDate
-                            endDate <- maxDate
-                        } else {
-                            startDate <- min(dd$selected$label)
-                            endDate <- max(dd$selected$label)
-                        }
                     }
 
                     switch(
@@ -390,7 +385,7 @@ renderDims <- function(env,input,output) {
                 # init dims
                 
                 if (dim %in% visibleDims(env)) {
-                    
+                 
                     lst <- getMembers(env,dim)
                     
                     if (!is.null(lst)) {

@@ -1601,10 +1601,12 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 dateRangeOpts[['end']] <- maxDate
             
             dd$initLevel <- 1
-            dd$selected <- makeDateRangeSelection(env,dim,dateRangeOpts[['start']],dateRangeOpts[['end']])
             
+            dd$selected <- makeDateRangeSelection(env,dim,dateRangeOpts[['start']],dateRangeOpts[['end']])
+
+            dd$selectedIds <- getSelectedIds(env,dim)
+
             navOpts$hideBreadCrumb <- TRUE
-            navOpts$hideNoFilter <- TRUE
             
         }
         
@@ -1849,6 +1851,7 @@ setSelection2 <- function(env,dim,sel,selIds,source = 'setSelection',dimRefresh 
             
         } else {
             
+            #todo clean up multiselect
             dd$rowLastAccessed$value[dd$rowLastAccessed$level == minLvl] <- newSel$label[newSel$level == minLvl][1]            
             
         }

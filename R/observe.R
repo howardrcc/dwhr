@@ -199,6 +199,11 @@ startObserversData <- function(env,dim) {
 
                     dd$selectedIds <- ids
                     dd$reactive$selectedIdsChange <- dd$reactive$selectedIdsChange + 1
+                    
+                    if (!is.null(dd$parentDim) && dd$selectSource != 'observeEvent') {
+                        # alleen parent zit in reactive path
+                        env$dims[[dd$parentDim]]$reactive$selectedIdsChange <- env$dims[[dd$parentDim]]$reactive$selectedIdsChange + 1
+                    }
 
                     printDebug(env = env, dim = dim,
                                eventIn = 'selectChange',
@@ -217,31 +222,16 @@ startObserversData <- function(env,dim) {
                         par <- dd$parentDim
                         env$proxyDims <- unique(setdiff(c(par,env$proxyDims,env$dims[[par]]$childDims),dim))
                     }
-
+                    
                     if (!is.null(dd$parentDim) || !is.null(dd$childDims)) {
 
                         if (!is.null(dd$parentDim))
-                            dms <- union(dd$parentDim,env$dims[[dd$parentDim]]$childDims)
+                            dms <- union(dd$parentDim,setdiff(env$dims[[dd$parentDim]]$childDims,dim))
                         else
                             dms <- dd$childDims
 
-                        #orgLevel <- dd$useLevels[dd$selected$level + 1]
-                        #selIds <- dd$selectedIds
-             
                         for (d in dms) {
-
-                            #dLevel <- which(env$dims[[d]]$useLevels == orgLevel) - 1
-
-                            # if (length(dLevel) == 1) {
-                            #     sel$level <- dLevel
-                            #     pc <- env$dims[[d]]$pc
-                            #     sel$parent <- pc$parentLabel[pc$level == dLevel & pc$label == sel$label]
-                            # } else {
-                            #     sel <- env$dims[[d]]$rootSelected
-                            # }
-                            
                             setSelection2(env,d,dd$selected,dd$selectedIds, source = 'observeEvent')
-
                         }
                     }
 
@@ -512,6 +502,18 @@ startObserversPres <- function(env,dim,pres) {
                  dd$reactive$presChange <- dd$reactive$presChange + 1
             }
             if (presType %in% c('dateRangeInput')) {
+               
+                if (any(dd$selected$level == 0)) {
+                
+                    dd$selected <- makeDateRangeSelection(
+                        env,
+                        dim,
+                        min(dd$data[['level1Label']]),
+                        max(dd$data[['level1Label']]))
+                    
+                    dd$selectedIds <- getSelectedIds(env,dim)    
+                    
+                } 
                 
                 # # minDate <- min(dd$membersFiltered$member)
                 # # 

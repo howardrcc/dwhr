@@ -38,20 +38,16 @@ function(input, output, session) {
             dim = 'per',
             name = 'Periode',                       # getoonde titel van dimensie
             data = per,                             # dimensie data.frame
-            initLevel = 2,
-            keepUnused = TRUE,
+            initLevel = 3,
             levelNames = c('Alle perioden','Jaar','maand','Dag'),
-            useLevel = c(0,1,2,3)) %>%
-        addMeasure(
-            dim = 'per',
-            factColumn = c('num1','num1','num1'),      # referentie naar fact-column
-            viewColumn = c('abc','xyz','pqr'),
-            fun = c('sum','dcount','median'),          # toe te passen aggregatie-functie
-            as = c('som','distinct','mediaan'),        # te tonen kolomnaam voor de measure
-            format = c('decimal2','decimal2','euro2'), # te tonen format van de measure
-            levels = c(0,1,2,3)
-            ) 
-    
+            useLevel = c(3)) %>%
+        addPresentation(
+            dim = 'per' ,
+            type = 'dateRangeInput',                     # presentatie-vorm is een dataRangeInput
+            as = 'dateRange1',                          # te tonen label als er meer presentaties zijn
+            isDefault = TRUE,
+            dateRangeOpts = list(start = '2016-01-01'))
+          
     columnChartOpts$series <- list(
         list(
             viewColumn = 'abc',
@@ -60,72 +56,67 @@ function(input, output, session) {
             dataLabels = list(enabled = TRUE),
             colorByPoint = TRUE,                       # nodig bij gebruik van colors optie
             colors = 'YlOrRd',                         # colorBrewer sequentieel palette (zie http://colorbrewer2.org)
-            pointPadding = 0), 
-        list(
-            viewColumn = 'xyz',
-            type = 'column',
-            visible = TRUE,
-            dataLabels = list(enabled = TRUE),
-            color = '#41b6c4',
-            pattern = 'stripe1',                      # stripe pattern
-            pointPadding = 0),
-        list(
-            viewColumn = 'pqr',
-            type = 'column',
-            visible = FALSE,
-            dataLabels = list(enabled = TRUE),
-            color = 'red',
-            pointPadding = 0.1))
+            pointPadding = 0))
     
-    s1 <- s1 %>%  
+    s1 <- s1 %>%
+        addDimView(
+            dim = 'per2',
+            name = 'Periode',                       # getoonde titel van dimensie
+            data = per,                             # dimensie data.frame
+            initLevel = 1,
+            fixedMembers = TRUE,
+            levelNames = c('Alle perioden','Jaar','maand','Dag'),
+            useLevel = c(0,1,2,3)) %>%
+        addMeasure(
+            dim = 'per2',
+            factColumn = c('num1'),      # referentie naar fact-column
+            viewColumn = c('abc'),
+            fun = c('sum'),              # toe te passen aggregatie-functie
+            as = c('som'),               # te tonen kolomnaam voor de measure
+            format = c('decimal2'),      # te tonen format van de measure
+            levels = c(0,1,2,3)
+        ) %>%  
         addPresentation(
-            dim = 'per' ,
+            dim = 'per2' ,
             type = 'highCharts',                        # presentatie-vorm is een chart
             as = 'chart1',                             # te tonen label als er meer presentaties zijn
             isDefault = TRUE,
             height = 250,
-            highChartsOpts = columnChartOpts) %>%
+            highChartsOpts = columnChartOpts)
+    
+    
+    s1 <- s1 %>% 
+        addDimView(
+            dim = 'leeft',
+            name = 'Leeftijd',                       # getoonde titel van dimensie
+            data = leeft,                             # dimensie data.frame
+            levelNames = c('Alle leeftijden', 'categorie', 'leeftijd'),  # getoonde namen van nivo's
+            initLevel = 2,
+            initParent = '41-60',
+            orderBy = 'key',
+            na.rm = FALSE,
+            useLevels = c(0,1,2)) %>%
+        addMeasure(
+            dim = 'leeft',
+            factColumn = c('num1','num1','num1'),      # referentie naar fact-column
+            viewColumn = c('abc','xyz','pqr'),
+            fun = c('sum','dcount','median'),          # toe te passen aggregatie-functie
+            as = c('som','distinct','mediaan'),        # te tonen kolomnaam voor de measure
+            format = c('decimal2','decimal2','euro2'), # te tonen format van de measure
+            levels = c(0,1,2)
+        ) %>%
         addPresentation(
-            dim = 'per' ,
-            uiId = 'per2',
-            type = 'dateRangeInput',                     # presentatie-vorm is een dataRangeInput
-            as = 'dateRange1',                          # te tonen label als er meer presentaties zijn
+            dim = 'leeft' ,
+            type = 'dataTable',                     # presentatie-vorm is een dataTable
+            as = 'tabel1',                          # te tonen label als er meer presentaties zijn
             isDefault = TRUE,
-            useLevels = c(3),
-            navOpts = list(syncNav = FALSE),
-            dateRangeOpts = list(start = '2016-01-01'))
-            
+            dataTableOpts = list(                   # opties voor type dataTable
+                measures = list(
+                    list(viewColumn = 'pqr', colorBarColor1 = '#f7fcb9'),
+                    list(viewColumn = 'abc', colorBarColor1 = '#f7fcb9'),
+                    list(viewColumn = 'xyz', colorBarColor1 = '#f7fcb9')))) 
     
-     s1 <- s1 %>% addDimView(
-         dim = 'leeft',
-         name = 'Leeftijd',                       # getoonde titel van dimensie
-         data = leeft,                             # dimensie data.frame
-         levelNames = c('Alle leeftijden', 'categorie', 'leeftijd'),  # getoonde namen van nivo's
-         initLevel = 2,
-         initParent = '41-60',
-         orderBy = 'key',
-         useLevels = c(0,1,2)) %>%
-         addMeasure(
-             dim = 'leeft',
-             factColumn = c('num1','num1','num1'),      # referentie naar fact-column
-             viewColumn = c('abc','xyz','pqr'),
-             fun = c('sum','dcount','median'),          # toe te passen aggregatie-functie
-             as = c('som','distinct','mediaan'),        # te tonen kolomnaam voor de measure
-             format = c('decimal2','decimal2','euro2'), # te tonen format van de measure
-             levels = c(0,1,2)
-         ) %>%
-         addPresentation(
-             dim = 'leeft' ,
-             type = 'dataTable',                     # presentatie-vorm is een dataTable
-             as = 'tabel1',                          # te tonen label als er meer presentaties zijn
-             isDefault = TRUE,
-             dataTableOpts = list(                   # opties voor type dataTable
-                 measures = list(
-                     list(viewColumn = 'pqr', colorBarColor1 = '#f7fcb9'),
-                     list(viewColumn = 'abc', colorBarColor1 = '#f7fcb9'),
-                     list(viewColumn = 'xyz', colorBarColor1 = '#f7fcb9')))) 
-         
     
-
-        renderDims(s1,input,output)                    # start rendering
+    
+    renderDims(s1,input,output)                    # start rendering
 }
