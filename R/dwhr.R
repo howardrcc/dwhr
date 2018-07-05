@@ -191,7 +191,7 @@ addDimView <- function(
         assert_is_a_string(initParent)
         assert_is_a_number(selectLevel)
         selectLevel <- as.integer(selectLevel)
-        assert_is_a_string(selectLabel)
+        assert_is_character(selectLabel)
         assert_is_a_string(isNull(selectParent,''))
         assert_is_a_string(state)
         state %in% c('enabled','disabled','hidden') || stop('invalid state parameter')
@@ -258,6 +258,13 @@ addDimView <- function(
             missing <- setdiff(unique(env$facts[[keyColumn]]),data[[keyColumn]])
             if (length(missing) > 0) {
                 stop(c(paste0(dim, ': Foreign key error. first 10:'), paste0('    ',head(missing,10))))
+            }
+        } else {
+            nr1 <- nrow(env$facts)
+            env$facts <- env$facts[env$facts[[keyColumn]] %in% data[[keyColumn]],] 
+            nr2 <- nrow(env$facts)
+            if (nr2 < nr1) {
+                warning(paste0(dim,': removing ',nr1 - nr2, ' records from facts'))
             }
         }
 
@@ -327,7 +334,7 @@ addDimView <- function(
             selectLevel <- 0
         }
         
-        if (!selectLabel %in% data[[paste0('level',selectLevel,'Label')]]) {
+        if (!any(selectLabel %in% data[[paste0('level',selectLevel,'Label')]])) {
             warning(paste0(dim,': selectLabel not in data, label set to first label in selectLevel'))
             selectLabel <- data[[paste0('level',selectLevel,'Label')]][1]
         }
@@ -426,7 +433,7 @@ addDimView <- function(
             }
         }
 
-        selectCode <- pc$code[pc$label == selectLabel & pc$level == selectLevel]
+        selectCode <- pc$code[pc$label %in% selectLabel & pc$level == selectLevel]
 
         if (initParent == '' || initLevel <= 1) {
             initParent <- pc$parentLabel[pc$level == initLevel ][1]
@@ -449,11 +456,11 @@ addDimView <- function(
         }
         
         if (is.null(selectParent)) {
-            selectParent <- pc$parentLabel[pc$level == selectLevel & pc$label == selectLabel][1]
+            selectParent <- pc$parentLabel[pc$level == selectLevel & pc$label %in% selectLabel]
         } else {
-            if (!(selectParent %in% pc$parentLabel[pc$level == selectLevel & pc$label == selectLabel])) {
+            if (!(selectParent %in% pc$parentLabel[pc$level == selectLevel & pc$label %in% selectLabel])) {
                 warning(paste0('selectParent: ', selectParent, ' not found for selectLevel: ',selectLevel,' and selectLabel: ',selectLabel, '. selectParent set to first parent.'))
-                selectParent <- pc$parentLabel[pc$level == selectLevel & pc$label == selectLabel][1]
+                selectParent <- pc$parentLabel[pc$level == selectLevel & pc$label %in% selectLabel]
             }
         }
 
@@ -1514,9 +1521,14 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 call$selectMode <- 'single' 
             }
 
-            if (!is.null(dateRangeOpts) && dd$selectMode %in% c('none','single')) {
-                warning('single-select not available for dateRange: dimView set to multi-select')
-                call$selectMode <- 'multi' 
+            if (!is.null(dateRangeOpts)) {
+                call$initLevel <- dd$maxLevel
+                call$initParent <- ""
+                call$selectMode <- 'multi'
+                call$selectLevel <- 0
+                call$selectLabel <- dd$levelNames[1]
+                call$selectParent = NULL
+                call$type = 'input'
             }
             
             if (length(useLevels) != 0) {
@@ -1602,10 +1614,12 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
             
             dd$initLevel <- 1
             
-            dd$selected <- makeDateRangeSelection(env,dim,dateRangeOpts[['start']],dateRangeOpts[['end']])
+            if (dateRangeOpts[['start']] == minDate && dateRangeOpts[['end']] == maxDate)
+                dd$selected  <- dd$rootSelected
+            else      
+                dd$selected <- makeDateRangeSelection(env,dim,dateRangeOpts[['start']],dateRangeOpts[['end']])
 
             dd$selectedIds <- getSelectedIds(env,dim)
-
             navOpts$hideBreadCrumb <- TRUE
             
         }
@@ -1803,13 +1817,12 @@ setSelection <- function(env,dim,sel,single = TRUE,source = 'setSelection',dimRe
 setSelection2 <- function(env,dim,sel,selIds,source = 'setSelection',dimRefresh = TRUE) {
     
     dd <- env$dims[[dim]]
-
     if (!identical(dd$selectedIds, selIds)) {
         dd$debounce <- FALSE
-        
+
        newSel <- NULL
         
-        if (any(sel$level == 0) || length(selIds) == nrow(dd$data)) {
+        if (any(sel$level == 0)) {
             newSel <- dd$rootSelected    
         } else {
             
@@ -1836,25 +1849,25 @@ setSelection2 <- function(env,dim,sel,selIds,source = 'setSelection',dimRefresh 
         maxLvl <- max(newSel$level)
         minLvl <- min(newSel$level)
         
-        if (dd$selectMode == 'single') {
+        #if (dd$selectMode == 'single') {
             
-            while (nrow(newSel[newSel$level == maxLvl,]) > 1 && maxLvl > 0) {
-                maxLvl <- maxLvl - 1
-            } 
-            
-            if (maxLvl == 0)
-                newSel <- dd$rootSelected
-            else
-                newSel <- newSel[newSel$level == maxLvl,]
-                
-            dd$rowLastAccessed$value[dd$rowLastAccessed$level == maxLvl] <- newSel$label
-            
-        } else {
-            
-            #todo clean up multiselect
-            dd$rowLastAccessed$value[dd$rowLastAccessed$level == minLvl] <- newSel$label[newSel$level == minLvl][1]            
-            
-        }
+        #     while (nrow(newSel[newSel$level == maxLvl,]) > 1 && maxLvl > 0) {
+        #         maxLvl <- maxLvl - 1
+        #     } 
+        #     
+        #     if (maxLvl == 0)
+        #         newSel <- dd$rootSelected
+        #     else
+        #         newSel <- newSel[newSel$level == maxLvl,]
+        #         
+        #     dd$rowLastAccessed$value[dd$rowLastAccessed$level == maxLvl] <- newSel$label
+        #     
+        # } else {
+        #     
+        #     #todo clean up multiselect
+        #     dd$rowLastAccessed$value[dd$rowLastAccessed$level == minLvl] <- newSel$label[newSel$level == minLvl][1]            
+        #     
+        # }
         
         dd$selected <- newSel
         dd$selectSource <- source

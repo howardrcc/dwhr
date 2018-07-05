@@ -4,9 +4,6 @@ library(dwhr)
 
 # laden data
 
-
-dwhr::setDebug(TRUE)
-
 per <- readRDS(
     file = paste0(getwd(),"/data/dates.rds"))
   
@@ -21,9 +18,9 @@ leeft$level1Code <- leeft$level1Label
 leeft$level2Code <- as.integer(leeft$leeftijd)
 
 facts <- data.frame(
-    dateId = as.integer(round(runif(10000,min(per$dateId),max(per$dateId)),0)),
-    leeftijd = as.integer(round(runif(10000,0,100),0)),
-    num1 = runif(10000,100,200))
+    dateId = as.integer(round(runif(100000,min(per$dateId),max(per$dateId)),0)),
+    leeftijd = as.integer(round(runif(100000,0,100),0)),
+    num1 = runif(100000,100,200))
 
 function(input, output, session) {
     source('columnChart.R', local = TRUE)
@@ -66,6 +63,7 @@ function(input, output, session) {
             initLevel = 1,
             fixedMembers = TRUE,
             levelNames = c('Alle perioden','Jaar','maand','Dag'),
+            na.rm = FALSE,
             useLevel = c(0,1,2,3)) %>%
         addMeasure(
             dim = 'per2',

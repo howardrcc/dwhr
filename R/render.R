@@ -11,7 +11,7 @@ renderDims <- function(env,input,output) {
 
         presList <- env$dims[[ddim]]$presList
         presTypes <- sapply(presList,function(x) {return(x$type)})
-
+        
         if (length(presList) > 0) {
 
             local({
@@ -171,7 +171,11 @@ renderDims <- function(env,input,output) {
                                     label = ll$label, 
                                     choices = choices,
                                     options = list(dropdownParent = 'body'))
-                            } 
+                            }
+                            
+                            if (ll$type == 'test') {
+                                ele <- getDimUI(starId = 's1', dim = 'per2',skipTopRow = TRUE)
+                            }
                             
                         } else {
                             ele <- ''
@@ -248,7 +252,7 @@ renderDims <- function(env,input,output) {
                         txt <- paste0(txt,'<div style="padding-bottom:4px;">')
                     }
 
-                    if ((any(dd$selected$level > 0) || nrow(dd$data) <= length(dd$selected$label)) && !hideNoFilter) {
+                    if (any(dd$selected$level > 0) && !hideNoFilter) {
 
                         txt <- paste0(txt,'&nbsp<span style="float:right;">',actionLink(inputId = paste0(gdim,'NoFilter'), label = 'Verwijder Filter', style='color:red'),'</span>')
                     }
@@ -297,8 +301,14 @@ renderDims <- function(env,input,output) {
                        
                         minDate <- presList[[dd$pres]]$dateRangeOpts$min
                         maxDate <- presList[[dd$pres]]$dateRangeOpts$max
-                        startDate <- min(dd$selected$label)
-                        endDate <- max(dd$selected$label)
+
+                        if (any(dd$selected$level == 0)) {
+                            startDate <- min(dd$data[['level1Label']])
+                            endDate <- max(dd$data[['level1Label']])
+                        } else {
+                            startDate <- min(dd$selected$label)
+                            endDate <- max(dd$selected$label)
+                        }
                         
                     }
 
@@ -325,7 +335,9 @@ renderDims <- function(env,input,output) {
                             max = maxDate,
                             start = startDate,
                             end = endDate,
-                            language = 'nl'
+                            language = 'nl',
+                            separator = ' tm '
+                            
                         ))
                 })
 
