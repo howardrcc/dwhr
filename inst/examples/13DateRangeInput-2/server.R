@@ -36,12 +36,12 @@ function(input, output, session) {
             name = 'Periode',                       # getoonde titel van dimensie
             data = per,                             # dimensie data.frame
             initLevel = 1,
-            selectLevel = 2,
-            selectLabel = c('201601','201602'),
+            selectLevel = 1,
+            selectLabel = c('2016','2017'),
             #keepUnused = TRUE,
             
             levelNames = c('Alle perioden','Jaar','maand','Dag'),
-            useLevel = c(0,1,2,3)) %>%
+            useLevel = c(0,1,3)) %>%
         addMeasure(
             dim = 'per',
             factColumn = c('num1','num1','num1'),      # referentie naar fact-column

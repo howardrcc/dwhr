@@ -341,6 +341,8 @@ addDimView <- function(
 
         # map columns based on useLevels
 
+        dataOrg <- data
+        
         if (length(setdiff(c(0:maxLevel),useLevels)) != 0)  {
 
             nw <- c()
@@ -497,6 +499,7 @@ addDimView <- function(
     l$master <- TRUE
     l$views <- list()
     l$data <- data
+    l$dataOrg <- dataOrg
     l$type <- type
     l$selectMode <- selectMode
     l$useLevels <- useLevels
@@ -535,7 +538,7 @@ addDimView <- function(
         value = '',
         level = seq(from = 0, to = l$maxLevel),
         stringsAsFactors = FALSE)
-    l$rowLastAccessed$value[l$rowLastAccessed$level == selectLevel] <- selectLabel
+    l$rowLastAccessed$value[l$rowLastAccessed$level == selectLevel] <- selectLabel[1]
     l$reactive <- shiny::reactiveValues(
         levelChange = 0,
         dimRefresh = 0,
@@ -1516,26 +1519,36 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
             call$name <- name
             call$env <- env
             
+            if (length(useLevels) != 0) {
+                navOpts$syncNav && dwhrStop('useLevels not valid when syncNav == T')
+                max(dd$useLevels) == max(useLevels) || dwhrStop('invalid useLevels parameter')
+                call$useLevels <- useLevels
+                if (any(dd$selected$level > 0)) {
+                    selectLevel <- max(useLevels)
+                    col <- paste0('level',dd$maxLevel,'Label')
+                    selectLabel <- dd$data[dd$data[,dd$keyColumn] %in% dd$selectedIds,][[col]]
+                    
+                    call$selectLevel <- selectLevel
+                    call$selectLabel <- selectLabel
+                }
+            }
+            
+            
+        
             if (!is.null(highChartsOpts) && dd$selectMode %in% c('multi')) {
                 warning('multi-select not implemented for highCharts: dimView set to single-select')
                 call$selectMode <- 'single' 
             }
 
             if (!is.null(dateRangeOpts)) {
-                call$initLevel <- dd$maxLevel
+                call$initLevel <- max(dd$useLevels)
                 call$initParent <- ""
                 call$selectMode <- 'multi'
-                call$selectLevel <- 0
-                call$selectLabel <- dd$levelNames[1]
-                call$selectParent = NULL
-                call$type = 'input'
+                call$selectParent <- NULL
+                call$type <- 'input'
             }
             
-            if (length(useLevels) != 0) {
-                navOpts$syncNav && dwhrStop('useLevels not valid when syncNav == T')
-                call$useLevels <- useLevels
-            }
-
+            
             eval(call, envir = env$ce)
 
             env$dims[[uiId]]$measList <- dd$measList
@@ -1590,36 +1603,9 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
             
             minDate <- min(dd$data[['level1Label']])
             maxDate <- max(dd$data[['level1Label']])
+            dateRangeOpts[['min']] <- minDate
+            dateRangeOpts[['max']] <- maxDate
             
-            for (nm in c('start', 'end', 'min', 'max')) {
-                
-                if (nm %in% names(dateRangeOpts)) {
-                    assert_is_a_string(dateRangeOpts[[nm]])
-                    assert_all_are_date_strings(dateRangeOpts[[nm]],format = '%Y-%m-%d')
-                } else {
-                    dateRangeOpts[[nm]] <-
-                        switch(nm,
-                               start = minDate,
-                               end = maxDate,
-                               min = minDate,
-                               max = maxDate)
-                }
-            }
-            
-            if (dateRangeOpts[['start']] < minDate)
-                dateRangeOpts[['start']] <- minDate
-            
-            if (dateRangeOpts[['end']] > maxDate)
-                dateRangeOpts[['end']] <- maxDate
-            
-            dd$initLevel <- 1
-            
-            if (dateRangeOpts[['start']] == minDate && dateRangeOpts[['end']] == maxDate)
-                dd$selected  <- dd$rootSelected
-            else      
-                dd$selected <- makeDateRangeSelection(env,dim,dateRangeOpts[['start']],dateRangeOpts[['end']])
-
-            dd$selectedIds <- getSelectedIds(env,dim)
             navOpts$hideBreadCrumb <- TRUE
             
         }
