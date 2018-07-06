@@ -137,7 +137,7 @@ renderDims <- function(env,input,output) {
                     
                     for (ll in links) {
                         
-                        eleObject <- list(width = ll$width)
+                        eleObject <- list(width = isNull(ll$width,12))
                         
                         if(ifelse(!is.null(ll$visFun),do.call(ll$visFun,list(env = env),envir = env$ce),TRUE)) {
                             
@@ -173,8 +173,8 @@ renderDims <- function(env,input,output) {
                                     options = list(dropdownParent = 'body'))
                             }
                             
-                            if (ll$type == 'test') {
-                                ele <- getDimUI(starId = 's1', dim = 'per2',skipTopRow = TRUE)
+                            if (ll$type == 'dim') {
+                                ele <- getDimUI(starId = env$id, dim = ll$dim, skipTopRow = TRUE)
                             }
                             
                         } else {

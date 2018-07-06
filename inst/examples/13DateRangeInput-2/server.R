@@ -35,13 +35,14 @@ function(input, output, session) {
             dim = 'per',
             name = 'Periode',                       # getoonde titel van dimensie
             data = per,                             # dimensie data.frame
-            initLevel = 1,
-            selectLevel = 1,
-            selectLabel = c('2016','2017'),
+            initLevel = 3,
+            initParent = '201801',
+            selectLevel = 3,
+            selectLabel = c('2016-01-01','2016-01-02'),
             #keepUnused = TRUE,
             
             levelNames = c('Alle perioden','Jaar','maand','Dag'),
-            useLevel = c(0,1,3)) %>%
+            useLevel = c(3)) %>%
         addMeasure(
             dim = 'per',
             factColumn = c('num1','num1','num1'),      # referentie naar fact-column
@@ -78,27 +79,31 @@ function(input, output, session) {
             pointPadding = 0.1))
     
     s1 <- s1 %>%  
+       
         addPresentation(
             dim = 'per' ,
+            checkUiId = FALSE,
+            type = 'dateRangeInput',                     # presentatie-vorm is een dataRangeInput
+            as = 'dateRange1',                          # te tonen label als er meer presentaties zijn
+            isDefault = TRUE,
+            navOpts = list(hideNoFilter = TRUE),
+            dateRangeOpts = list()) %>%
+        addPresentation(
+            dim = 'per' ,
+            uiId = 'per2',
+            useLevels = c(0,1,2,3),
             type = 'highCharts',                        # presentatie-vorm is een chart
             as = 'chart1',                             # te tonen label als er meer presentaties zijn
             isDefault = TRUE,
             height = 250,
             navOpts = list(
+                syncNav = FALSE,
                 links = list(
-                    list(type = 'test',
-                         width = 10))),
-            highChartsOpts = columnChartOpts) %>%
-        addPresentation(
-            dim = 'per' ,
-            uiId = 'per2',
-            checkUiId = FALSE,
-            type = 'dateRangeInput',                     # presentatie-vorm is een dataRangeInput
-            as = 'dateRange1',                          # te tonen label als er meer presentaties zijn
-            isDefault = TRUE,
-            useLevels = c(3),
-            navOpts = list(syncNav = FALSE, hideNoFilter = TRUE),
-            dateRangeOpts = list())
+                    list(
+                        type = 'dim',
+                        dim = 'per',
+                        width = 10))),
+            highChartsOpts = columnChartOpts)
             
     
      s1 <- s1 %>% addDimView(

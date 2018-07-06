@@ -216,6 +216,12 @@ addDimView <- function(
         assert_is_a_string(presListType)
         assert_is_subset(presListType,domains[['presListType']])
         assert_is_subset(isNull(selectedIds,data[1,1]),data[[1]])
+        
+        if (!is.null(selectedIds)) {
+            selectLevel <- 0
+            selectLabel <- levelNames[1]
+            selectParent <- NULL
+        }
 
         maxLevel <- length(levelNames) - 1
         rootLabel <- levelNames[1]
@@ -484,6 +490,15 @@ addDimView <- function(
             pc = pc
         ))
     }
+    
+    selectableLevels <- levelMap$to[levelMap$from %in% selectableLevels]
+    
+    if (!is.null(selectedIds)) {
+        sel <- getSelected(data,maxLevel,selectableLevels,selectedIds)
+        selectLevel <- sel$level
+        selectLabel <- sel$label
+        selectParent <- sel$parent
+    }
 
     l <- new.env(parent = emptyenv())
     class(l) <- 'dimView'
@@ -536,14 +551,14 @@ addDimView <- function(
         value = '',
         level = seq(from = 0, to = l$maxLevel),
         stringsAsFactors = FALSE)
-    l$rowLastAccessed$value[l$rowLastAccessed$level == selectLevel] <- selectLabel[1]
+    l$rowLastAccessed$value[l$rowLastAccessed$level == selectLevel[1]] <- selectLabel[1]
     l$reactive <- shiny::reactiveValues(
         levelChange = 0,
         dimRefresh = 0,
         selectChange = 0,
         selectedIdsChange = 0,
         visChange = 0,
-        isFiltered = !(selectLevel == 0),
+        isFiltered = !(any(selectLevel == 0)),
         orderChange = 0,
         pageChange = 0,
         pageLengthChange = 0,
@@ -587,7 +602,7 @@ addDimView <- function(
     l$ignoreDims <- ignoreDims
     l$currentPage <- 1
     l$leafOnly <- leafOnly
-    l$selectableLevels <- levelMap$to[levelMap$from %in% selectableLevels]
+    l$selectableLevels <- selectableLevels
     l$footerLevels <- levelMap$to[levelMap$from %in% footerLevels]
     l$hasFormatColumn  <- FALSE
     l$fixedMembers <- fixedMembers
@@ -1494,6 +1509,13 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
             (dd$selectMode %in% c('none','single')) || (uiId != dim) || stop('HighCharts presentation not available for multi-select')
             
         }
+        
+        # check links
+
+        if (length(navOpts$links) > 0) {
+            types <- sapply(navOpts$links,function(x) {x$type})
+            assert_is_subset(types,domains[['navOptsLinkTypes']])
+        }
     },
     error = function(c) {
         dwhrStop(conditionMessage(c))
@@ -1521,19 +1543,13 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 navOpts$syncNav && dwhrStop('useLevels not valid when syncNav == T')
                 max(dd$useLevels) == max(useLevels) || dwhrStop('invalid useLevels parameter')
                 call$useLevels <- useLevels
+                
                 if (any(dd$selected$level > 0)) {
-                    selectLevel <- max(useLevels)
-                    col <- paste0('level',dd$maxLevel,'Label')
-                    sel <- getSelected(env,dim,)
-                    selectLabel <- dd$data[dd$data[,dd$keyColumn] %in% dd$selectedIds,][[col]]
-                    
-                    call$selectLevel <- selectLevel
-                    call$selectLabel <- selectLabel
+                    call$selectedIds <- dd$selectedIds
                 }
             }
             
             
-        
             if (!is.null(highChartsOpts) && dd$selectMode %in% c('multi')) {
                 warning('multi-select not implemented for highCharts: dimView set to single-select')
                 call$selectMode <- 'single' 
@@ -1543,7 +1559,6 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 call$initLevel <- max(dd$useLevels)
                 call$initParent <- ""
                 call$selectMode <- 'multi'
-                call$selectParent <- NULL
                 call$type <- 'input'
             }
             
@@ -1804,58 +1819,8 @@ setSelection2 <- function(env,dim,sel,selIds,source = 'setSelection',dimRefresh 
     dd <- env$dims[[dim]]
     if (!identical(dd$selectedIds, selIds)) {
         dd$debounce <- FALSE
-
-       newSel <- NULL
-        
-        if (any(sel$level == 0)) {
-            newSel <- dd$rootSelected    
-        } else {
-            
-            dt <- data.table(dd$data)
-            keyCol <- dd$keyColumn
-            
-            for (lvl in 1:dd$maxLevel) {
-                
-                cols <- c(paste0('level',lvl - 1,'Label'),paste0('level',lvl,'Label'))
-                zz <- dt[dt[[keyCol]] %in% selIds,list(aantal = eval(parse(text = paste0('length(',keyCol,')')))),by = cols]
-                names(zz) <- c('parent','label','aantal')
-                
-                newSel <- rbind(
-                    newSel,
-                    data.frame(
-                        level = lvl,
-                        parent = zz$parent,
-                        label = zz$label,
-                        stringsAsFactors = FALSE))
-            }
-            
-        }
-       
-        maxLvl <- max(newSel$level)
-        minLvl <- min(newSel$level)
-        
-        #if (dd$selectMode == 'single') {
-            
-        #     while (nrow(newSel[newSel$level == maxLvl,]) > 1 && maxLvl > 0) {
-        #         maxLvl <- maxLvl - 1
-        #     } 
-        #     
-        #     if (maxLvl == 0)
-        #         newSel <- dd$rootSelected
-        #     else
-        #         newSel <- newSel[newSel$level == maxLvl,]
-        #         
-        #     dd$rowLastAccessed$value[dd$rowLastAccessed$level == maxLvl] <- newSel$label
-        #     
-        # } else {
-        #     
-        #     #todo clean up multiselect
-        #     dd$rowLastAccessed$value[dd$rowLastAccessed$level == minLvl] <- newSel$label[newSel$level == minLvl][1]            
-        #     
-        # }
-        
-        
-        dd$selected <- getSelected(env,dim)
+ 
+        dd$selected <- getSelected(dd$data,dd$maxLevel,dd$selectableLevels,selIds)
         dd$selectSource <- source
 
         dd$reactive$selectChange <- dd$reactive$selectChange + 1
@@ -1869,32 +1834,72 @@ setSelection2 <- function(env,dim,sel,selIds,source = 'setSelection',dimRefresh 
     
 }
 
-getSelected <- function(env,dim) {
+getSelected <- function(data,maxLevel,selectableLevels,selectedIds) {
     
-    dd <- env$dims[[dim]]
-    sel <- dd$selected
-    browser()
-    if (any(sel$level == 0) || all(sel$level == 1) || dd$maxLevel < 2) {
-        return(sel)
+    if (length(selectedIds) >= nrow(data)) {
+        return(data.frame(
+            level = 0,
+            parent = "",
+            label = unique(data$level0Label)[1],
+            stringsAsFactors = FALSE))
     }
     
-    dt <- data.table(dd$data)
-    keyCol <- dd$keyColumn
-    selIds <- dd$selectedIds
+    keyCol <- names(data)[1]
     
-    for (lvl in 2:dd$maxLevel) {
-      
+    if (maxLevel == 1) {
+        return(data.frame(
+            level = 1,
+            parent = unique(data$level0Label)[1],
+            label =  unique(data$level1Label[data[,keyCol] %in% selectedIds]),
+            stringsAsFactors = FALSE))
+    }
+    
+    dt <- data.table(data)
+    sel <- NULL
+    
+    for (lvl in 1:(maxLevel - 1)) {
+        
         cols <- c(paste0('level',lvl - 1,'Label'),paste0('level',lvl,'Label'))
-        zz <- dt[dt[[keyCol]] %in% selIds,list(aantal = eval(parse(text = paste0('length(',keyCol,')')))),by = cols]
+        zz <- dt[dt[[keyCol]] %in% selectedIds,list(aantal = eval(parse(text = paste0('length(',keyCol,')')))),by = cols]
         names(zz) <- c('parent','label','aantal')
         
         xx <- dt[,list(aantal = eval(parse(text = paste0('length(',keyCol,')')))),by = cols]
         names(xx) <- c('parent','label','aantal')
         
         yy <- xx[zz,on = c('parent','label','aantal'),nomatch = 0]
+        
+        if (nrow(yy) > 0) {
+            sel <- rbind(
+                sel,
+                data.frame(
+                    level = lvl,
+                    parent = yy$parent,
+                    label = yy$label,
+                    stringsAsFactors = FALSE))
+            
+            names(yy) <- c(cols,'aantal')
+            selectedIds <- setdiff(selectedIds,dt[yy,on = cols,nomatch = 0][[keyCol]])
+        }
     }
     
+    if (length(selectedIds) > 0) {
+
+        cols <- c(paste0('level',maxLevel - 1,'Label'),paste0('level',maxLevel,'Label'))
+        zz <- dt[dt[[keyCol]] %in% selectedIds,list(aantal = eval(parse(text = paste0('length(',keyCol,')')))),by = cols]
+        names(zz) <- c('parent','label','aantal')
+        
+        sel <- rbind(
+            sel,
+            data.frame(
+                level = maxLevel,
+                parent = zz$parent,
+                label = zz$label,
+                stringsAsFactors = FALSE))
+    }
+    
+    sel
 }
+    
 
 #'
 #'@export

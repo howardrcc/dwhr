@@ -251,7 +251,7 @@ makeHcWidget <- function(env,dim,prep){
     hcoptslang$decimalPoint <- ','
     options(highcharter.lang = hcoptslang)
     
-    a <- highcharter::highchart()
+    a <- highcharter::highchart(type = prep$chartType)
 
     if (!is.null(prep$chartOpts)) {
         prep$chartOpts$hc = a
@@ -351,6 +351,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
 
     highChartsOpts <- expandList(presList[[pres]]$highChartsOpts)
 
+    chartType <- isNull(highChartsOpts$type,'chart')
     chartOpts <- highChartsOpts$chart
     tooltipOpts <- highChartsOpts$tooltip
     xAxisOpts <- highChartsOpts$xAxis
@@ -684,6 +685,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
     } 
     
     ret <- list(
+        chartType = chartType,
         legendOpts = legendOpts,
         seriesOpts = series,
         tooltipOpts = tooltipOpts,
