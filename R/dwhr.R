@@ -177,7 +177,7 @@ addDimView <- function(
     selectLabel = levelNames[1], selectParent = NULL, state = 'enabled', type = 'bidir', selectMode = 'single', useLevels = NULL,
     cntName = 'cnt', itemName = 'Naam', ignoreDims = NULL, leafOnly = FALSE, fixedMembers = FALSE, keepUnused = FALSE,
     na.rm = TRUE, orderBy = 'name', selectableLevels = NULL, footerLevels = NA_integer_ , presListType = 'dropdown',
-    returnPrepData = FALSE) {
+    returnPrepData = FALSE, selectedIds = NULL) {
 
     withCallingHandlers({
         class(env) == 'star' || stop('env is not of class star')
@@ -215,6 +215,7 @@ addDimView <- function(
         assert_is_subset(orderBy,domains[['orderBy']])
         assert_is_a_string(presListType)
         assert_is_subset(presListType,domains[['presListType']])
+        assert_is_subset(isNull(selectedIds,data[1,1]),data[[1]])
 
         maxLevel <- length(levelNames) - 1
         rootLabel <- levelNames[1]
@@ -341,8 +342,6 @@ addDimView <- function(
 
         # map columns based on useLevels
 
-        dataOrg <- data
-        
         if (length(setdiff(c(0:maxLevel),useLevels)) != 0)  {
 
             nw <- c()
@@ -499,7 +498,6 @@ addDimView <- function(
     l$master <- TRUE
     l$views <- list()
     l$data <- data
-    l$dataOrg <- dataOrg
     l$type <- type
     l$selectMode <- selectMode
     l$useLevels <- useLevels
@@ -1526,6 +1524,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 if (any(dd$selected$level > 0)) {
                     selectLevel <- max(useLevels)
                     col <- paste0('level',dd$maxLevel,'Label')
+                    sel <- getSelected(env,dim,)
                     selectLabel <- dd$data[dd$data[,dd$keyColumn] %in% dd$selectedIds,][[col]]
                     
                     call$selectLevel <- selectLevel
@@ -1855,7 +1854,8 @@ setSelection2 <- function(env,dim,sel,selIds,source = 'setSelection',dimRefresh 
         #     
         # }
         
-        dd$selected <- newSel
+        
+        dd$selected <- getSelected(env,dim)
         dd$selectSource <- source
 
         dd$reactive$selectChange <- dd$reactive$selectChange + 1
@@ -1865,6 +1865,33 @@ setSelection2 <- function(env,dim,sel,selIds,source = 'setSelection',dimRefresh 
             dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
             printDebug(env = env, dim, eventIn = 'setSelection', eventOut = 'dimRefresh')
         }
+    }
+    
+}
+
+getSelected <- function(env,dim) {
+    
+    dd <- env$dims[[dim]]
+    sel <- dd$selected
+    browser()
+    if (any(sel$level == 0) || all(sel$level == 1) || dd$maxLevel < 2) {
+        return(sel)
+    }
+    
+    dt <- data.table(dd$data)
+    keyCol <- dd$keyColumn
+    selIds <- dd$selectedIds
+    
+    for (lvl in 2:dd$maxLevel) {
+      
+        cols <- c(paste0('level',lvl - 1,'Label'),paste0('level',lvl,'Label'))
+        zz <- dt[dt[[keyCol]] %in% selIds,list(aantal = eval(parse(text = paste0('length(',keyCol,')')))),by = cols]
+        names(zz) <- c('parent','label','aantal')
+        
+        xx <- dt[,list(aantal = eval(parse(text = paste0('length(',keyCol,')')))),by = cols]
+        names(xx) <- c('parent','label','aantal')
+        
+        yy <- xx[zz,on = c('parent','label','aantal'),nomatch = 0]
     }
     
 }
