@@ -588,13 +588,18 @@ prepDt <- function(env,dim,pres,print = NULL) {
     if(dd$selectMode == 'none') {
         selection = list(mode = 'none')
     } else {
-        if(dd$selectMode == 'single') {
-            selection = list(mode = 'single', target = 'cell', selected = si)
+        
+        if (!is.na(si) && nrow(si) > 1) {
+            selection = list(mode = 'multiple', target = 'cell', selected = si)
         } else {
-            if (dd$msState) {
-                selection = list(mode = 'multiple', target = 'cell', selected = si)
-            } else {
+            if(dd$selectMode == 'single') {
                 selection = list(mode = 'single', target = 'cell', selected = si)
+            } else {
+                if (dd$msState) {
+                    selection = list(mode = 'multiple', target = 'cell', selected = si)
+                } else {
+                    selection = list(mode = 'single', target = 'cell', selected = si)
+                }
             }
         }
     }
@@ -964,7 +969,7 @@ renderDataTableDim <- function(env,dim,input,output) {
 
         l <- dd$selected
 
-        if(!(dd$msState) && length(selected) > 0) {
+        if(!(dd$msState) && !(any(l$level != level)) && length(selected) > 0) {
 
             # single select
 
@@ -1032,19 +1037,14 @@ renderDataTableDim <- function(env,dim,input,output) {
 
         s <- dd$selected
         dd$selected <- l
-
+        dd$selectSource <- 'dataTablecellSelected'
+        
         dimCorrectSelectionInfo(input,env,dim)
         dimSetHasSubselect(env,dim)
 
         if (!identical(s,l)) {
-            if (dd$selectSource != 'observeEvent') {
-                dd$selectSource <- 'dataTablecellSelected'
-                dd$reactive$selectChange <- dd$reactive$selectChange + 1
-        
-                printDebug(env = env, dim, eventIn = 'dataTableCellsSelected', eventOut = 'selectChange')
-            } else {
-                dd$selectSource <- ''
-            }
+            dd$reactive$selectChange <- dd$reactive$selectChange + 1
+            printDebug(env = env, dim, eventIn = 'dataTableCellsSelected', eventOut = 'selectChange')
         }
             
     })

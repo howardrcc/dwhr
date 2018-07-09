@@ -1834,6 +1834,7 @@ setSelection2 <- function(env,dim,sel,selIds,source = 'setSelection',dimRefresh 
         dd$selectSource <- source
 
         dd$reactive$selectChange <- dd$reactive$selectChange + 1
+        dimSetHasSubselect(env,dim)
         
         printDebug(env = env, dim, eventIn = 'setSelection', eventOut = 'selectChange')
         if (dimRefresh) {

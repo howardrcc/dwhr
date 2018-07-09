@@ -125,7 +125,7 @@ function(input, output, session) {
          initLevel = 2,
          initParent = '41-60',
          orderBy = 'key',
-         selectMode = 'multi',
+         selectMode = 'single',
          useLevels = c(0,1,2)) %>%
          addMeasure(
              dim = 'leeft',

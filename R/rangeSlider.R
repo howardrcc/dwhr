@@ -7,8 +7,8 @@ renderRangeSliderDim <- function(env,dim,input,output)  {
     vr2 <- vr %>% shiny::throttle(1000)
     
     shiny::observeEvent(vr2(),{
-        
         sel <- vr2()
+
         if (is.null(sel))
             return()
 
@@ -26,7 +26,7 @@ renderRangeSliderDim <- function(env,dim,input,output)  {
                 return()
             }
         }
-        
+
         if(!identical(s,dd$selected)) {
             dd$selected <- s
             
@@ -34,8 +34,10 @@ renderRangeSliderDim <- function(env,dim,input,output)  {
                 dd$selectSource <- 'rangeSliderClick'
                 dd$reactive$selectChange <- dd$reactive$selectChange + 1
             } else {
-                dd$selectSource <- ''
-            }
+                dd$selectSource <- ''    
+            } 
+        } else {
+            dd$selectSource <- ''
         }
     })
 }

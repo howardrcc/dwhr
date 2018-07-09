@@ -622,14 +622,12 @@ dimCorrectSelectionInfo <- function(input,env,dim) {
 
     dd <- env$dims[[dim]]
     
-    if (dd$selectMode == 'single') {
-        return(TRUE)
-    }
-    
     l <- dd$selected
     gdim <- dd$gdim
-
-    if (nrow(l) > 1 && !(input[[paste0(gdim,'DimMs')]])) {
+    
+    if ((nrow(l) > 1 && dd$selectMode == 'single' && dd$selectSource != 'observeEvent') ||
+       ((nrow(l) > 1 && dd$selectMode == 'multi' && !(input[[paste0(gdim,'DimMs')]])))) {
+        
         l <- l[nrow(l),]
 
         dd$selected <- l

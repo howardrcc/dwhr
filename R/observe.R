@@ -199,11 +199,11 @@ startObserversData <- function(env,dim) {
 
                     dd$selectedIds <- ids
                     dd$reactive$selectedIdsChange <- dd$reactive$selectedIdsChange + 1
-                    
-                    if (!is.null(dd$parentDim) && dd$selectSource != 'observeEvent') {
-                        # alleen parent zit in reactive path
-                        env$dims[[dd$parentDim]]$reactive$selectedIdsChange <- env$dims[[dd$parentDim]]$reactive$selectedIdsChange + 1
-                    }
+                    # 
+                    # if (!is.null(dd$parentDim) && dd$selectSource != 'observeEvent') {
+                    #     # alleen parent zit in reactive path
+                    #     env$dims[[dd$parentDim]]$reactive$selectedIdsChange <- env$dims[[dd$parentDim]]$reactive$selectedIdsChange + 1
+                    # }
 
                     printDebug(env = env, dim = dim,
                                eventIn = 'selectChange',
@@ -530,6 +530,7 @@ startObserversPres <- function(env,dim,pres) {
                 #     dd$presList[[dd$pres]]$dateRangeOpts$max <- maxDate
                 # }
                 # 
+
                 dd$reactive$presChange <- dd$reactive$presChange + 1
             }
         })
