@@ -868,6 +868,7 @@ renderDataTableDim <- function(env,dim,input,output) {
 
             level <- dd$level
             dd$rowLastAccessed$row[dd$rowLastAccessed$level == level] <- info$row
+            dd$selectSource <- ''
 
             if((info$value == '+' && info$col == 0)) { 
                 cnt <- dd$membersFiltered$cnt[info$row]
@@ -1036,11 +1037,16 @@ renderDataTableDim <- function(env,dim,input,output) {
         dimSetHasSubselect(env,dim)
 
         if (!identical(s,l)) {
-            dd$reactive$selectChange <- dd$reactive$selectChange + 1
-            dd$selectSource <- 'dataTablecellSelected'
-            printDebug(env = env, dim, eventIn = 'dataTableCellsSelected', eventOut = 'selectChange')
+            if (dd$selectSource != 'observeEvent') {
+                dd$selectSource <- 'dataTablecellSelected'
+                dd$reactive$selectChange <- dd$reactive$selectChange + 1
+        
+                printDebug(env = env, dim, eventIn = 'dataTableCellsSelected', eventOut = 'selectChange')
+            } else {
+                dd$selectSource <- ''
+            }
         }
-
+            
     })
 
     orderEvent <- paste0(gdim,'_ordering')

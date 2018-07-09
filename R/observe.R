@@ -501,7 +501,7 @@ startObserversPres <- function(env,dim,pres) {
             if (presType %in% c('radioButton','selectInput')) {
                  dd$reactive$presChange <- dd$reactive$presChange + 1
             }
-            if (presType %in% c('dateRangeInput')) {
+            if (presType %in% c('dateRangeInput','rangeSliderInput')) {
                
                 # if (any(dd$selected$level == 0)) {
                 # 

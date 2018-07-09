@@ -35,11 +35,10 @@ function(input, output, session) {
             dim = 'per',
             name = 'Periode',                       # getoonde titel van dimensie
             data = per,                             # dimensie data.frame
-            initLevel = 3,
-            initParent = '201801',
-            selectLevel = 3,
-            selectLabel = c('2016-01-01','2016-01-02'),
-            #keepUnused = TRUE,
+            initLevel = 1,
+            selectLevel = 1,
+            selectLabel = c('2018'),
+            keepUnused = TRUE,
             
             levelNames = c('Alle perioden','Jaar','maand','Dag'),
             useLevel = c(3)) %>%
@@ -87,23 +86,35 @@ function(input, output, session) {
             as = 'dateRange1',                          # te tonen label als er meer presentaties zijn
             isDefault = TRUE,
             navOpts = list(hideNoFilter = TRUE),
-            dateRangeOpts = list()) %>%
+            rangeOpts = list()) %>%
         addPresentation(
             dim = 'per' ,
             uiId = 'per2',
+            name = 'Periode',
             useLevels = c(0,1,2,3),
             type = 'highCharts',                        # presentatie-vorm is een chart
             as = 'chart1',                             # te tonen label als er meer presentaties zijn
             isDefault = TRUE,
             height = 250,
             navOpts = list(
-                syncNav = FALSE,
                 links = list(
                     list(
                         type = 'dim',
                         dim = 'per',
                         width = 10))),
-            highChartsOpts = columnChartOpts)
+            highChartsOpts = columnChartOpts) %>%
+        addPresentation(
+            dim = 'per' ,
+            uiId = 'per3',
+            useLevels = c(0,1,2,3),
+            type = 'dataTable',                     # presentatie-vorm is een dataTable
+            as = 'per3',                          # te tonen label als er meer presentaties zijn
+            isDefault = TRUE,
+            dataTableOpts = list(                   # opties voor type dataTable
+                measures = list(
+                    list(viewColumn = 'pqr', colorBarColor1 = '#f7fcb9'),
+                    list(viewColumn = 'abc', colorBarColor1 = '#f7fcb9'),
+                    list(viewColumn = 'xyz', colorBarColor1 = '#f7fcb9')))) 
             
     
      s1 <- s1 %>% addDimView(
@@ -114,6 +125,7 @@ function(input, output, session) {
          initLevel = 2,
          initParent = '41-60',
          orderBy = 'key',
+         selectMode = 'multi',
          useLevels = c(0,1,2)) %>%
          addMeasure(
              dim = 'leeft',
@@ -129,11 +141,27 @@ function(input, output, session) {
              type = 'dataTable',                     # presentatie-vorm is een dataTable
              as = 'tabel1',                          # te tonen label als er meer presentaties zijn
              isDefault = TRUE,
+             navOpts = list(
+                 links = list(
+                     list(
+                         type = 'dim',
+                         dim = 'leeft2',
+                         width = 10))),
              dataTableOpts = list(                   # opties voor type dataTable
                  measures = list(
                      list(viewColumn = 'pqr', colorBarColor1 = '#f7fcb9'),
                      list(viewColumn = 'abc', colorBarColor1 = '#f7fcb9'),
-                     list(viewColumn = 'xyz', colorBarColor1 = '#f7fcb9')))) 
+                     list(viewColumn = 'xyz', colorBarColor1 = '#f7fcb9')))) %>%
+         addPresentation(
+             dim = 'leeft' ,
+             useLevels = c(2),
+             uiId = 'leeft2',
+             checkUiId = FALSE,
+             type = 'rangeSliderInput',                     # presentatie-vorm is een rangeSliderInput
+             as = 'Range1',                          # te tonen label als er meer presentaties zijn
+             isDefault = TRUE,
+             navOpts = list(hideNoFilter = TRUE),
+             rangeOpts = list()) 
          
     
 

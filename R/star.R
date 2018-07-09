@@ -55,7 +55,7 @@ domains <- list(
     aggregateFun = c('sum','dcount','median','mean','min','max','custom'),
     format = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3'),
     ordering = c('HL','LH','asc','desc'),
-    presType = c('dataTable','highCharts','radioButton','selectInput','dateRangeInput'),
+    presType = c('dataTable','highCharts','radioButton','selectInput','dateRangeInput','rangeSliderInput'),
     selectMode = c('single','multi','none'),
     dateRangeOpts = c('label'),
     dataTableOpts =  c('measures', 'pageLength', 'pageLengthList','serverSideTable'),
@@ -377,18 +377,18 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL) {
             
             body <- tmp[eval(expr = parse(text = parentFilter)),
                         eval(expr = parse(text = measFun)),
-                        eval(expr = parse(text = byText))]
+                        by = eval(expr = parse(text = byText))]
             
             if(lvl %in% dd$footerLevels) {
                 byText <- paste0('level',lvl - 1,'Label')
                 
                 footer <- tmp[eval(expr = parse(text = parentFilter)),
                               eval(expr = parse(text = measFun)),
-                              eval(expr = parse(text = byText))]
+                              by = eval(expr = parse(text = byText))]
                 
             }
         }
-        
+
         names(body) <- c('member',measCols)
         body$member <- as.character(body$member)
         
@@ -620,14 +620,20 @@ dimSetHasSubselect <- function(env,dim) {
 
 dimCorrectSelectionInfo <- function(input,env,dim) {
 
-    l <- env$dims[[dim]]$selected
-    gdim <- env$dims[[dim]]$gdim
+    dd <- env$dims[[dim]]
+    
+    if (dd$selectMode == 'single') {
+        return(TRUE)
+    }
+    
+    l <- dd$selected
+    gdim <- dd$gdim
 
     if (nrow(l) > 1 && !(input[[paste0(gdim,'DimMs')]])) {
         l <- l[nrow(l),]
 
-        env$dims[[dim]]$selected <- l
-        env$dims[[dim]]$reactive$selectChange <- env$dims[[dim]]$reactive$selectChange + 1
+        dd$selected <- l
+        dd$reactive$selectChange <- dd$reactive$selectChange + 1
 
         return (TRUE)
     }
@@ -740,8 +746,9 @@ getFirstRow <- function(env,dim,tab) {
 
 
 getMeasList <- function(env,dim) {
-    lvl <- env$dims[[dim]]$level
-    meas <- env$dims[[dim]]$measList
+    dd <- env$dims[[dim]]
+    lvl <- dd$levelMap$from[dd$levelMap$to == dd$level]
+    meas <- dd$measList
     meas[which(bitwAnd(2**lvl,meas$applyToLevels) %in% 2**lvl),]
 }
 
@@ -912,4 +919,18 @@ getReportName <- function(title) {
         return(paste0(title,' <font color="red">TEST</font>'))
     
     return(title)
+}
+
+makeRangeSelection <- function(env,dim,from,to) {
+    
+    dd <- env$dims[[dim]]
+    root <- dd$rootLabel
+    
+    dt <- dd$data[['level1Label']]
+    dt <- dt[dt >= from & dt <= to]
+    if (length(dt) > 0)
+        data.frame(level = 1L, parent = root, label = dt, stringsAsFactors = FALSE)
+    else 
+        NULL
+    
 }

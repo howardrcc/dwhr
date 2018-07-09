@@ -42,6 +42,11 @@ renderDims <- function(env,input,output) {
                     renderDateRangeDim(env,dim,input,output)
                 }
                 
+                if('rangeSliderInput' %in% presTypes) {
+                    renderRangeSliderDim(env,dim,input,output)
+                }
+                
+                
                 # dimension preslist
                 
                 outputName = paste0(gdim,'DimPresList')
@@ -284,7 +289,8 @@ renderDims <- function(env,input,output) {
                     outputDim <- paste0(gdim,'Dim')
                     outputChart <- paste0(gdim,'DimChart')
                     outputDateRange <- paste0(gdim,'DimDateRange')
-
+                    outputRangeSlider <- paste0(gdim,'DimRangeSlider')
+                    
                     if (is.null(height) || length(height) == 0) { height <- '300px'}
 
                     if (presType %in% c('radioButton','selectInput')) {
@@ -297,19 +303,19 @@ renderDims <- function(env,input,output) {
 
                     }
                     
-                    if (presType == 'dateRangeInput') {
+                    if (presType %in% c('dateRangeInput','rangeSliderInput')) {
                        
-                        minDate <- presList[[dd$pres]]$dateRangeOpts$min
-                        maxDate <- presList[[dd$pres]]$dateRangeOpts$max
+                        minVal <- presList[[dd$pres]]$rangeOpts$min
+                        maxVal <- presList[[dd$pres]]$rangeOpts$max
                         
-                        drLabel <- isNull(presList[[dd$pres]]$dateRangeOpts$label,'')
+                        rLabel <- isNull(presList[[dd$pres]]$rangeOpts$label,'')
 
                         if (any(dd$selected$level == 0)) {
-                            startDate <- min(dd$data[['level1Label']])
-                            endDate <- max(dd$data[['level1Label']])
+                            startVal <- min(dd$data[['level1Label']])
+                            endVal <- max(dd$data[['level1Label']])
                         } else {
-                            startDate <- min(dd$selected$label)
-                            endDate <- max(dd$selected$label)
+                            startVal <- min(dd$selected$label)
+                            endVal <- max(dd$selected$label)
                         }
                         
                     }
@@ -332,15 +338,19 @@ renderDims <- function(env,input,output) {
                             selectize = FALSE),
                         dateRangeInput = shiny::dateRangeInput(
                             inputId = outputDateRange,
-                            label = drLabel,
-                            min = minDate,
-                            max = maxDate,
-                            start = startDate,
-                            end = endDate,
+                            label = rLabel,
+                            min = minVal,
+                            max = maxVal,
+                            start = startVal,
+                            end = endVal,
                             language = 'nl',
-                            separator = ' tm '
-                            
-                        ))
+                            separator = ' tm '),
+                        rangeSliderInput = shiny::sliderInput(
+                            inputId = outputRangeSlider,
+                            label = rLabel,
+                            min = minVal,
+                            max = maxVal,
+                            value = c(startVal, endVal)))
                 })
 
                 # dimension Footer

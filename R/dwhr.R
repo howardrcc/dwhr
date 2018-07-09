@@ -347,6 +347,13 @@ addDimView <- function(
         }
 
         # map columns based on useLevels
+        
+        org <- list(
+            data = data,
+            levelNames = levelNames,
+            maxLevel = maxLevel,
+            initLevel = initLevel,
+            selectLevel = selectLevel)
 
         if (length(setdiff(c(0:maxLevel),useLevels)) != 0)  {
 
@@ -502,7 +509,8 @@ addDimView <- function(
 
     l <- new.env(parent = emptyenv())
     class(l) <- 'dimView'
-
+    
+    l$org <- org
     l$presListType <- presListType
     l$call <- match.call()
     l$measureCalls <- list()
@@ -535,7 +543,7 @@ addDimView <- function(
         label = selectLabel,
         stringsAsFactors = FALSE)
     l$rootSelected <- data.frame(
-        level = 0,
+        level = 0L,
         parent = '',
         label = rootLabel,
         stringsAsFactors = FALSE)
@@ -591,7 +599,7 @@ addDimView <- function(
         processingOrder = 0,
         format = 'standard',
         formatRef = NA,
-        applyToLevels = vec2Bit(c(0:maxLevel)),
+        applyToLevels = vec2Bit(c(0:org$maxLevel)),
         stringsAsFactors = FALSE)
     l$presList <- list()
     l$presVec <- NULL
@@ -649,10 +657,7 @@ addDimView <- function(
     assert_is_numeric(isNull(levels,0))
     levels <- as.integer(levels)
     if (length(levels) == 0) {
-        levels <- c(0:dd$maxLevel)
-    } else {
-        levels <- dd$levelMap$to[dd$levelMap$from %in% levels]
-        length(levels) > 0 || stop('Invalid levels argument')
+        levels <- c(0:dd$org$maxLevel)
     }
     levels
 }
@@ -888,7 +893,7 @@ addMeasure <- function(env, dim, factColumn, fun, as = factColumn, viewColumn = 
                     processingOrder = 999,
                     format = format,
                     formatRef = NA,
-                    applyToLevels = vec2Bit(0:dd$maxLevel),   # formatColumns are for all levels
+                    applyToLevels = vec2Bit(0:dd$org$maxLevel),   # formatColumns are for all levels
                     stringsAsFactors = FALSE))
 
         dd$hasFormatColumn  <- TRUE
@@ -1007,7 +1012,7 @@ addMeasureDerrived <- function(env, dim, userFunc, as, viewColumn = NULL, sort =
                     processingOrder = 999,
                     format = format,
                     formatRef = NA,
-                    applyToLevels = vec2Bit(0:dd$maxLevel),   # formatColumns are for all levels
+                    applyToLevels = vec2Bit(0:dd$org$maxLevel),   # formatColumns are for all levels
                     stringsAsFactors = FALSE))
 
         dd$hasFormatColumn  <- TRUE
@@ -1315,7 +1320,7 @@ addRowGroupColumn <- function(env, dim, rowGroupColumn, levels = NULL) {
 #'@export
 #'
 addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault = FALSE, height = NULL, width = NULL,
-    useLevels = NULL, navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL, dateRangeOpts = NULL, checkUiId = TRUE) {
+    useLevels = NULL, navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL, rangeOpts = NULL, checkUiId = TRUE) {
 
     withCallingHandlers({
 
@@ -1338,7 +1343,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
         assert_is_list(isNull(simpleOpts,list()))
         assert_is_list(isNull(dataTableOpts,list()))
         assert_is_list(isNull(highChartsOpts,list()))
-        assert_is_list(isNull(dateRangeOpts,list()))
+        assert_is_list(isNull(rangeOpts,list()))
 
         dd <- env$dims[[dim]]
         class(dd) == 'dimView' || stop('dim is not of class dimView')
@@ -1370,9 +1375,11 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
         assert_is_a_bool(navOpts$hideBreadCrumb)
         assert_is_list(navOpts$links)
 
-        navOpts$syncNav || dim != uiId || stop('syncNav not valid for dim == uiId')
-
-        if (is.null(simpleOpts)  + is.null(dataTableOpts) + is.null(highChartsOpts) + is.null(dateRangeOpts) != 3) {
+        if (!navOpts$syncNav && dim == uiId) {
+            navOpts$syncNav <- TRUE
+        } 
+        
+        if (is.null(simpleOpts)  + is.null(dataTableOpts) + is.null(highChartsOpts) + is.null(rangeOpts) != 3) {
             stop('Invalid options')
         }
 
@@ -1531,7 +1538,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
     if (uiId != dim) {
 
         if (!uiId %in% names(env$dims)) {
-            is.null(dd$syncNav) || dd$syncNav == navOpts$syncNav || dwhrStop('Incompatible syncNav')
+            
             call <- dd$call
 
             call$dim <- uiId
@@ -1540,7 +1547,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
             call$env <- env
             
             if (length(useLevels) != 0) {
-                navOpts$syncNav && dwhrStop('useLevels not valid when syncNav == T')
+                navOpts$syncNav <- FALSE
                 max(dd$useLevels) == max(useLevels) || dwhrStop('invalid useLevels parameter')
                 call$useLevels <- useLevels
                 
@@ -1549,13 +1556,14 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 }
             }
             
+            is.null(dd$syncNav) || dd$syncNav == navOpts$syncNav || dwhrStop('Incompatible syncNav')
             
             if (!is.null(highChartsOpts) && dd$selectMode %in% c('multi')) {
                 warning('multi-select not implemented for highCharts: dimView set to single-select')
                 call$selectMode <- 'single' 
             }
 
-            if (!is.null(dateRangeOpts)) {
+            if (!is.null(rangeOpts)) {
                 call$initLevel <- max(dd$useLevels)
                 call$initParent <- ""
                 call$selectMode <- 'multi'
@@ -1604,21 +1612,23 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
     
     withCallingHandlers({
         
-        # dateRangeOpts checks
+        # rangeOpts checks
         
-        if (!is.null(dateRangeOpts)) {
-            dd$maxLevel == 1 || stop('dim has too many levels for dateRange presentation')
-            assert_is_subset(names(dateRangeOpts),domains[['dateRangeOpts']])
+        if (!is.null(rangeOpts)) {
+            dd$maxLevel == 1 || stop('dim has too many levels for dateRange or rangeSlider presentation')
+            assert_is_subset(names(rangeOpts),domains[['rangeOpts']])
             
-            dates <- unique(dd$data[['level1Label']])
+            if (type == 'dateRangeInput') {
+                dates <- unique(dd$data[['level1Label']])
+                
+                assert_is_character(dates)
+                assert_all_are_date_strings(dates,format = '%Y-%m-%d')
+            }
             
-            assert_is_character(dates)
-            assert_all_are_date_strings(dates,format = '%Y-%m-%d')
-            
-            minDate <- min(dd$data[['level1Label']])
-            maxDate <- max(dd$data[['level1Label']])
-            dateRangeOpts[['min']] <- minDate
-            dateRangeOpts[['max']] <- maxDate
+            minVal <- min(dd$data[['level1Label']])
+            maxVal <- max(dd$data[['level1Label']])
+            rangeOpts[['min']] <- minVal
+            rangeOpts[['max']] <- maxVal
             
             navOpts$hideBreadCrumb <- TRUE
             
@@ -1656,7 +1666,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
         simpleOpts = simpleOpts,
         dataTableOpts = dataTableOpts,
         highChartsOpts = highChartsOpts,
-        dateRangeOpts = dateRangeOpts)
+        rangeOpts = rangeOpts)
 
     if (isDefault || length(pl) == 1) {
         dd$defPres <- newKey
@@ -1838,7 +1848,7 @@ getSelected <- function(data,maxLevel,selectableLevels,selectedIds) {
     
     if (length(selectedIds) >= nrow(data)) {
         return(data.frame(
-            level = 0,
+            level = 0L,
             parent = "",
             label = unique(data$level0Label)[1],
             stringsAsFactors = FALSE))
@@ -1848,7 +1858,7 @@ getSelected <- function(data,maxLevel,selectableLevels,selectedIds) {
     
     if (maxLevel == 1) {
         return(data.frame(
-            level = 1,
+            level = 1L,
             parent = unique(data$level0Label)[1],
             label =  unique(data$level1Label[data[,keyCol] %in% selectedIds]),
             stringsAsFactors = FALSE))
@@ -1872,7 +1882,7 @@ getSelected <- function(data,maxLevel,selectableLevels,selectedIds) {
             sel <- rbind(
                 sel,
                 data.frame(
-                    level = lvl,
+                    level = as.integer(lvl),
                     parent = yy$parent,
                     label = yy$label,
                     stringsAsFactors = FALSE))
@@ -1891,7 +1901,7 @@ getSelected <- function(data,maxLevel,selectableLevels,selectedIds) {
         sel <- rbind(
             sel,
             data.frame(
-                level = maxLevel,
+                level = as.integer(maxLevel),
                 parent = zz$parent,
                 label = zz$label,
                 stringsAsFactors = FALSE))

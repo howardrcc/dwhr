@@ -1,24 +1,23 @@
-renderDateRangeDim <- function(env,dim,input,output)  {
+renderRangeSliderDim <- function(env,dim,input,output)  {
     
     gdim <- env$dims[[dim]]$gdim
-    outputDateRange <- paste0(gdim,'DimDateRange')
+    outputRangeSlider <- paste0(gdim,'DimRangeSlider')
     
-    dr <- reactive({input[[outputDateRange]]})
-    dr2 <- dr %>% shiny::throttle(1000)
+    vr <- reactive({input[[outputRangeSlider]]})
+    vr2 <- vr %>% shiny::throttle(1000)
     
-    shiny::observeEvent(dr2(),{
+    shiny::observeEvent(vr2(),{
         
-        sel <- dr2()
-        
+        sel <- vr2()
         if (is.null(sel))
             return()
-        
+
         dd <- env$dims[[dim]]
         
-        minDate <- min(dd$data[['level1Label']])
-        maxDate <- max(dd$data[['level1Label']])
+        minVal <- min(dd$data[['level1Label']])
+        maxVal <- max(dd$data[['level1Label']])
         
-        if (sel[1] <= minDate && sel[2] >= maxDate) {
+        if (sel[1] <= minVal && sel[2] >= maxVal) {
             s <- dd$rootSelected
         } else {
             s <- makeRangeSelection(env,dim,sel[1],sel[2])
@@ -32,7 +31,7 @@ renderDateRangeDim <- function(env,dim,input,output)  {
             dd$selected <- s
             
             if (dd$selectSource != 'observeEvent') {
-                dd$selectSource <- 'dateRangeClick'
+                dd$selectSource <- 'rangeSliderClick'
                 dd$reactive$selectChange <- dd$reactive$selectChange + 1
             } else {
                 dd$selectSource <- ''
@@ -40,3 +39,4 @@ renderDateRangeDim <- function(env,dim,input,output)  {
         }
     })
 }
+
