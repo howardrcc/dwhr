@@ -621,6 +621,7 @@ dimSetHasSubselect <- function(env,dim) {
 dimCorrectSelectionInfo <- function(input,env,dim) {
 
     dd <- env$dims[[dim]]
+    rw <- isNa(dd$rowLastAccessed$row[dd$rowLastAccessed$level == dd$level],1)
     
     l <- dd$selected
     gdim <- dd$gdim
@@ -628,7 +629,7 @@ dimCorrectSelectionInfo <- function(input,env,dim) {
     if ((nrow(l) > 1 && dd$selectMode == 'single' && dd$selectSource != 'observeEvent') ||
        ((nrow(l) > 1 && dd$selectMode == 'multi' && !(input[[paste0(gdim,'DimMs')]])))) {
         
-        l <- l[nrow(l),]
+        l <- l[rw,]
 
         dd$selected <- l
         dd$reactive$selectChange <- dd$reactive$selectChange + 1
