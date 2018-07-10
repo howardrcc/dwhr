@@ -2038,8 +2038,9 @@ setColumnName <- function(env,dim,colFrom, viewColFrom = NULL,colTo) {
 #'
 #' @export
 #'
-setDebug <- function(debug) {
+setDebug <- function(debug,debugDims = NULL) {
     glob.env$debug <- debug
+    glob.env$debugDims <- debugDims
 }
 
 

@@ -873,7 +873,9 @@ renderDataTableDim <- function(env,dim,input,output) {
 
             level <- dd$level
             dd$rowLastAccessed$row[dd$rowLastAccessed$level == level] <- info$row
-            dd$selectSource <- ''
+            if (info$col == 1) {
+                dd$selectSource <- 'dataTableCellClicked'
+            }
 
             if((info$value == '+' && info$col == 0)) { 
                 cnt <- dd$membersFiltered$cnt[info$row]
@@ -911,7 +913,7 @@ renderDataTableDim <- function(env,dim,input,output) {
             }
         }
 
-    })
+    }, priority = 10)
 
     cellsSelected = paste0(gdim,'Dim_cells_selected')
 
@@ -919,6 +921,13 @@ renderDataTableDim <- function(env,dim,input,output) {
 
         m <- input[[cellsSelected]]
         dd <- env$dims[[dim]]
+        
+        if (dd$selectSource != 'dataTableCellClicked') {
+            dd$selectSource <- ''
+            return()
+        }
+        
+        dd$selectSource <- 'dataTablecellSelected'
 
         selected <- NULL
         level <- dd$level
@@ -1034,10 +1043,10 @@ renderDataTableDim <- function(env,dim,input,output) {
         }
 
         l <- l[order(l$level,l$label,method = 'radix'),]
+        row.names(l) <- NULL
 
         s <- dd$selected
         dd$selected <- l
-        dd$selectSource <- 'dataTablecellSelected'
         
         dimCorrectSelectionInfo(input,env,dim)
         dimSetHasSubselect(env,dim)
