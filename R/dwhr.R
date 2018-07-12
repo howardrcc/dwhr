@@ -1825,15 +1825,24 @@ setSelection <- function(env,dim,sel,single = TRUE,source = 'setSelection',dimRe
 
 }
 
-setSelection2 <- function(env,dim,sel,selIds,source = 'setSelection',dimRefresh = TRUE) {
+setSelection2 <- function(env,dim,dimOrg,source = 'setSelection',dimRefresh = TRUE) {
+    
+    ddOrg <- env$dims[[dimOrg]]
+    sel <- ddOrg$selected
+    selIds <- ddOrg$selectedIds
     
     dd <- env$dims[[dim]]
+    
     if (!identical(dd$selectedIds, selIds)) {
         dd$debounce <- FALSE
  
         dd$selected <- getSelected(dd$data,dd$maxLevel,dd$selectableLevels,selIds)
         dd$selectSource <- source
-
+        
+        if (isNull(dd$syncNav,FALSE)) {
+            dd$rowLastAccessed <- ddOrg$rowLastAccessed
+        }
+        
         dd$reactive$selectChange <- dd$reactive$selectChange + 1
         dimSetHasSubselect(env,dim)
         

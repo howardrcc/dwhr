@@ -231,7 +231,7 @@ startObserversData <- function(env,dim) {
                             dms <- dd$childDims
 
                         for (d in dms) {
-                            setSelection2(env,d,dd$selected,dd$selectedIds, source = 'observeEvent')
+                            setSelection2(env,d,dim,source = 'observeEvent')
                         }
                     }
 
