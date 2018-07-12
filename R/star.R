@@ -609,13 +609,15 @@ dimSetHasSubselect <- function(env,dim) {
     if (!(length(a) == 0 && length(b) == 0) &&
         dd$parent %in% dd$hasSubselect$label &&
         !identical(a[order(a,method = 'radix')], b[order(b,method = 'radix')])) {
-
-        printDebug(env = env, dim, eventIn = 'subSelectChange', eventOut = 'dimRefresh')
-        dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
-    }
+        
+        dd$hasSubselect <- hss
+        return(TRUE)
+        
+    } else {
     
-    dd$hasSubselect <- hss
-
+        dd$hasSubselect <- hss
+        return(FALSE)
+    }
 }
 
 dimCorrectSelectionInfo <- function(input,env,dim) {
@@ -626,7 +628,7 @@ dimCorrectSelectionInfo <- function(input,env,dim) {
     gdim <- dd$gdim
     
     if ((nrow(l) > 1 && dd$selectMode == 'single') ||
-       ((nrow(l) > 1 && dd$selectMode == 'multi' && !(input[[paste0(gdim,'DimMs')]])))) {
+        (nrow(l) > 1 && dd$selectMode == 'multi' && !(input[[paste0(gdim,'DimMs')]]))) {
         
         rwv <- isNa(dd$rowLastAccessed$value[dd$rowLastAccessed$level == dd$level],'')
         rw <- which(dd$seleced$label == rwv)
@@ -642,8 +644,7 @@ dimCorrectSelectionInfo <- function(input,env,dim) {
         }
 
         dd$selected <- l
-       # dd$reactive$selectChange <- dd$reactive$selectChange + 1
-
+     
         return (TRUE)
     }
 

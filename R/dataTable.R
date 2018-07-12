@@ -850,7 +850,7 @@ renderDataTableDim <- function(env,dim,input,output) {
         
         env$dtPrev[[dim]] <- prep
         env$dtPrep[[dim]] <- NULL
-        
+        dd$selectSource <- 'init'
         prep$widget
     }, 
     server = serverSide)
@@ -861,25 +861,23 @@ renderDataTableDim <- function(env,dim,input,output) {
     #
     # observers
     #
-
+    
     cellClicked = paste0(gdim,'Dim_cell_clicked')
 
     shiny::observeEvent(input[[cellClicked]], {
 
         info <- input[[cellClicked]]
         dd <- env$dims[[dim]]
-
+    
         if(length(info) > 0) {
 
             level <- dd$level
             dd$rowLastAccessed$row[dd$rowLastAccessed$level == level] <- info$row
-            if (info$col == 1) {
-                dd$selectSource <- 'dataTableCellClicked'
-            }
-
+            dd$selectSource <- ''
+            
             if((info$value == '+' && info$col == 0)) { 
                 cnt <- dd$membersFiltered$cnt[info$row]
-
+               
                 if (cnt == 0) {
                     # geen onderliggende data: trigger refresh
                     dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
@@ -911,6 +909,7 @@ renderDataTableDim <- function(env,dim,input,output) {
             } else {
                 dd$rowLastAccessed$value[dd$rowLastAccessed$level == level] <- ''
             }
+            
         }
 
     }, priority = 10)
@@ -921,14 +920,14 @@ renderDataTableDim <- function(env,dim,input,output) {
 
         m <- input[[cellsSelected]]
         dd <- env$dims[[dim]]
-        
-        if (dd$selectSource != 'dataTableCellClicked') {
+print('cells_selected')
+        if (dd$selectSource == 'init') {
             dd$selectSource <- ''
             return()
         }
-        
-        dd$selectSource <- 'dataTablecellSelected'
 
+        lvlChange <- FALSE
+        
         selected <- NULL
         level <- dd$level
         parent <- dd$parent
@@ -978,14 +977,15 @@ renderDataTableDim <- function(env,dim,input,output) {
 
         l <- dd$selected
 
-        if(!(dd$msState) && !(any(l$level != level)) && length(selected) > 0) {
+        if(!(dd$msState) && nrow(l) <= 1 && length(selected) > 0) {
 
             # single select
 
-            l <- data.frame( level = level
-                             , parent = parent
-                             , label = selected
-                             , stringsAsFactors = FALSE)
+            l <- data.frame( 
+                level = level,
+                parent = parent,
+                label = selected,
+                stringsAsFactors = FALSE)
 
 
         } else {
@@ -997,10 +997,11 @@ renderDataTableDim <- function(env,dim,input,output) {
             }
 
             if(length(selected) > 0) {
-                s <- data.frame( level = level
-                                 , parent = parent
-                                 , label = selected
-                                 , stringsAsFactors = FALSE)
+                s <- data.frame( 
+                    level = level,
+                    parent = parent,
+                    label = selected,
+                    stringsAsFactors = FALSE)
 
                 l <- rbind(l,s)
 
@@ -1048,8 +1049,10 @@ renderDataTableDim <- function(env,dim,input,output) {
         s <- dd$selected
         dd$selected <- l
         
-        dimCorrectSelectionInfo(input,env,dim)
-        dimSetHasSubselect(env,dim)
+        if (dimCorrectSelectionInfo(input,env,dim) | dimSetHasSubselect(env,dim)) {
+            printDebug(env = env, dim, eventIn = 'subSelectChange/CorrectInfo', eventOut = 'dimRefresh')
+            dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
+        }
 
         if (!identical(s,l)) {
             dd$reactive$selectChange <- dd$reactive$selectChange + 1

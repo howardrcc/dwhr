@@ -509,7 +509,7 @@ addDimView <- function(
 
     l <- new.env(parent = emptyenv())
     class(l) <- 'dimView'
-    
+
     l$org <- org
     l$presListType <- presListType
     l$call <- match.call()
@@ -587,7 +587,7 @@ addDimView <- function(
     l$searchTxt <- ""
     l$prevSearchTxt <- ""
     l$cntName <- cntName
-    l$selectSource <- 'init'
+    l$selectSource <- ''
     l$measList <- data.frame(
         factColumn = '*',
         viewColumn = 'cnt',
@@ -1616,6 +1616,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
         
         if (!is.null(rangeOpts)) {
             dd$maxLevel == 1 || stop('dim has too many levels for dateRange or rangeSlider presentation')
+            dd$level == 1 || stop('dim level must be 1 for dateRange or rangeSlider presentation')
             assert_is_subset(names(rangeOpts),domains[['rangeOpts']])
             
             if (type == 'dateRangeInput') {

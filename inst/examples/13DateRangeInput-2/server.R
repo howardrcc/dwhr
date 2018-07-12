@@ -36,10 +36,10 @@ function(input, output, session) {
             dim = 'per',
             name = 'Periode',                       # getoonde titel van dimensie
             data = per,                             # dimensie data.frame
-            initLevel = 1,
-            selectLevel = 1,
-            selectLabel = c('2018'),
-            keepUnused = TRUE,
+            initLevel = 3,
+            # selectLevel = 1,
+            # selectLabel = c('2018'),
+            # keepUnused = TRUE,
             
             levelNames = c('Alle perioden','Jaar','maand','Dag'),
             useLevel = c(3)) %>%
@@ -115,8 +115,8 @@ function(input, output, session) {
                 measures = list(
                     list(viewColumn = 'pqr', colorBarColor1 = '#f7fcb9'),
                     list(viewColumn = 'abc', colorBarColor1 = '#f7fcb9'),
-                    list(viewColumn = 'xyz', colorBarColor1 = '#f7fcb9')))) 
-            
+                    list(viewColumn = 'xyz', colorBarColor1 = '#f7fcb9'))))
+
     
      s1 <- s1 %>% addDimView(
          dim = 'leeft',

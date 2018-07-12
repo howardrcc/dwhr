@@ -17,7 +17,7 @@ startObserversData <- function(env,dim) {
             printDebug(env = env, dim, eventIn = 'levelChange', info = paste0('new level:',dd$level))
 
             dd$searchTxt <- ""
-
+         
             if(exists(paste0(dim,'LevelChangeHook'),envir = env$ce)) {
                 do.call(paste0(dim,'LevelChangeHook'),list(env = env),envir = env$ce)
             }
@@ -322,10 +322,14 @@ startObserversPres <- function(env,dim,pres) {
     if (!(dimMs %in% obs)) {
         shiny::observeEvent(inp[[dimMs]], {
 
-            if(inp[[dimMs]] == FALSE)
+            if(inp[[dimMs]] == FALSE) {
                 if(dimCorrectSelectionInfo(inp,env,dim))
-                    dimSetHasSubselect(env,dim)
-
+                    dd$reactive$selectChange <- dd$reactive$selectChange + 1    
+                
+                if(dimSetHasSubselect(env,dim))
+                    dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1    
+            }
+                
             if (dd$msState != inp[[dimMs]]) {
                 dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
 
