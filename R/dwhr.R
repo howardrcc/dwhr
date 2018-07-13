@@ -1626,6 +1626,18 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 assert_all_are_date_strings(dates,format = '%Y-%m-%d')
             }
             
+            if (!is.null(rangeOpts$label)) {
+                assert_is_a_string(rangeOpts$label)
+            }
+            
+            if (!is.null(rangeOpts$throttle)) {
+                assert_is_a_number(rangeOpts$throttle)
+            }
+            
+            if (!is.null(rangeOpts$debounce)) {
+                assert_is_a_number(rangeOpts$debounce)
+            }
+            
             minVal <- min(dd$data[['level1Label']])
             maxVal <- max(dd$data[['level1Label']])
             rangeOpts[['min']] <- minVal

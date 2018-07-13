@@ -25,6 +25,9 @@ renderRangeSliderDim <- function(env,dim,input,output)  {
                 shinyjs::alert('Geen data!')
                 return()
             }
+            if (!dd$fixedMembers) {
+                s <- s[s$label %in% dd$membersFiltered$member[dd$membersFiltered$cnt > 0],]
+            }
         }
 
         if(!identical(s,dd$selected)) {

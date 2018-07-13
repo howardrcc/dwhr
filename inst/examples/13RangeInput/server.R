@@ -37,6 +37,7 @@ function(input, output, session) {
             data = per,                             # dimensie data.frame
             initLevel = 1,
             selectLevel = 3,
+          #  fixedMembers = TRUE,
             selectLabel = c('2018-07-05','2018-07-12'),
             levelNames = c('Alle perioden','Jaar','maand','Dag'),
             useLevel = c(0,1,2,3)) %>%
@@ -72,7 +73,7 @@ function(input, output, session) {
             as = 'dateRange1',                          # te tonen label als er meer presentaties zijn
             isDefault = TRUE,
             navOpts = list(hideNoFilter = TRUE),
-            rangeOpts = list()) 
+            rangeOpts = list(label = 'Kies datumbereik')) 
         
 
     
@@ -119,7 +120,7 @@ function(input, output, session) {
              as = 'Range1',                          # te tonen label als er meer presentaties zijn
              isDefault = TRUE,
              navOpts = list(hideNoFilter = TRUE),
-             rangeOpts = list()) 
+             rangeOpts = list(label = 'Kies leeftijdbereik')) 
          
     
 

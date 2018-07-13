@@ -57,7 +57,7 @@ domains <- list(
     ordering = c('HL','LH','asc','desc'),
     presType = c('dataTable','highCharts','radioButton','selectInput','dateRangeInput','rangeSliderInput'),
     selectMode = c('single','multi','none'),
-    dateRangeOpts = c('label'),
+    rangeOpts = c('label','throttle','debounce'),
     dataTableOpts =  c('measures', 'pageLength', 'pageLengthList','serverSideTable'),
     dataTableMeasures = c('colorBarColor1','colorBarColor2','viewColumn','format', 'orderable',
                           'bgStyle','fgStyle','width','fontWeight','align','cursor','visible','print','tooltip'),
@@ -309,6 +309,12 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL) {
             return(getMembers(env, dim))
         }
 
+        if (dd$na.rm) {
+            narm <- 'na.rm = TRUE' 
+        } else {
+            narm <- 'na.rm = FALSE'
+        }
+        
         measFun <- 'list(cnt = .N'
 
         for (q in meas$as[order(meas$sort)]) {
@@ -326,26 +332,23 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL) {
                 }
 
                 if (fun == 'sum') {
-                    if (dd$na.rm)
-                        measFun <- paste0(measFun,"sum(",factColumn,", na.rm = TRUE)")
-                    else
-                        measFun <- paste0(measFun,"sum(",factColumn,")")
+                    measFun <- paste0(measFun,"sum(",factColumn,",",narm,")")
                 }
 
                 if (fun == 'median') {
-                    measFun <- paste0(measFun,"median(",factColumn,")")
+                    measFun <- paste0(measFun,"median(",factColumn,",",narm,")")
                 }
 
                 if (fun == 'mean') {
-                    measFun <- paste0(measFun,"mean(",factColumn,")")
+                    measFun <- paste0(measFun,"mean(",factColumn,",",narm,")")
                 }
 
                 if (fun == 'min') {
-                    measFun <- paste0(measFun,"min(",factColumn,")")
+                    measFun <- paste0(measFun,"min(",factColumn,",",narm,")")
                 }
 
                 if (fun == 'max') {
-                    measFun <- paste0(measFun,"max(",factColumn,")")
+                    measFun <- paste0(measFun,"max(",factColumn,",",narm,")")
                 }
                 
                 if (!fun %in% domains[['aggregateFun']]) {

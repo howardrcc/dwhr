@@ -3,17 +3,29 @@ renderDateRangeDim <- function(env,dim,input,output)  {
     gdim <- env$dims[[dim]]$gdim
     outputDateRange <- paste0(gdim,'DimDateRange')
     
-    dr <- reactive({input[[outputDateRange]]})
-    dr2 <- dr %>% shiny::throttle(1000)
+    dd <- env$dims[[dim]]
+    opts <- dd$presList[[dd$pres]]$rangeOpts
     
+    dr <- reactive({input[[outputDateRange]]})
+    
+    if (!is.null(opts$throttle)) {
+        dr2 <- dr %>% shiny::throttle(opts$throttle)
+    }
+
+    if (!is.null(opts$debounce)) {
+        dr2 <- dr %>% shiny::debounce(opts$debounce)
+    }
+    
+    if (is.null(opts$throttle) && is.null(opts$debounce)) {
+        dr2 <- dr %>% shiny::throttle(1000)
+    }
+        
     shiny::observeEvent(dr2(),{
         
         sel <- dr2()
         
         if (is.null(sel))
             return()
-        
-        dd <- env$dims[[dim]]
         
         minDate <- min(dd$data[['level1Label']])
         maxDate <- max(dd$data[['level1Label']])
@@ -25,6 +37,9 @@ renderDateRangeDim <- function(env,dim,input,output)  {
             if (is.null(s) || !(any(s$label %in% dd$membersFiltered$member[dd$membersFiltered$cnt > 0]))) {
                 shinyjs::alert('Geen data!')
                 return()
+            }
+            if (!dd$fixedMembers) {
+                s <- s[s$label %in% dd$membersFiltered$member[dd$membersFiltered$cnt > 0],]
             }
         }
         
