@@ -57,8 +57,7 @@ function(input, output, session) {
                 links = list(
                     list(
                         type = 'dim',
-                        dim = 'per2',
-                        width = 10))),
+                        dim = 'per2'))),
             dataTableOpts = list(                   # opties voor type dataTable
                 measures = list(
                     list(viewColumn = 'pqr', colorBarColor1 = '#f7fcb9'),
@@ -105,8 +104,7 @@ function(input, output, session) {
                  links = list(
                      list(
                          type = 'dim',
-                         dim = 'leeft2',
-                         width = 10))),
+                         dim = 'leeft2'))),
              dataTableOpts = list(                   # opties voor type dataTable
                  measures = list(
                      list(viewColumn = 'pqr', colorBarColor1 = '#f7fcb9'),

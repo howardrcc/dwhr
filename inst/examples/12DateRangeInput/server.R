@@ -43,7 +43,7 @@ function(input, output, session) {
             type = 'dateRangeInput',                     # presentatie-vorm is een dataRangeInput
             as = 'dateRange1',                          # te tonen label als er meer presentaties zijn
             isDefault = TRUE,
-            dateRangeOpts = list(start = '2016-01-01'))
+            rangeOpts = list())
           
     columnChartOpts$series <- list(
         list(
@@ -63,7 +63,6 @@ function(input, output, session) {
             initLevel = 1,
             fixedMembers = TRUE,
             levelNames = c('Alle perioden','Jaar','maand','Dag'),
-            na.rm = FALSE,
             useLevel = c(0,1,2,3)) %>%
         addMeasure(
             dim = 'per2',
