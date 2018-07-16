@@ -91,9 +91,15 @@ pointSingleSelectJS <- function(env,dim,color,serieType) {
     if (dd$level == dd$maxLevel) {
         drillable <- 'false'
     }
+    
+    if (nrow(dd$selected[dd$selected$level == dd$level,]) > 1) {
+        ms <- 'true'
+    } else {
+        ms <- 'false'
+    }
 
      highcharter::JS(paste0("function(event){
-    pointSingleSelect('",gdim,"',this, event,",selectable,",",unSelectable,",",drillable,",'",color,"');
+    pointSingleSelect('",gdim,"',this, event,",selectable,",",unSelectable,",",drillable,",'",color,"','",ms,"');
 }"))
 }
 

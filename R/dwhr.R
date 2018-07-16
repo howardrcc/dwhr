@@ -543,7 +543,7 @@ addDimView <- function(
         label = selectLabel,
         stringsAsFactors = FALSE)
     l$rootSelected <- data.frame(
-        level = 0L,
+        level = 0,
         parent = '',
         label = rootLabel,
         stringsAsFactors = FALSE)
@@ -1821,6 +1821,9 @@ setOrdering <- function(env, dim, as,sort, as2 = NULL) {
 setSelection <- function(env,dim,sel,single = TRUE,source = 'setSelection',dimRefresh = TRUE) {
     
     dd <- env$dims[[dim]]
+    
+    dd$selected$level <- as.numeric(dd$selected$level)
+    sel$level <- as.numeric(sel$level)
 
     if (!identical(dd$selected, sel)) {
         dd$debounce <- FALSE
@@ -1871,7 +1874,7 @@ getSelected <- function(data,maxLevel,selectableLevels,selectedIds) {
     
     if (length(selectedIds) >= nrow(data)) {
         return(data.frame(
-            level = 0L,
+            level = 0,
             parent = "",
             label = unique(data$level0Label)[1],
             stringsAsFactors = FALSE))
@@ -1881,7 +1884,7 @@ getSelected <- function(data,maxLevel,selectableLevels,selectedIds) {
     
     if (maxLevel == 1) {
         return(data.frame(
-            level = 1L,
+            level = 1,
             parent = unique(data$level0Label)[1],
             label =  unique(data$level1Label[data[,keyCol] %in% selectedIds]),
             stringsAsFactors = FALSE))

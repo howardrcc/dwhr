@@ -97,7 +97,7 @@ clearSelection = function(serie,id,color) {
    }
 };
 
-pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,color) {
+pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,color,ms) {
     var container = '#'.concat(dim,'DimChart');
     var eventName = dim.concat('HighchartClick');
     var chart = $(container).highcharts();
@@ -110,7 +110,7 @@ pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,c
         if(chart.xAxis[0].plotLinesAndBands.length > 0) {
 
             var pbColor = chart.xAxis[0].plotLinesAndBands[point.x].options.color;
-
+debugger;
             if (pbColor == color && unSelectable) {
                 unSelect = true;
                 clearPlotbands(chart,-1,color);

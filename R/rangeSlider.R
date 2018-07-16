@@ -3,8 +3,22 @@ renderRangeSliderDim <- function(env,dim,input,output)  {
     gdim <- env$dims[[dim]]$gdim
     outputRangeSlider <- paste0(gdim,'DimRangeSlider')
     
+    dd <- env$dims[[dim]]
+    opts <- dd$presList[[dd$pres]]$rangeOpts
+    
     vr <- reactive({input[[outputRangeSlider]]})
-    vr2 <- vr %>% shiny::throttle(1000)
+    
+    if (!is.null(opts$throttle)) {
+        vr2 <- vr %>% shiny::throttle(opts$throttle)
+    }
+    
+    if (!is.null(opts$debounce)) {
+        vr2 <- vr %>% shiny::debounce(opts$debounce)
+    }
+    
+    if (is.null(opts$throttle) && is.null(opts$debounce)) {
+        vr2 <- vr %>% shiny::throttle(1000)
+    }
     
     shiny::observeEvent(vr2(),{
         sel <- vr2()
@@ -12,8 +26,6 @@ renderRangeSliderDim <- function(env,dim,input,output)  {
         if (is.null(sel))
             return()
 
-        dd <- env$dims[[dim]]
-        
         minVal <- min(dd$data[['level1Label']])
         maxVal <- max(dd$data[['level1Label']])
         
@@ -25,10 +37,10 @@ renderRangeSliderDim <- function(env,dim,input,output)  {
                 shinyjs::alert('Geen data!')
                 return()
             }
-            if (!dd$fixedMembers) {
-                s <- s[s$label %in% dd$membersFiltered$member[dd$membersFiltered$cnt > 0],]
-            }
         }
+        
+        dd$selected$level <- as.numeric(dd$selected$level)
+        s$level <- as.numeric(s$level)
 
         if(!identical(s,dd$selected)) {
             dd$selected <- s
@@ -36,12 +48,12 @@ renderRangeSliderDim <- function(env,dim,input,output)  {
             if (dd$selectSource != 'observeEvent') {
                 dd$selectSource <- 'rangeSliderClick'
                 dd$reactive$selectChange <- dd$reactive$selectChange + 1
-            } else {
-                dd$selectSource <- ''    
+                return()
             } 
-        } else {
-            dd$selectSource <- ''
-        }
+        } 
+
+        dd$selectSource <- ''
+        
     })
 }
 

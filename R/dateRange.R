@@ -23,7 +23,6 @@ renderDateRangeDim <- function(env,dim,input,output)  {
     shiny::observeEvent(dr2(),{
         
         sel <- dr2()
-        
         if (is.null(sel))
             return()
         
@@ -38,10 +37,10 @@ renderDateRangeDim <- function(env,dim,input,output)  {
                 shinyjs::alert('Geen data!')
                 return()
             }
-            if (!dd$fixedMembers) {
-                s <- s[s$label %in% dd$membersFiltered$member[dd$membersFiltered$cnt > 0],]
-            }
         }
+        
+        dd$selected$level <- as.numeric(dd$selected$level)
+        s$level <- as.numeric(s$level)
         
         if(!identical(s,dd$selected)) {
             dd$selected <- s
@@ -49,9 +48,11 @@ renderDateRangeDim <- function(env,dim,input,output)  {
             if (dd$selectSource != 'observeEvent') {
                 dd$selectSource <- 'dateRangeClick'
                 dd$reactive$selectChange <- dd$reactive$selectChange + 1
-            } else {
-                dd$selectSource <- ''
-            }
+                return()
+            } 
         }
+        
+        dd$selectSource <- ''
+        
     })
 }

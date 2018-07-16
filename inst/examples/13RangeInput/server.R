@@ -37,7 +37,7 @@ function(input, output, session) {
             data = per,                             # dimensie data.frame
             initLevel = 1,
             selectLevel = 3,
-          #  fixedMembers = TRUE,
+            fixedMembers = TRUE,
             selectLabel = c('2018-07-05','2018-07-12'),
             levelNames = c('Alle perioden','Jaar','maand','Dag'),
             useLevel = c(0,1,2,3)) %>%
@@ -85,6 +85,7 @@ function(input, output, session) {
          initLevel = 2,
          initParent = '41-60',
          orderBy = 'key',
+         fixedMembers = TRUE,
          selectMode = 'single',
          useLevels = c(0,1,2)) %>%
          addMeasure(

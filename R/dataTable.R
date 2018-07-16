@@ -1053,7 +1053,10 @@ print('cells_selected')
             printDebug(env = env, dim, eventIn = 'subSelectChange/CorrectInfo', eventOut = 'dimRefresh')
             dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
         }
-
+        
+        s$level <- as.numeric(s$level)
+        l$level <- as.numeric(l$level)
+        
         if (!identical(s,l)) {
             dd$reactive$selectChange <- dd$reactive$selectChange + 1
             printDebug(env = env, dim, eventIn = 'dataTableCellsSelected', eventOut = 'selectChange')

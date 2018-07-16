@@ -404,18 +404,18 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL) {
             footer <- as.data.frame(footer)
         }
         
-        if (dim %in% selectableDims(env) && !(dd$type == 'output')) {
-            
-            diff <- setdiff(s$label[s$level == lvl &
-                                        s$parent == parent],body$member)
-            
-            if (length(diff) > 0) {
-                for (s in diff) {
-                    body <- appendZeroRow(s,dim,body)
-                }
-            }
-            
-        }
+        # if (dim %in% selectableDims(env) && !(dd$type == 'output')) {
+        #     
+        #     diff <- setdiff(s$label[s$level == lvl &
+        #                                 s$parent == parent],body$member)
+        #     
+        #     if (length(diff) > 0) {
+        #         for (s in diff) {
+        #             body <- appendZeroRow(s,dim,body)
+        #         }
+        #     }
+        #     
+        # }
         
         if (nrow(body) == 0) {
             body <- appendZeroRow('Onbekend',dim,body)
