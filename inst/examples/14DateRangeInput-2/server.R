@@ -3,7 +3,7 @@ library(magrittr)
 library(dwhr)
 
 # laden data
-dwhr::setDebug(TRUE,debugDims = 'leeft')
+dwhr::setDebug(TRUE,debugDims = c('per2'))
 
 per <- readRDS(
     file = paste0(getwd(),"/data/dates.rds"))

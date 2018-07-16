@@ -73,6 +73,22 @@ clearPlotbands = function(chart,id,color) {
 
 };
 
+countSelected = function(chart,color) {
+    
+    var len = chart.xAxis[0].plotLinesAndBands.length;
+    var cnt = 0;
+
+    for (i = 0; i < len; i++) {
+        var pb = chart.xAxis[0].plotLinesAndBands[i].options;
+
+        if (pb.color == color) {
+            cnt = cnt + 1;
+        } 
+    }
+    
+    return(cnt);
+};
+
 clearSelection = function(serie,id,color) {
 
   var len = serie.data.length;
@@ -97,7 +113,7 @@ clearSelection = function(serie,id,color) {
    }
 };
 
-pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,color,ms) {
+pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,color) {
     var container = '#'.concat(dim,'DimChart');
     var eventName = dim.concat('HighchartClick');
     var chart = $(container).highcharts();
@@ -110,13 +126,15 @@ pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,c
         if(chart.xAxis[0].plotLinesAndBands.length > 0) {
 
             var pbColor = chart.xAxis[0].plotLinesAndBands[point.x].options.color;
-debugger;
-            if (pbColor == color && unSelectable) {
+
+            cnt = countSelected(chart,color);
+            
+            if (pbColor == color && unSelectable && cnt == 1) {
                 unSelect = true;
                 clearPlotbands(chart,-1,color);
             }
 
-            if (pbColor != color && selectable) {
+            if ((cnt > 1 || pbColor != color) && selectable) {
                 clearPlotbands(chart,point.x,color);
                 select = true;
             }
@@ -179,13 +197,15 @@ plotBandSingleSelect = function(dim,plotBand,event,selectable,unSelectable,drill
     if (!event.ctrlKey) {
 
         var pBColor = plotBand.options.color;
-
-        if (pBColor == color && unSelectable) {
+        
+        cnt = countSelected(chart,color);
+            
+        if (pBColor == color && unSelectable && cnt == 1) {
             unSelect = true;
             clearPlotbands(chart,-1,color);
         }
 
-        if (pBColor != color && selectable) {
+        if ((cnt > 1 || pBColor != color) && selectable) {
             select = true;
             clearPlotbands(chart,plotBand.options.id,color);
         }

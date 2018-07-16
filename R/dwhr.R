@@ -1973,6 +1973,7 @@ dimChangeState <- function(env, dim, newState) {
         if (oldFilt != newFilt) {
             if (any(dd$selected$level > 0)) {
                 dd$selected <- dd$rootSelected
+                dimSetHasSubselect(env,dim)
                 dd$reactive$selectChange <- dd$reactive$selectChange + 1
                 dd$level <- 0
                 dd$parent <- ''
