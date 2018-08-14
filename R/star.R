@@ -240,7 +240,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL) {
 
     maxLvl <- dd$maxLevel
 
-    ignoreDims <- union(env$proxyDims,dd$ignoreDims)
+    ignoreDims <- union(dimProxySelect(env),dd$ignoreDims)
 
     ml <- getMeasList(env,dim)
 
@@ -534,6 +534,10 @@ dimSelectableSelect <- function(env,sModes = c('single','multi','none')) {
     v
 }
 
+dimProxySelect <- function(env) {
+    unlist(lapply(names(env$dims),function(x)  { if (!is.null(env$dims[[x]]$parentDim)) x else NULL }))
+}
+
 visibleDims <- function(env) {
     dimStateSelect(env,c('enabled'))
 }
@@ -543,7 +547,7 @@ inVisibleDims <- function(env) {
 }
 
 filteringDims <- function(env) {
-    intersect(dimTypeSelect(env,c('bidir','input')),dimStateSelect(env,c('enabled','hidden')))
+    setdiff(intersect(dimTypeSelect(env,c('bidir','input')),dimStateSelect(env,c('enabled','hidden'))),dimProxySelect(env))
 }
 
 outputDims <- function(env) {

@@ -3,7 +3,7 @@ library(magrittr)
 library(dwhr)
 
 # laden data
-dwhr::setDebug(TRUE,debugDims = c('per2'))
+dwhr::setDebug(TRUE)
 
 per <- readRDS(
     file = paste0(getwd(),"/data/dates.rds"))
@@ -87,7 +87,7 @@ function(input, output, session) {
             as = 'dateRange1',                          # te tonen label als er meer presentaties zijn
             isDefault = TRUE,
             navOpts = list(hideNoFilter = TRUE),
-            rangeOpts = list()) %>%
+            rangeOpts = list(throttle = 2000)) %>%
         addPresentation(
             dim = 'per' ,
             uiId = 'per2',

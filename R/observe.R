@@ -188,53 +188,43 @@ startObserversData <- function(env,dim) {
                 ids <- getSelectedIds(env,dim)
 
                 if (!(identical(ids,dd$selectedIds))) {
-                    if (dd$debounce) {
-                        shinyjs::js$blockUI(
-                            timeout = glob.env$debounceTimeout,
-                            backgroundColor = glob.env$debounceBackgroundColor,
-                            opacity = glob.env$debounceOpacity)
-                    } else {
-                        dd$debounce <- TRUE
-                    }
-
-                    dd$selectedIds <- ids
-                    dd$reactive$selectedIdsChange <- dd$reactive$selectedIdsChange + 1
-                    # 
-                    # if (!is.null(dd$parentDim) && dd$selectSource != 'observeEvent') {
-                    #     # alleen parent zit in reactive path
-                    #     env$dims[[dd$parentDim]]$reactive$selectedIdsChange <- env$dims[[dd$parentDim]]$reactive$selectedIdsChange + 1
-                    # }
-
-                    printDebug(env = env, dim = dim,
-                               eventIn = 'selectChange',
-                               eventOut = 'selectedIdsChange',
-                               info = paste0('selected level:',dd$selected$level,
-                                             '|selected label:',dd$selected$label))
-                }
-
-                if (dd$selectSource != 'observeEvent') {
-
-                    if (!is.null(dd$childDims)) {
-                        env$proxyDims <- unique(setdiff(c(env$proxyDims,dd$childDims),dim))
-                    }
-
-                    if (!is.null(dd$parentDim)) {
-                        par <- dd$parentDim
-                        env$proxyDims <- unique(setdiff(c(par,env$proxyDims,env$dims[[par]]$childDims),dim))
-                    }
                     
-                    if (!is.null(dd$parentDim) || !is.null(dd$childDims)) {
-
-                        if (!is.null(dd$parentDim))
-                            dms <- union(dd$parentDim,setdiff(env$dims[[dd$parentDim]]$childDims,dim))
-                        else
-                            dms <- dd$childDims
-
-                        for (d in dms) {
-                            setSelection2(env,d,dim,source = 'observeEvent')
+                    dd$selectedIds <- ids
+                    
+                    if (dd$selectSource != 'observeEvent') {
+                        if (!is.null(dd$parentDim) || !is.null(dd$childDims)) {
+                            
+                            if (!is.null(dd$parentDim))
+                                dms <- union(dd$parentDim,setdiff(env$dims[[dd$parentDim]]$childDims,dim))
+                            else
+                                dms <- dd$childDims
+                            
+                            for (d in dms) {
+                                setSelection2(env,d,dim,source = 'observeEvent')
+                            }
                         }
                     }
-
+                    
+                    if (is.null(dd$parentDim)) {
+                        
+                        if (dd$debounce) {
+                            shinyjs::js$blockUI(
+                                timeout = glob.env$debounceTimeout,
+                                backgroundColor = glob.env$debounceBackgroundColor,
+                                opacity = glob.env$debounceOpacity)
+                        } else {
+                            dd$debounce <- TRUE
+                        }
+                        
+                        dd$reactive$selectedIdsChange <- dd$reactive$selectedIdsChange + 1
+                        
+                        printDebug(env = env, dim = dim,
+                                   eventIn = 'selectChange',
+                                   eventOut = 'selectedIdsChange',
+                                   info = paste0('selected level:',dd$selected$level,
+                                                 '|selected label:',dd$selected$label))
+                    }
+                    
                 }
 
             }
@@ -502,40 +492,8 @@ startObserversPres <- function(env,dim,pres) {
             if (presType == 'dataTable') {
                 processDataTable(env,dim,dd$pres)
             }
-            if (presType %in% c('radioButton','selectInput')) {
+            if (presType %in% c('radioButton','selectInput','dateRangeInput','rangeSliderInput')) {
                  dd$reactive$presChange <- dd$reactive$presChange + 1
-            }
-            if (presType %in% c('dateRangeInput','rangeSliderInput')) {
-               
-                # if (any(dd$selected$level == 0)) {
-                # 
-                #     dd$selected <- makeDateRangeSelection(
-                #         env,
-                #         dim,
-                #         min(dd$data[['level1Label']]),
-                #         max(dd$data[['level1Label']]))
-                #     
-                #     dd$selectedIds <- getSelectedIds(env,dim)    
-                #     
-                # } 
-                
-                # if (dd$presList[[dd$pres]]$dateRangeOpts$overWriteSelection) {
-                #     minDate <- min(dd$membersFiltered$member)
-                #     
-                #     if (minDate > min(dd$selected$label))
-                #         minDate <- min(dd$selected$label)
-                #     
-                #     maxDate <- max(dd$membersFiltered$member)
-                #     
-                #     if (maxDate > max(dd$selected$label))
-                #         maxDate <- max(dd$selected$label)
-                #     
-                #     dd$presList[[dd$pres]]$dateRangeOpts$min <- minDate
-                #     dd$presList[[dd$pres]]$dateRangeOpts$max <- maxDate
-                # }
-                # 
-
-                dd$reactive$presChange <- dd$reactive$presChange + 1
             }
         })
 

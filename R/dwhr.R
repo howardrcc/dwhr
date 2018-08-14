@@ -55,7 +55,6 @@ new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = 
     env$call <- match.call()
     env$facts <- facts
     env$dims <- list()
-    env$proxyDims <- list()
     env$caching <- caching
     env$foreignKeyCheck <- foreignKeyCheck
     env$session <- session
@@ -626,7 +625,7 @@ addDimView <- function(
     })
     l$memberChangeOther <- shiny::reactive({
         v <- 0
-        for (d in setdiff(setdiff(setdiff(dimTypeSelect(env,c('bidir','input')),dim),ignoreDims),env$proxyDims)) {
+        for (d in setdiff(setdiff(filteringDims(env),dim),ignoreDims)) {
             if (env$dims[[d]]$reactive$selectedIdsChange > 0) {
                 printDebug(env = env, d, dumpReactive = FALSE, eventIn = 'selectedIdsChange', eventOut = 'memberChange', info = paste0('target: ',dim))
                 v <- v + env$dims[[d]]$reactive$selectedIdsChange
@@ -1601,7 +1600,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 }
             }
 
-            env$proxyDims <- c(env$proxyDims,uiId)
+            # env$proxyDims <- c(env$proxyDims,uiId)
 
         }
 
@@ -1849,6 +1848,7 @@ setSelection2 <- function(env,dim,dimOrg,source = 'setSelection',dimRefresh = TR
     dd <- env$dims[[dim]]
     
     if (!identical(dd$selectedIds, selIds)) {
+        
         dd$debounce <- FALSE
  
         dd$selected <- getSelected(dd$data,dd$maxLevel,dd$selectableLevels,selIds)
