@@ -625,7 +625,7 @@ addDimView <- function(
     })
     l$memberChangeOther <- shiny::reactive({
         v <- 0
-        for (d in setdiff(setdiff(filteringDims(env),dim),ignoreDims)) {
+        for (d in setdiff(setdiff(dimTypeSelect(env,c('bidir','input')),dim),ignoreDims)) {
             if (env$dims[[d]]$reactive$selectedIdsChange > 0) {
                 printDebug(env = env, d, dumpReactive = FALSE, eventIn = 'selectedIdsChange', eventOut = 'memberChange', info = paste0('target: ',dim))
                 v <- v + env$dims[[d]]$reactive$selectedIdsChange
