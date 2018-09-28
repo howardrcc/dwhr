@@ -932,7 +932,7 @@ checkVersion = function(pkg_name, min_version) {
 #'
 getReportName <- function(title) {
     
-    if (omgeving != 'PRD') 
+    if (glob.env$omgeving != 'PRD') 
         return(paste0(title,' <font color="red">TEST</font>'))
     
     return(title)
