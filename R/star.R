@@ -2,10 +2,7 @@
 dwhrStop <- function(mes) {
     session <- shiny::getDefaultReactiveDomain()
     if (!is.null(session)) {
-        shinyjs::js$dumpToConsole(trace = c(
-            mes,
-            'Stack trace (innermost first):',
-            shiny::formatStackTrace(calls = sys.calls(), offset = TRUE)[-1:-6]))
+        shinyjs::logjs(mes)
     }
     stop(mes)
 }
