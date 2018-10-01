@@ -241,7 +241,8 @@ addDimView <- function(
             code <- paste0('level',x,'Code')
             label %in% names(data) || stop(paste0('level',x,'Label missing in data'))
             if (!code %in% names(data)) {
-                data[[code]] <<- apply(data[,c(label),drop = FALSE],1,digest::digest)
+                #data[[code]] <<- apply(data[,c(label),drop = FALSE],1,digest::digest)
+                data[[code]] <<- data[[label]]
             }
 
             length(unique(data[[code]])) >= length(unique(data[[label]])) || stop(paste0('level',x,'Code is no key for level',x,'Label'))
