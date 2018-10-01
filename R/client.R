@@ -5,6 +5,10 @@
 #'
 #' @export
 dwhrInit <- function() {
+    
+    if (exists('glob.env',envir = globalenv()))
+        return()
+    
     initGlob()
     shiny::addResourcePath('dwhRs',system.file('www', package = 'dwhr'))
     glob.env$dimUiIds <- c()
@@ -22,11 +26,11 @@ dwhrInit <- function() {
         shiny::tags$head(
             shiny::tags$link(rel = "stylesheet", type = "text/css", href = "dwhRs/app.css"),
             shiny::tags$script(src = "dwhRs/jquery.blockUI.js"),
-            shiny::tags$script(src = "dwhRs/bluebird.min.js"),
-            shiny::tags$script(src = "dwhRs/html2canvas.min.js"),
-            shiny::tags$script(src = "dwhRs/rgbcolor.js"),
-            shiny::tags$script(src = "dwhRs/StackBlur.js"),
-            shiny::tags$script(src = "dwhRs/canvg.min.js"),
+            # shiny::tags$script(src = "dwhRs/bluebird.min.js"),
+            # shiny::tags$script(src = "dwhRs/html2canvas.min.js"),
+            # shiny::tags$script(src = "dwhRs/rgbcolor.js"),
+            # shiny::tags$script(src = "dwhRs/StackBlur.js"),
+            # shiny::tags$script(src = "dwhRs/canvg.min.js"),
             shiny::tags$link(rel = "stylesheet", type = "text/css", href = "dwhRs/introjs.min.css"),
             shiny::tags$script(src = "dwhRs/intro.min.js")
         )
