@@ -216,7 +216,7 @@ addDimView <- function(
         assert_is_subset(presListType,domains[['presListType']])
         assert_is_subset(isNull(selectedIds,data[1,1]),data[[1]])
         
-        if (!is.null(selectedIds)) {
+        if (!is.null(selectedIds) || selectMode == 'none') {
             selectLevel <- 0
             selectLabel <- levelNames[1]
             selectParent <- NULL

@@ -275,6 +275,10 @@ makeHcWidget <- function(env,dim,prep){
             patterns = patterns)
         
         a <- do.call(eval(parse(text = 'highcharter::hc_defs')), defsOpts)
+        
+        if (packageVersion("highcharter") >= '0.6') { 
+            a <- highcharter::hc_add_dependency(hc = a,name = "plugins/pattern-fill-v2.js")
+        }
     }
     
     if (!is.null(prep$titleOpts)) {
