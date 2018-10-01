@@ -2,10 +2,7 @@
 dwhrStop <- function(mes) {
     session <- shiny::getDefaultReactiveDomain()
     if (!is.null(session)) {
-        shinyjs::js$dumpToConsole(trace = c(
-            mes,
-            'Stack trace (innermost first):',
-            shiny::formatStackTrace(calls = sys.calls(), offset = TRUE)[-1:-6]))
+        shinyjs::logjs(mes)
     }
     stop(mes)
 }
@@ -932,7 +929,7 @@ checkVersion = function(pkg_name, min_version) {
 #'
 getReportName <- function(title) {
     
-    if (omgeving != 'PRD') 
+    if (glob.env$omgeving != 'PRD') 
         return(paste0(title,' <font color="red">TEST</font>'))
     
     return(title)

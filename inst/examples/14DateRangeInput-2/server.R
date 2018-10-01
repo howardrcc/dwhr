@@ -25,7 +25,7 @@ facts <- data.frame(
 
 function(input, output, session) {
     source('columnChart.R', local = TRUE)
-    
+
     authenticate(session)    # heeft user toegang?
 
     s1 <- new.star(starId = 's1',
