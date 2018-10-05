@@ -5,11 +5,12 @@
 #'
 #' @export
 dwhrInit <- function() {
+    
+    initGlob()
+    
     cat(file=stderr(), paste0('#### ', class(glob.env)))
     cat(file=stderr(), ls(glob.env))
     
-    
-    initGlob()
     shiny::addResourcePath('dwhRs',system.file('www', package = 'dwhr'))
     glob.env$dimUiIds <- c()
     shiny::tagList(
