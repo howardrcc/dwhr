@@ -8,9 +8,6 @@ dwhrInit <- function() {
     
     initGlob()
     
-    cat(file=stderr(), paste0('#### ', class(glob.env)))
-    cat(file=stderr(), ls(glob.env))
-    
     shiny::addResourcePath('dwhRs',system.file('www', package = 'dwhr'))
     glob.env$dimUiIds <- c()
     shiny::tagList(
@@ -274,9 +271,6 @@ authenticate <- function(session) {
     ses$baseUrl <- ''
     
     glob.env$sessionCount <- glob.env$sessionCount + 1
-    
-    cat(file=stderr(), class(glob.env))
-    cat(file=stderr(), ls(glob.env))
     
     if (glob.env$securityModel == 'none') {
         ses$authenticated <- TRUE
