@@ -5,15 +5,13 @@
 \alias{getCSV}
 \title{Inlezen csv bestand in een data.table of data.frame.}
 \usage{
-getFacts(file, col.names, key = NULL, useRDS = TRUE, sep = ";",
-  as.df = FALSE)
+getFacts(file, key = NULL, useRDS = TRUE, sep = ";",
+  fileEncoding = "UTF-8-BOM", as.df = FALSE, ...)
 
 getCSV(...)
 }
 \arguments{
 \item{file}{string, pad van bron bestand.}
-
-\item{col.names}{character, te hanteren kolomnamen voor resulterende data.table}
 
 \item{key}{character, optionele vector met keys om toe te passen op het resultaat. Is voor performance redenen}
 
@@ -21,7 +19,11 @@ getCSV(...)
 
 \item{sep}{string, te gebruiken separator}
 
+\item{fileEncoding}{string, te gebruiken encoding, default UTF-8-BOM ivm Byte Order Mark in windows bestanden}
+
 \item{as.df}{boolean, als TRUE maak dan een data.frame aan ipv een data.table}
+
+\item{...}{overige parameters zoals geaccepteerd door read.csv}
 }
 \description{
 Bestand kan na initieele load opgeslagen worden als rds.

@@ -7,7 +7,6 @@
 dwhrInit <- function() {
     
     initGlob()
-    
     shiny::addResourcePath('dwhRs',system.file('www', package = 'dwhr'))
     glob.env$dimUiIds <- c()
     shiny::tagList(
@@ -24,11 +23,6 @@ dwhrInit <- function() {
         shiny::tags$head(
             shiny::tags$link(rel = "stylesheet", type = "text/css", href = "dwhRs/app.css"),
             shiny::tags$script(src = "dwhRs/jquery.blockUI.js"),
-            # shiny::tags$script(src = "dwhRs/bluebird.min.js"),
-            # shiny::tags$script(src = "dwhRs/html2canvas.min.js"),
-            # shiny::tags$script(src = "dwhRs/rgbcolor.js"),
-            # shiny::tags$script(src = "dwhRs/StackBlur.js"),
-            # shiny::tags$script(src = "dwhRs/canvg.min.js"),
             shiny::tags$link(rel = "stylesheet", type = "text/css", href = "dwhRs/introjs.min.css"),
             shiny::tags$script(src = "dwhRs/intro.min.js")
         )
@@ -109,7 +103,7 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
 initGlob <- function() {
     
     options(warnPartialMatchDollar = TRUE)
-
+    
     if (!exists('glob.env', envir = .GlobalEnv, inherit = FALSE)) {
         
         glob.env <- new.env(parent = emptyenv())
@@ -234,7 +228,7 @@ getDbHandle <- function(omg) {
 authenticate <- function(session) {
     
     ce <- parent.frame() 
-
+    
     session$onSessionEnded(function() {
         glob.env$sessionCount <- glob.env$sessionCount - 1
         print(paste0('exit: ',glob.env$sessionCount))    
@@ -308,7 +302,7 @@ authenticate <- function(session) {
         return(FALSE)
     }
     
-    if (shiny::serverInfo()[[1]] && shiny::serverInfo()$edition != 'OS') {
+    if (shiny::serverInfo()$edition != 'OS') {
         ses$baseUrl <- shiny::isolate(paste0(
             ses$cdata$url_protocol,'//',
             ses$cdata$url_hostname,':',

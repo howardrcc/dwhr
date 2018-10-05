@@ -9,12 +9,13 @@
 \alias{addRowGroupColumn}
 \title{Toevoegen van meetwaarden of ander kolom-type aan dimView-object.}
 \usage{
-addMeasure(env, dim, factColumn, fun, as = factColumn, viewColumn = NULL,
-  sort = NULL, format = "standard", formatColumn = NULL, levels = NULL)
+addMeasure(env, dim, factColumn, fun, as = factColumn,
+  viewColumn = NULL, sort = NULL, format = "standard",
+  formatColumn = NULL, levels = NULL)
 
-addMeasureDerrived(env, dim, userFunc, as, viewColumn = NULL, sort = NULL,
-  processingOrder = NULL, format = "standard", formatColumn = NULL,
-  levels = NULL)
+addMeasureDerrived(env, dim, userFunc, as, viewColumn = NULL,
+  sort = NULL, processingOrder = NULL, format = "standard",
+  formatColumn = NULL, levels = NULL)
 
 addSortColumn(env, dim, sortColumn, levels = NULL)
 

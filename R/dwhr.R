@@ -1999,22 +1999,23 @@ dimChangeState <- function(env, dim, newState) {
 #' genomen.
 #'
 #' @param file string, pad van bron bestand.
-#' @param col.names character, te hanteren kolomnamen voor resulterende data.table
 #' @param key character, optionele vector met keys om toe te passen op het resultaat. Is voor performance redenen 
 #' @param useRDS boolean, als TRUE dan wordt rds aangemaakt en gelezen, anders altijd lezen vanuit csv
 #' @param sep string, te gebruiken separator
+#' @param fileEncoding string, te gebruiken encoding, default UTF-8-BOM ivm Byte Order Mark in windows bestanden 
 #' @param as.df boolean, als TRUE maak dan een data.frame aan ipv een data.table
+#' @param ... overige parameters zoals geaccepteerd door read.csv
 #'
 #'@export
 #'
-getFacts <- function(file, col.names, key = NULL, useRDS = TRUE, sep = ';', as.df = FALSE) {
+getFacts <- function(file, key = NULL, useRDS = TRUE, sep = ';', fileEncoding = 'UTF-8-BOM', as.df = FALSE, ...) {
     
     withCallingHandlers({
         assert_is_a_string(file)
-        assert_is_character(col.names)
         assert_is_character(isNull(key,''))
         assert_is_a_bool(useRDS)
         assert_is_a_string(sep)
+        assert_is_a_string(fileEncoding)
         assert_is_a_bool(as.df)
     },
     error = function(c) {
@@ -2036,11 +2037,10 @@ getFacts <- function(file, col.names, key = NULL, useRDS = TRUE, sep = ';', as.d
 
         facts <- read.csv(
             file = file,
-            header = FALSE,
             sep = sep,
-            col.names = col.names,
+            fileEncoding = fileEncoding,
             stringsAsFactors = FALSE,
-            fileEncoding = 'UTF-8-BOM')
+            ...)
 
         if (!as.df) {
             facts <- data.table::data.table(facts)
