@@ -1996,11 +1996,12 @@ dimChangeState <- function(env, dim, newState) {
 #' Dit rds bestand wordt dan de volgende keer als bron gebruikt (veel sneller als inlezen csv)
 #' 
 #' Als csv bestand een recentere datum heeft dan bestaande rds, dan wordt het csv bestand weer als bron 
-#' genomen.
+#' genomen. \code{getCSV} is een alias voor \code{getFacts}.
 #'
 #' @param file string, pad van bron bestand.
 #' @param key character, optionele vector met keys om toe te passen op het resultaat. Is voor performance redenen 
-#' @param useRDS boolean, als TRUE dan wordt rds aangemaakt en gelezen, anders altijd lezen vanuit csv
+#' @param useRDS boolean, als TRUE dan wordt rds aangemaakt en gelezen, anders altijd lezen vanuit csv. Het rds bestand wordt 
+#' opgeslagen in de tmp directory van de shiny-app. De tmp directory moet dus wel bestaan.
 #' @param sep string, te gebruiken separator
 #' @param fileEncoding string, te gebruiken encoding, default UTF-8-BOM ivm Byte Order Mark in windows bestanden 
 #' @param as.df boolean, als TRUE maak dan een data.frame aan ipv een data.table
