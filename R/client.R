@@ -274,6 +274,9 @@ authenticate <- function(session) {
     
     glob.env$sessionCount <- glob.env$sessionCount + 1
     
+    cat(file=stderr(), class(glob.env))
+    cat(file=stderr(), ls(glob.env))
+    
     if (glob.env$securityModel == 'none') {
         ses$authenticated <- TRUE
         ses$dashUser <- 'dev'
