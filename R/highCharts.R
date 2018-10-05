@@ -255,7 +255,11 @@ makeHcWidget <- function(env,dim,prep){
 
     if (!is.null(prep$chartOpts)) {
         prep$chartOpts$hc = a
-        prep$chartOpts$events$redraw <- readyJS(gdim)
+        if (packageVersion("highcharter") >= '0.6') { 
+            prep$chartOpts$events$render <- readyJS(gdim)
+        } else {
+            prep$chartOpts$events$redraw <- readyJS(gdim)
+        }
         
         if (print) {
             prep$chartOpts$width = 800

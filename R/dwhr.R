@@ -1990,12 +1990,43 @@ dimChangeState <- function(env, dim, newState) {
 }
 
 #'
+#' Inlezen csv bestand in een data.table of data.frame. 
+#' 
+#' Bestand kan na initieele load opgeslagen worden als rds.
+#' Dit rds bestand wordt dan de volgende keer als bron gebruikt (veel sneller als inlezen csv)
+#' 
+#' Als csv bestand een recentere datum heeft dan bestaande rds, dan wordt het csv bestand weer als bron 
+#' genomen.
+#'
+#' @param file string, pad van bron bestand.
+#' @param col.names character, te hanteren kolomnamen voor resulterende data.table
+#' @param key character, optionele vector met keys om toe te passen op het resultaat. Is voor performance redenen 
+#' @param useRDS boolean, als TRUE dan wordt rds aangemaakt en gelezen, anders altijd lezen vanuit csv
+#' @param sep string, te gebruiken separator
+#' @param as.df boolean, als TRUE maak dan een data.frame aan ipv een data.table
+#'
 #'@export
 #'
-getFacts <- function(file,col.names, key = NULL, useRDS = TRUE) {
-
-    tmpFactsFile <- paste0(getwd(),'/tmp/',glob.env$dashboardName,'_',unlist(strsplit(basename(file),'[.]'))[1],'.rds')
-
+getFacts <- function(file, col.names, key = NULL, useRDS = TRUE, sep = ';', as.df = FALSE) {
+    
+    withCallingHandlers({
+        assert_is_a_string(file)
+        assert_is_character(col.names)
+        assert_is_character(isNull(key,''))
+        assert_is_a_bool(useRDS)
+        assert_is_a_string(sep)
+        assert_is_a_bool(as.df)
+    },
+    error = function(c) {
+        dwhrStop(conditionMessage(c))
+    })
+    
+    if (exists('glob.env',envir = globalenv())) {
+        tmpFactsFile <- paste0(getwd(),'/tmp/',glob.env$dashboardName,'_',unlist(strsplit(basename(file),'[.]'))[1],'.rds')
+    } else {
+        tmpFactsFile <- paste0(getwd(),'/tmp/',basename(getwd()),'_',unlist(strsplit(basename(file),'[.]'))[1],'.rds')
+    }
+    
     mtime1 <- file.info(file)$mtime
     mtime2 <- file.info(tmpFactsFile)$mtime
 
@@ -2006,15 +2037,17 @@ getFacts <- function(file,col.names, key = NULL, useRDS = TRUE) {
         facts <- read.csv(
             file = file,
             header = FALSE,
-            sep = ";",
+            sep = sep,
             col.names = col.names,
             stringsAsFactors = FALSE,
             fileEncoding = 'UTF-8-BOM')
 
-        facts <- data.table::data.table(facts)
-
-        if(!is.null(key))
-            data.table::setkeyv(facts,key)
+        if (!as.df) {
+            facts <- data.table::data.table(facts)
+            
+            if(!is.null(key))
+                data.table::setkeyv(facts,key)
+        }
 
         if (useRDS)
             saveRDS(facts,tmpFactsFile)
@@ -2026,6 +2059,13 @@ getFacts <- function(file,col.names, key = NULL, useRDS = TRUE) {
     return (facts)
 }
 
+#' @rdname getFacts
+#'
+#' @export
+#'
+getCSV <- function(...) {
+    getFacts(...)
+}
 
 #'
 #' @export
