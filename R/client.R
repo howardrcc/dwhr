@@ -111,7 +111,7 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
 initGlob <- function() {
     
     options(warnPartialMatchDollar = TRUE)
-    
+
     if (!exists('glob.env', envir = .GlobalEnv, inherit = FALSE)) {
         
         glob.env <- new.env(parent = emptyenv())
@@ -236,7 +236,7 @@ getDbHandle <- function(omg) {
 authenticate <- function(session) {
     
     ce <- parent.frame() 
-    
+
     session$onSessionEnded(function() {
         glob.env$sessionCount <- glob.env$sessionCount - 1
         print(paste0('exit: ',glob.env$sessionCount))    
@@ -310,7 +310,7 @@ authenticate <- function(session) {
         return(FALSE)
     }
     
-    if (shiny::serverInfo()$edition != 'OS') {
+    if (shiny::serverInfo()[[1]] && shiny::serverInfo()$edition != 'OS') {
         ses$baseUrl <- shiny::isolate(paste0(
             ses$cdata$url_protocol,'//',
             ses$cdata$url_hostname,':',
