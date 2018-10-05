@@ -5,9 +5,9 @@
 #'
 #' @export
 dwhrInit <- function() {
+    cat(file=stderr(), paste0('#### ', class(glob.env)))
+    cat(file=stderr(), ls(glob.env))
     
-    if (exists('glob.env',envir = globalenv()))
-        return()
     
     initGlob()
     shiny::addResourcePath('dwhRs',system.file('www', package = 'dwhr'))
