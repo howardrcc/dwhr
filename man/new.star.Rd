@@ -2,7 +2,7 @@
 % Please edit documentation in R/dwhr.R
 \name{new.star}
 \alias{new.star}
-\title{Creeer nieuw sterschema-object}
+\title{Creeer nieuw sterschema-object.}
 \usage{
 new.star(starId, session, facts, caching = FALSE,
   foreignKeyCheck = TRUE)

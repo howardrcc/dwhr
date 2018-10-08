@@ -338,9 +338,6 @@ makeHcWidget <- function(env,dim,prep){
     
 }
 
-#'
-#' @export
-#'
 prepHc <- function(env, dim, pres, print = NULL) {
 
     dd <- env$dims[[dim]]

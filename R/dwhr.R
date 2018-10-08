@@ -1,4 +1,4 @@
-#' Creeer nieuw sterschema-object
+#' Creeer nieuw sterschema-object.
 #' 
 #' Maak een sterschema-object gebaseerd op een feiten-tabel. Aan het resulterende object kunnen dimensie views worden toegevoegd met
 #' \code{\link{addDimView}}. \code{new.star()} moet uitgevoerd worden binnen een shiny-server sessie.
@@ -108,6 +108,30 @@ new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = 
 #' meetwaarden uit de feiten-tabel. Het dimView object kan meerdere nivo's hebben. Het maximum aantal nivo's is op dit moment
 #' 5. Na het toevoegen van een dimView-object aan het sterschema kunnen er meetwaarden (via \code{\link{addMeasure}}) en 
 #' afgeleide meetwaarden (via \code{\link{addMeasureDerrived}}) toegevoegd worden.
+#' 
+#' @section reactive values:
+#' De volgende reactive values zijn beschikbaar per dimView
+#' \itemize{
+#'    \item levelChange integer, wordt opgehoogd als gebruiker van level veranderd in de UI (door op + te klikken of door 
+#'    via breadcrumb naar ander nivo te navigeren). Dit triggered een dimRefresh. 
+#'    \item dimRefresh integer, het verhogen van deze waarde triggered een verversing van de presentaties die aan deze dimView 
+#'    gekoppeld zijn.
+#'    \item selectChange integer, wordt opgehoogd als gebruiker een item selecteerd in de presentatie, of als er programatisch een 
+#'    selectie-wijziging doorgevoerd wordt via \code{\link{setSelection}}. Dit triggered een selectedIdsChange, en isFiltered wordt 
+#'    bijgewerkt.
+#'    \item selectedIdsChange integer, wordt opgehoogd als selectie-wijziging daadwerkelijk resulteert in andere geselecteerde id's. 
+#'    Dit triggered een dimRefresh.
+#'    \item visChange = 0,
+#'    \item isFiltered = !(any(selectLevel == 0)),
+#'    \item orderChange = 0,
+#'    \item pageChange = 0,
+#'    \item pageLengthChange = 0,
+#'    \item presChange = 0,
+#'    \item nameChange = 0,
+#'    \item linksChange = 0,
+#'    \item clickMeasureEvent 
+#'}
+#'    
 #'
 #' @param env sterschema-object, gemaakt met \code{\link{new.star}}
 #' @param dim string, uniek id van deze dimView. Dit id moet corresponderen met de parameter \code{dim} in
@@ -136,14 +160,16 @@ new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = 
 #'\itemize{
 #'  \item enabled: dimView heeft filterend effect op de feiten en is zichtbaar.
 #'  \item hidden: dimView niet zichtbaar, maar heeft nog steeds een filterend effect op de feiten.
-#'  \item disabled: dimView heeft geen filterend effect en is niet zichtbaar.}
+#'  \item disabled: dimView heeft geen filterend effect en is niet zichtbaar.
+#'}
 #'verandering van state kan plaats vinden via \code{\link{dimChangeState}}.
 #'@param type string, deze parameter met default 'bidir' bepaalt of dimView meetwaarden of afgeleide meetwaarden heeft of niet en of de dimView selecteerbaar is of niet. 
 #'Mogeljke waarden zijn:
-#'#'\itemize{
+#'\itemize{
 #'  \item bidir: dimView heeft meetwaarden en is selecteerbaar.
 #'  \item input: dimView heeft geen meetwaarden maar is wel selecteerbaar.
 #'  \item output: dimView heeft meetwaarden maar is niet selecteerbaar.
+#'}
 #'@param selectMode string, mogelijke waarden:
 #'\itemize{
 #'  \item none: dimView niet selecteerbaar.
@@ -778,7 +804,7 @@ addDimView <- function(
 #' de naam verloopt zo:
 #' \itemize{
 #'     \item addMeasure: viewColumn = fun + '_' + factColumn
-#'     \item addMeasure: viewColumn = d[1..n] met n het aantal afgeleide meetwaarden in de volgorde zoals die aangemaakt zijn.
+#'     \item addMeasureDerrived: viewColumn = d[1..n] met n het aantal afgeleide meetwaarden in de volgorde zoals die aangemaakt zijn.
 #' } 
 #' @param sort numeric, volgorde waarin de kolommen getoond wroden in de UI. (naar presentatie?)
 #' @param format character, getoonde format in UI. Mogelijk waarden zijn:
@@ -1026,7 +1052,7 @@ addMeasureDerrived <- function(env, dim, userFunc, as, viewColumn = NULL, sort =
 
 #' @rdname addMeasure
 #'
-#' @param sortColumn string, naam van de kolom in de dimensie-data die gebruikt moet worden om de dimView-member te soreren.
+#' @param sortColumn string, naam van de kolom in de dimensie-data die gebruikt moet worden om de dimView-member te sorteren.
 #' De sortColumn zelf is verborgen in de UI. Als een sortColumn gebruikt wordt, is de ordering via de UI uitgeschakeld.
 #' Er kan een andere sortColumn gebruikt worden voor ieder level. Gebruik hiervoor de levels parameter. Als er meer dan 1 sortColumn gespecificeerd wordt
 #' voor 1 level, wordt er een foutmelding gegenereerd.
@@ -1312,7 +1338,7 @@ addRowGroupColumn <- function(env, dim, rowGroupColumn, levels = NULL) {
 #'     \item pageLengthList: numeric, vector met pagina lengtes waaruit gebruiker kan kiezen.
 #'     \item serverSideTable: boolean, Als TRUE wordt de data slechts gedeeltelijk geladen in client. Toe te passen voor (zeer) grote dimViews.
 #' }
-#' @param highChartOpts
+#' @param highChartOpts list, ....
 #' @param checkUiId boolean, als TRUE: controleer of uiId in de client voorkomt, default TRUE.
 #'
 #'@return gewijzigd sterschema object.
@@ -1816,11 +1842,44 @@ setOrdering <- function(env, dim, as,sort, as2 = NULL) {
 }
 
 #'
+#' Zet programmatisch de selectie van een dimView.
+#' 
+#' De selectie van een dimView kan enerzijds via de UI ingesteld worden, anderszijds is het vaak nodig 
+#' de selectie op programmatische wijze aan te passen, dit kan via setSelection.
+#' 
+#' @param env sterschema object, gecreeerd met \code{\link{new.star}}.
+#' @param dim string, dimView id gecreeerd met \code{\link{addDimView}}.
+#' @param sel data.frame, data.frame met te selecteren items. Format:
+#' \itemize{
+#'     \item level, level van te selecteren items.
+#'     \item label, label van te selecteren items.
+#'     \item parent, parent-label van de te selecteren items.
+#' }
+#' @param source string, extra info over de bron van de selectieverandering.
+#' @param dimRefresh boolean, indicatie of UI-output bijgewerkt moet worden of niet.
+#' 
 #'@export
 #'
-setSelection <- function(env,dim,sel,single = TRUE,source = 'setSelection',dimRefresh = TRUE) {
+setSelection <- function(env,dim,sel,source = 'setSelection',dimRefresh = TRUE) {
     
-    dd <- env$dims[[dim]]
+    withCallingHandlers({
+        
+        class(env) == 'star' || stop('env is not of class star')
+        assert_is_a_string(dim)
+        
+        dd <- env$dims[[dim]]
+        class(dd) == 'dimView' || stop('dim is not of class dimView')
+        
+        assert_is_data.frame(sel)
+        length(intersect(names(sel),c('label','parent','level'))) == 3 || stop('Invalid format selection data.frame')
+    
+        assert_is_a_string(source)
+        assert_is_a_bool(dimRefresh)
+    
+    },
+    error = function(c) {
+        dwhrStop(conditionMessage(c))
+    })
     
     dd$selected$level <- as.numeric(dd$selected$level)
     sel$level <- as.numeric(sel$level)
@@ -1829,7 +1888,8 @@ setSelection <- function(env,dim,sel,single = TRUE,source = 'setSelection',dimRe
         dd$debounce <- FALSE
         dd$selected <- sel
         dd$selectSource <- source
-        dd$rowLastAccessed$value[dd$rowLastAccessed$level == sel$level] <- sel$label
+        dd$rowLastAccessed$value[dd$rowLastAccessed$level == sel$level[1]] <- sel$label[1]
+        
         dd$reactive$selectChange <- dd$reactive$selectChange + 1
         printDebug(env = env, dim, eventIn = 'setSelection', eventOut = 'selectChange', info = paste0('selected: (',sel$level,',',sel$label,')'))
         if (dimRefresh) {
@@ -1939,12 +1999,37 @@ getSelected <- function(data,maxLevel,selectableLevels,selectedIds) {
     
 
 #'
+#' Aanpassen state van dimView
+#' 
+#' met deze functie kan de toestand van een dimView aangepast worden. Toegestane toestanden (state) zijn:
+#'\itemize{
+#'  \item enabled: dimView heeft filterend effect op de feiten en is zichtbaar.
+#'  \item hidden: dimView niet zichtbaar, maar heeft nog steeds een filterend effect op de feiten.
+#'  \item disabled: dimView heeft geen filterend effect en is niet zichtbaar.
+#'}
+#'
+#' @param env sterschema-object, gemaakt met \code{\link{new.star}}
+#' @param dim string, dimView id gecreeerd met \code{\link{addDimView}}.
+#' @param newState string, nieuwe toestand voor dimView
+#'
 #'@export
 #'
 dimChangeState <- function(env, dim, newState) {
-
-    state <- env$dims[[dim]]$state
-    dd <- env$dims[[dim]]
+    
+    withCallingHandlers({
+        
+        class(env) == 'star' || stop('env is not of class star')
+        assert_is_a_string(dim)
+        assert_is_a_string(newState)
+        
+        dd <- env$dims[[dim]]
+        class(dd) == 'dimView' || stop('dim is not of class dimView')
+    },
+    error = function(c) {
+        dwhrStop(conditionMessage(c))
+    })
+        
+    state <- dd$state
     gdim <- dd$gdim
 
     if(newState != state ) {
@@ -2068,6 +2153,16 @@ getCSV <- function(...) {
     getFacts(...)
 }
 
+#'
+#' Pas de gepresenteerde kolomnaam aan van een meetwaarde uit een dimView. 
+#' 
+#' Er wordt gerefereerd naar de meetwaarde via de gepresenteerde naam (colFrom, colTo). Alternatieve selectie van 
+#' de te wijzigen kolom kan ook via de viewColumn (viewColFrom)
+#' 
+#' @param env sterschema object, gecreeerd met \code{\link{new.star}}.
+#' @param dim string, dimView id gecreeerd met \code{\link{addDimView}}.
+#' 
+#' @return gewijzigd sterschema-object.
 #'
 #' @export
 #'

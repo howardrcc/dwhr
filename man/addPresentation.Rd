@@ -85,6 +85,8 @@ getoond worden op het scherm. Hoe de navigatie in dat geval moet verlopen kan vi
 }}
 
 \item{checkUiId}{boolean, als TRUE: controleer of uiId in de client voorkomt, default TRUE.}
+
+\item{highChartOpts}{list, ....}
 }
 \value{
 gewijzigd sterschema object.

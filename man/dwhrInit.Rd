@@ -7,5 +7,5 @@
 dwhrInit()
 }
 \description{
-Deze functie moet als eerste aangeroepen worden binnen de shiny app's UI
+Deze functie moet als eerste aangeroepen worden binnen de shiny app's UI. Alleen te gebruiken in UI.R
 }

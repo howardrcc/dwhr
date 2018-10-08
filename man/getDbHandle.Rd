@@ -2,10 +2,17 @@
 % Please edit documentation in R/client.R
 \name{getDbHandle}
 \alias{getDbHandle}
-\title{get database handle voor omgeving}
+\title{get database-handle voor omgeving}
 \usage{
 getDbHandle(omg)
 }
+\arguments{
+\item{omg}{string, naam van te benaderen omgeving.}
+}
+\value{
+database-handle
+}
 \description{
-get database handle voor omgeving
+database-handle kan worden gebruikt voor sql-queries op de betreffende omgeving. Het bestand dbCred.rds moet aanwezig
+zijn in de data directory van de shiny app.
 }

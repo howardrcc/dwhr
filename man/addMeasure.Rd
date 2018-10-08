@@ -51,7 +51,7 @@ addRowGroupColumn(env, dim, rowGroupColumn, levels = NULL)
 de naam verloopt zo:
 \itemize{
     \item addMeasure: viewColumn = fun + '_' + factColumn
-    \item addMeasure: viewColumn = d[1..n] met n het aantal afgeleide meetwaarden in de volgorde zoals die aangemaakt zijn.
+    \item addMeasureDerrived: viewColumn = d[1..n] met n het aantal afgeleide meetwaarden in de volgorde zoals die aangemaakt zijn.
 }}
 
 \item{sort}{numeric, volgorde waarin de kolommen getoond wroden in de UI. (naar presentatie?)}
@@ -92,7 +92,7 @@ De nummers refereren aan de originele levels van de dimensie-data (voordat param
 
 \item{processingOrder}{numeric, volgorde waarin de afgeleide meetwaarden berekend worden.}
 
-\item{sortColumn}{string, naam van de kolom in de dimensie-data die gebruikt moet worden om de dimView-member te soreren.
+\item{sortColumn}{string, naam van de kolom in de dimensie-data die gebruikt moet worden om de dimView-member te sorteren.
 De sortColumn zelf is verborgen in de UI. Als een sortColumn gebruikt wordt, is de ordering via de UI uitgeschakeld.
 Er kan een andere sortColumn gebruikt worden voor ieder level. Gebruik hiervoor de levels parameter. Als er meer dan 1 sortColumn gespecificeerd wordt
 voor 1 level, wordt er een foutmelding gegenereerd.}

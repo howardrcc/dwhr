@@ -18,6 +18,8 @@ getDimUI(starId, dim, skipTopRow = FALSE, maxHeight = NULL,
 \item{maxHeight}{an integer, maximum hoogte in pixels voor dit dimView object}
 
 \item{overflowX}{string, css overflow propery in X richting, bepaalt of er wel of niet een horizontale scrollbar getoond wordt bij overflow.}
+
+\item{accordion}{boolean, Als TRUE: dimensie kan in UI verkleint worden via een icon.}
 }
 \description{
 Creeer de html voor het dimView object in de shiny app's UI.

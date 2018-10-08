@@ -1,7 +1,7 @@
 #'
 #' Initialiseer dwhr shiny UI
 #'
-#' Deze functie moet als eerste aangeroepen worden binnen de shiny app's UI
+#' Deze functie moet als eerste aangeroepen worden binnen de shiny app's UI. Alleen te gebruiken in UI.R
 #'
 #' @export
 dwhrInit <- function() {
@@ -30,7 +30,7 @@ dwhrInit <- function() {
 }
 
 #'
-#' Creeer dimView object in the UI
+#'  Creeer dimView object in the UI
 #'
 #' Creeer de html voor het dimView object in de shiny app's UI.
 #'
@@ -40,6 +40,7 @@ dwhrInit <- function() {
 #' @param skipTopRow boolean, Als TRUE: eerste regel met Naam, links en presentatie wordt overgeslagen.
 #' @param maxHeight an integer, maximum hoogte in pixels voor dit dimView object
 #' @param overflowX string, css overflow propery in X richting, bepaalt of er wel of niet een horizontale scrollbar getoond wordt bij overflow. 
+#' @param accordion boolean, Als TRUE: dimensie kan in UI verkleint worden via een icon.
 #'
 #' @export
 getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflowX = 'hidden', accordion = FALSE) {
@@ -52,6 +53,7 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
         maxHeight <- as.integer(maxHeight)
         assert_is_a_string(overflowX)
         assert_is_subset(overflowX,domains[['cssOverflow']])
+        assert_is_a_bool(accordion)
         
         gdim <- getGlobalId(starId,dim)
         gdim %in% glob.env$dimUiIds && stop('duplicate dims')    
@@ -97,9 +99,6 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
 
 }
 
-#'
-#' @export
-#' 
 initGlob <- function() {
     
     options(warnPartialMatchDollar = TRUE)
@@ -199,10 +198,23 @@ initGlob <- function() {
 }
 
 #'
-#' get database handle voor omgeving
+#' get database-handle voor omgeving
 #' 
+#' database-handle kan worden gebruikt voor sql-queries op de betreffende omgeving. Het bestand dbCred.rds moet aanwezig
+#' zijn in de data directory van de shiny app.
+#' 
+#' @param omg string, naam van te benaderen omgeving.
+#' 
+#' @return database-handle 
 #' @export
 getDbHandle <- function(omg) {
+    
+    withCallingHandlers({
+        assert_is_a_string(omg)
+    },
+    error = function(c) {
+        dwhrStop(conditionMessage(c))
+    })
     
     if (is.null(glob.env$dbCred))
         return()
@@ -221,11 +233,15 @@ getDbHandle <- function(omg) {
 }
  
 
-#'
-#' authenticate dwhr session
-#'
+#' authenticate dwhr session.
+#' 
+#' authenticeren van de gebruiker. Wordt gestuurd door de globale variable securityModel. 
+#' 
+#' @return als geauthenticiteerd dan TRUE ander FALSE.
 #' @export
 authenticate <- function(session) {
+    
+    'ShinySession' %in% class(session) || stop('session is not of class shinySession')
     
     ce <- parent.frame() 
     
@@ -321,37 +337,12 @@ authenticate <- function(session) {
 
 }
 
-#'
+#' portalUrl
+#' 
+#' Geeft de url van de portal waarin dit dashboard gepubliceerd wordt
+#' 
 #' @export
 #' 
 portalUrl <- function(){
     glob.env$portalUrl
-}
-
-
-#'
-#' @export
-#' 
-mySelectInput <-function (inputId, label, choices, selected = NULL, multiple = FALSE, 
-           width = NULL, options = NULL) 
-{
-    selected <- shiny:::restoreInput(id = inputId, default = selected)
-    choices <- shiny:::choicesWithNames(choices)
-    
-    if (is.null(selected)) {
-        if (!multiple) 
-            selected <- shiny:::firstChoice(choices)
-    } else {
-        selected <- as.character(selected)
-    }
-    
-    selectTag <- tags$select(id = inputId, class = "form-control form-control-sm", shiny:::selectOptions(choices, selected))
-    
-    if (multiple) 
-        selectTag$attribs$multiple <- "multiple"
-    
-    res <- div(class = "form-group form-group-sm shiny-input-container", style = if (!is.null(width)) 
-        paste0("width: ", validateCssUnit(width), ";"), shiny:::controlLabel(inputId,label), div(selectTag))
-
-    shiny:::selectizeIt(inputId, res, options, nonempty = !multiple && !("" %in% choices))
 }

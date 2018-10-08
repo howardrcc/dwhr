@@ -51,8 +51,17 @@ Mogelijk waarden zijn:
 \itemize{
  \item enabled: dimView heeft filterend effect op de feiten en is zichtbaar.
  \item hidden: dimView niet zichtbaar, maar heeft nog steeds een filterend effect op de feiten.
- \item disabled: dimView heeft geen filterend effect en is niet zichtbaar.}
+ \item disabled: dimView heeft geen filterend effect en is niet zichtbaar.
+}
 verandering van state kan plaats vinden via \code{\link{dimChangeState}}.}
+
+\item{type}{string, deze parameter met default 'bidir' bepaalt of dimView meetwaarden of afgeleide meetwaarden heeft of niet en of de dimView selecteerbaar is of niet. 
+Mogeljke waarden zijn:
+\itemize{
+ \item bidir: dimView heeft meetwaarden en is selecteerbaar.
+ \item input: dimView heeft geen meetwaarden maar is wel selecteerbaar.
+ \item output: dimView heeft meetwaarden maar is niet selecteerbaar.
+}}
 
 \item{selectMode}{string, mogelijke waarden:
 \itemize{
@@ -99,3 +108,28 @@ meetwaarden uit de feiten-tabel. Het dimView object kan meerdere nivo's hebben. 
 5. Na het toevoegen van een dimView-object aan het sterschema kunnen er meetwaarden (via \code{\link{addMeasure}}) en 
 afgeleide meetwaarden (via \code{\link{addMeasureDerrived}}) toegevoegd worden.
 }
+\section{reactive values}{
+
+De volgende reactive values zijn beschikbaar per dimView
+\itemize{
+   \item levelChange integer, wordt opgehoogd als gebruiker van level veranderd in de UI (door op + te klikken of door 
+   via breadcrumb naar ander nivo te navigeren). Dit triggered een dimRefresh. 
+   \item dimRefresh integer, het verhogen van deze waarde triggered een verversing van de presentaties die aan deze dimView 
+   gekoppeld zijn.
+   \item selectChange integer, wordt opgehoogd als gebruiker een item selecteerd in de presentatie, of als er programatisch een 
+   selectie-wijziging doorgevoerd wordt via \code{\link{setSelection}}. Dit triggered een selectedIdsChange, en isFiltered wordt 
+   bijgewerkt.
+   \item selectedIdsChange integer, wordt opgehoogd als selectie-wijziging daadwerkelijk resulteert in andere geselecteerde id's. 
+   Dit triggered een dimRefresh.
+   \item visChange = 0,
+   \item isFiltered = !(any(selectLevel == 0)),
+   \item orderChange = 0,
+   \item pageChange = 0,
+   \item pageLengthChange = 0,
+   \item presChange = 0,
+   \item nameChange = 0,
+   \item linksChange = 0,
+   \item clickMeasureEvent 
+}
+}
+

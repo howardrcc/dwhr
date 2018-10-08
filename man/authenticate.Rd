@@ -2,10 +2,13 @@
 % Please edit documentation in R/client.R
 \name{authenticate}
 \alias{authenticate}
-\title{authenticate dwhr session}
+\title{authenticate dwhr session.}
 \usage{
 authenticate(session)
 }
+\value{
+als geauthenticiteerd dan TRUE ander FALSE.
+}
 \description{
-authenticate dwhr session
+authenticeren van de gebruiker. Wordt gestuurd door de globale variable securityModel.
 }
