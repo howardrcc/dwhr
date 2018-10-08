@@ -210,6 +210,7 @@ addDimView <- function(
         assert_is_a_string(dim)
         assert_is_a_string(name)
         assert_is_data.frame(data)
+        data <- as.data.frame(data)
         assert_is_character(levelNames)
         assert_is_a_number(initLevel)
         initLevel <- as.integer(initLevel)

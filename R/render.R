@@ -179,7 +179,7 @@ renderDims <- function(env,input,output) {
                             }
                             
                             if (ll$type == 'dim') {
-                                ele <- getDimUI(starId = env$id, dim = ll$dim, skipTopRow = TRUE)
+                                ele <- getDimUI(starId = env$id, dim = ll$dim, skipTopRow = TRUE, checkDups = FALSE)
                             }
                             
                         } else {

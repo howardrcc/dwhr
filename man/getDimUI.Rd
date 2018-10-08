@@ -5,7 +5,7 @@
 \title{Creeer dimView object in the UI}
 \usage{
 getDimUI(starId, dim, skipTopRow = FALSE, maxHeight = NULL,
-  overflowX = "hidden", accordion = FALSE)
+  overflowX = "hidden", accordion = FALSE, checkDups = TRUE)
 }
 \arguments{
 \item{starId, }{uniek id van het sterschema. Dit id moet overeenkomen met de parameter \code{starId} in \code{\link{new.star}}}
@@ -20,6 +20,8 @@ getDimUI(starId, dim, skipTopRow = FALSE, maxHeight = NULL,
 \item{overflowX}{string, css overflow propery in X richting, bepaalt of er wel of niet een horizontale scrollbar getoond wordt bij overflow.}
 
 \item{accordion}{boolean, Als TRUE: dimensie kan in UI verkleint worden via een icon.}
+
+\item{checkDups}{boolean, Als TRUE: controleer of dimensie als in ui is opgenomen.}
 }
 \description{
 Creeer de html voor het dimView object in de shiny app's UI.

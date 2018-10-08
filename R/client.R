@@ -41,9 +41,10 @@ dwhrInit <- function() {
 #' @param maxHeight an integer, maximum hoogte in pixels voor dit dimView object
 #' @param overflowX string, css overflow propery in X richting, bepaalt of er wel of niet een horizontale scrollbar getoond wordt bij overflow. 
 #' @param accordion boolean, Als TRUE: dimensie kan in UI verkleint worden via een icon.
+#' @param checkDups boolean, Als TRUE: controleer of dimensie als in ui is opgenomen.
 #'
 #' @export
-getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflowX = 'hidden', accordion = FALSE) {
+getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflowX = 'hidden', accordion = FALSE, checkDups = TRUE) {
     
     withCallingHandlers({
         assert_is_a_string(starId)
@@ -54,9 +55,10 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
         assert_is_a_string(overflowX)
         assert_is_subset(overflowX,domains[['cssOverflow']])
         assert_is_a_bool(accordion)
+        assert_is_a_bool(checkDups)
         
         gdim <- getGlobalId(starId,dim)
-        gdim %in% glob.env$dimUiIds && stop('duplicate dims')    
+        gdim %in% glob.env$dimUiIds && checkDups && stop('duplicate dims')    
     },
     
     error = function(c) {
