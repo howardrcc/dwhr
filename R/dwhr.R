@@ -664,6 +664,24 @@ addDimView <- function(
     l$pres <- 'stub'
     l$state <- state
     l$debounce <- TRUE
+    
+    l$factsFilteredDim <- shiny::reactive({
+        
+        f <- env$facts
+        
+        env$reactive$factsChange
+        env$dims[[dim]]$memberChangeOther()
+        
+        for (d in setdiff(filteringDims(env),dim)) {
+            if (any(env$dims[[d]]$selected$level > 0)) {
+                dkey <- env$dims[[d]]$keyColumn
+                f <- f[f[[dkey]] %in% env$dims[[d]]$selectedIds,]
+            }
+        }
+        
+        dkey <- env$dims[[dim]]$keyColumn
+        f[env$dims[[dim]]$data, on = dkey, nomatch = 0]
+    })
 
     if (state == 'enabled') {
         l$visible <- TRUE
