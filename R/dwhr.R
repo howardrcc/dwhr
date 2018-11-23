@@ -672,7 +672,7 @@ addDimView <- function(
         env$reactive$factsChange
         env$dims[[dim]]$memberChangeOther()
         
-        for (d in setdiff(filteringDims(env),dim)) {
+        for (d in setdiff(setdiff(filteringDims(env),dim),ignoreDims)) {
             if (any(env$dims[[d]]$selected$level > 0)) {
                 dkey <- env$dims[[d]]$keyColumn
                 f <- f[f[[dkey]] %in% env$dims[[d]]$selectedIds,]
