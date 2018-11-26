@@ -864,8 +864,8 @@ addMeasure <- function(env, dim, factColumn, fun, as = factColumn, viewColumn = 
         assert_is_character(factColumn)
         for (c in factColumn) {
             c %in% names(env$facts) || stop(paste0(c, ' is not a valid factColumn'))
-            if(!is.numeric(env$facts[[c]]))
-                stop(paste0('factColumn ', c, ' is not numeric'))
+            # if(!is.numeric(env$facts[[c]]))
+            #     stop(paste0('factColumn ', c, ' is not numeric'))
         }
 
         if (dd$leafOnly) {

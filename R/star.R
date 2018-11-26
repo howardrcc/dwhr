@@ -754,7 +754,7 @@ getFirstRow <- function(env,dim,tab) {
         firstRow <- 1
     }
 
-    return(firstRow)
+    return(firstRow[1])
 
 }
 
