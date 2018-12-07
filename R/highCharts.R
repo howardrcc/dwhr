@@ -351,7 +351,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
     followPager <- isNull(dd$syncNav,FALSE) && isNull(dd$pageLength,FALSE)
 
     expandList <- function(l){
-        lapply(l, function(x) if(class(x) == 'function') do.call(x,list()) else if(is.list(x)) expandList(x) else x)
+        lapply(l, function(x) if(class(x) == 'function') do.call(x,list(env = env)) else if(is.list(x)) expandList(x) else x)
     }
 
     highChartsOpts <- expandList(presList[[pres]]$highChartsOpts)

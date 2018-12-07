@@ -77,10 +77,11 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
                   shiny::icon('chevron-down',lib = 'glyphicon'), 
                   '</td>')
     
-    shiny::div(
-        id = paste0(gdim,'Dimensie'),
-        div(class = 'dwhrAccordion',
-            if (!skipTopRow)
+    if (!skipTopRow) 
+        
+        shiny::div(
+            id = paste0(gdim,'Dimensie'),
+            div(class = 'dwhrAccordion',
                 HTML(paste0(
                     '<table width = "100%">'
                     , '<tbody>'
@@ -92,12 +93,18 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
                     , '<td class="db-header" style="padding-top: 42px"></td>'
                     , '</tr></tbody></table>')
                 ),
-            shiny::uiOutput(paste0(gdim,"DimHeader"))),
-        div(class = 'dwhrPanel', id = paste0(gdim,'DwhrPanel'),
+                shiny::uiOutput(paste0(gdim,"DimHeader"))),
+            div(class = 'dwhrPanel', id = paste0(gdim,'DwhrPanel'),
+                shiny::uiOutput(paste0(gdim,"DimBody")),
+                shiny::uiOutput(paste0(gdim,'DimFooter'))),
+            style = style)
+    else
+        shiny::div(
+            id = paste0(gdim,'Dimensie'),
+            shiny::uiOutput(paste0(gdim,"DimHeader")),
             shiny::uiOutput(paste0(gdim,"DimBody")),
-            shiny::uiOutput(paste0(gdim,'DimFooter'))),
-        style = style
-    )
+            shiny::uiOutput(paste0(gdim,'DimFooter')),
+            style = style)
 
 }
 
