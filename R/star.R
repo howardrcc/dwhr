@@ -391,9 +391,10 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL) {
 
         names(body) <- c('member',measCols)
         body$member <- as.character(body$member)
-        
-        lookup <- unique(dd$pc[dd$pc$level == lvl,][,c('label','code')])
+
+        lookup <- unique(dd$pc[dd$pc$level == lvl & dd$pc$parentLabel == parent & dd$pc$gparentLabel == isNull(gparent,''),][,c('label','code')])
         names(lookup) <- c('member','memberKey')
+        #browser(expr = {dim == 'kpi'})
         
         body <- as.data.frame(body[lookup,on = 'member',nomatch = 0])
         
