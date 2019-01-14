@@ -47,7 +47,11 @@ rowGroupEvent = function(gdim,rowGroup) {
         rowGroup: rowGroup});    
     
 };
-
+/*
+chart.xAxis[0].plotLinesAndBands[34].options | id is 34 = point.index
+clearPlotbands(chart,34,color)
+chart.xAxis[0].plotLinesAndBands[34].options.color = "lightGrey"
+*/
 clearPlotbands = function(chart,id,color) {
 
     var len = chart.xAxis[0].plotLinesAndBands.length;
@@ -125,7 +129,7 @@ pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,c
 
         if(chart.xAxis[0].plotLinesAndBands.length > 0) {
 
-            var pbColor = chart.xAxis[0].plotLinesAndBands[point.x].options.color;
+            var pbColor = chart.xAxis[0].plotLinesAndBands[point.index+1].options.color; 
 
             cnt = countSelected(chart,color);
             
@@ -135,7 +139,7 @@ pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,c
             }
 
             if ((cnt > 1 || pbColor != color) && selectable) {
-                clearPlotbands(chart,point.x,color);
+                clearPlotbands(chart,point.index,color); /* point.x is niet hetzelfde als id, geebruik point.index? */
                 select = true;
             }
         }
@@ -277,7 +281,7 @@ shinyjs.updateYAxis = function(params) {
 
 shinyjs.updateXPlotBands = function(params) {
 
-  //  $.unblockUI();
+  //  $.unblockUI(); chart.xAxis[0].addPlotBand(newPb[35]); chart.xAxis[0].plotLinesAndBands[35]
     var container = '#'.concat(params.dim,'DimChart');
     var chart = $(container).highcharts();
     var len = chart.xAxis[0].plotLinesAndBands.length;

@@ -320,11 +320,25 @@ makeHcWidget <- function(env,dim,prep){
         a <- do.call(eval(parse(text = 'highcharter::hc_plotOptions')), prep$plotOptionsOpts)
     }
     
+    if (!is.null(prep$navigatorOpts)) {
+        prep$navigatorOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_navigator')), prep$navigatorOpts)
+    }
+
+    if (!is.null(prep$rangeSelectorOpts)) {
+        prep$rangeSelectorOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_rangeSelector')), prep$rangeSelectorOpts)
+    }
+    
     a <- a %>%
-        highcharter::hc_add_series_list(prep$seriesOpts) %>%
-        highcharter::hc_add_theme(highcharter::hc_theme_smpl())
+            highcharter::hc_add_series_list(prep$seriesOpts) 
     
     
+    
+a <- a %>%
+    highcharter::hc_add_theme(highcharter::hc_theme_smpl())
+
+
     # hc_credits( enabled = TRUE
     #           , position = list(
     #                 align = 'right',
@@ -351,12 +365,13 @@ prepHc <- function(env, dim, pres, print = NULL) {
     followPager <- isNull(dd$syncNav,FALSE) && isNull(dd$pageLength,FALSE)
 
     expandList <- function(l){
-        lapply(l, function(x) if(class(x) == 'function') do.call(x,list(env = env)) else if(is.list(x)) expandList(x) else x)
+        #lapply(l, function(x) if(class(x) == 'function') do.call(x,list(env = env)) else if(is.list(x)) expandList(x) else x)
+        lapply(l, function(x) if(class(x) == 'function') do.call(x,list()) else if(is.list(x)) expandList(x) else x)
     }
 
     highChartsOpts <- expandList(presList[[pres]]$highChartsOpts)
 
-    chartType <- isNull(highChartsOpts$type,'chart')
+    chartType <- isNull(highChartsOpts$type,'chart')   
     chartOpts <- highChartsOpts$chart
     tooltipOpts <- highChartsOpts$tooltip
     xAxisOpts <- highChartsOpts$xAxis
@@ -367,6 +382,9 @@ prepHc <- function(env, dim, pres, print = NULL) {
     titleOpts <- highChartsOpts$title
     plotBandColor <- highChartsOpts$dashboard$plotBandColor
     paneOpts <- highChartsOpts$pane
+    navigatorOpts <- highChartsOpts$navigator
+    rangeSelectorOpts <-  highChartsOpts$rangeSelector
+
 
     if (is.null(plotBandColor)) {
         plotBandColor <- 'lightGrey'
@@ -388,8 +406,9 @@ prepHc <- function(env, dim, pres, print = NULL) {
     
     presCols <- intersect(presCols,meas$viewColumn)
 
+    
     tab <- data.frame(dd$membersFiltered)
-
+    
     fc = meas$viewColumn[meas$format %in% c('perc','perc1','perc2')]
     if (length(fc) > 0) {
         tab[,fc] <- tab[,fc] * 100
@@ -530,13 +549,25 @@ prepHc <- function(env, dim, pres, print = NULL) {
                 }
                 
                 y <- getMemberValue(env = evn, dim = dim, memberLevel = memberLevel, memberValue = memberValue, viewColumn = presCol)
-                
+                print(length(y$value) > 0)
                 if (length(y$value) > 0) {
                     
+                    if (chartType=='stock') {
+                        seriesData[[1]] <- list(
+                            name = colName,
+                            id = colName,
+                            y = y$value
+                            #,x = as.numeric(colName)
+                        )
+                        
+                    } else {
                     seriesData[[1]] <- list(
                         name = colName,
                         id = colName,
                         y = y$value)
+                    }
+                    
+                    
                     
                     fmt <- getFormat2(y$format,y$value)
                     seriesData[[1]]$ttXtraData <- paste0(colName,': ',fmt,'<br/>')
@@ -581,7 +612,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
                             }
                         }
                         
-                        if (!(serieType %in% c('pie','treemap'))) {
+                        if (!(serieType %in% c('pie','treemap')) && !(chartType=='stock')) {
                             
                             i <- i + 1
                             point <- list(
@@ -598,6 +629,17 @@ prepHc <- function(env, dim, pres, print = NULL) {
                             }
                         }
                         
+                        if (chartType=='stock') {
+                            
+                            i <- i + 1
+                            point <- list(
+                                name = labelsPage[rec],
+                                id = labelsPage[rec],
+                                x = datetime_to_timestamp(as.Date(paste0('01-',labelsPage[rec]),format='%d-%b-%Y')),
+                                y = dt[rec])
+                            
+                        }
+                            
                         fmt <- getFormat2(format,dt[rec])
                         point$ttXtraData <- paste0(colName,': ',fmt,'<br/>')
                         
@@ -633,7 +675,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
             
             seriesList$id = serieNum
             seriesList$name = colName
-            seriesList$data = seriesData
+            seriesList$data = seriesData 
             
             seriesList$tooltip$pointFormatter <- highcharter::JS(paste0("function() {return ttPointFormatter(this);}"))
             
@@ -675,7 +717,12 @@ prepHc <- function(env, dim, pres, print = NULL) {
                 }
                 
                 xAxisOpts$plotBands <- plotBands
-                xAxisOpts$categories <- sanitizeLabel(labelsPage,10)
+                xAxisOpts$categories <- sanitizeLabel(labelsPage,10)    
+                
+                
+                
+                
+                
             }
             
         }
@@ -701,8 +748,12 @@ prepHc <- function(env, dim, pres, print = NULL) {
         titleOpts = titleOpts,
         paneOpts = paneOpts,
         plotBands = plotBands,
+        navigatorOpts = navigatorOpts,
+        rangeSelectorOpts = rangeSelectorOpts,
         print = print)
-
+    
+    #if (chartType== 'stock') browser()
+    
     ret$widget <- makeHcWidget(env,dim,ret)
     
     if (!print)
