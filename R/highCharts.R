@@ -365,8 +365,8 @@ prepHc <- function(env, dim, pres, print = NULL) {
     followPager <- isNull(dd$syncNav,FALSE) && isNull(dd$pageLength,FALSE)
 
     expandList <- function(l){
-        #lapply(l, function(x) if(class(x) == 'function') do.call(x,list(env = env)) else if(is.list(x)) expandList(x) else x)
-        lapply(l, function(x) if(class(x) == 'function') do.call(x,list()) else if(is.list(x)) expandList(x) else x)
+        lapply(l, function(x) if(class(x) == 'function') do.call(x,list(env = env)) else if(is.list(x)) expandList(x) else x)
+        #lapply(l, function(x) if(class(x) == 'function') do.call(x,list()) else if(is.list(x)) expandList(x) else x)
     }
 
     highChartsOpts <- expandList(presList[[pres]]$highChartsOpts)
@@ -557,7 +557,6 @@ prepHc <- function(env, dim, pres, print = NULL) {
                             name = colName,
                             id = colName,
                             y = y$value
-                            #,x = as.numeric(colName)
                         )
                         
                     } else {
@@ -634,7 +633,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
                             i <- i + 1
                             point <- list(
                                 name = labelsPage[rec],
-                                id = labelsPage[rec],
+                                id = labelsPage[rec], 
                                 x = datetime_to_timestamp(as.Date(paste0('01-',labelsPage[rec]),format='%d-%b-%Y')),
                                 y = dt[rec])
                             
@@ -693,7 +692,8 @@ prepHc <- function(env, dim, pres, print = NULL) {
             
             
             if(length(plotBands) == 0 &&
-               !(serieType %in% c('pie','treemap','gauge','solidgauge'))) {
+               !(serieType %in% c('pie','treemap','gauge','solidgauge')) &&
+               !(chartType == 'stock')) {
                 
                 x <- as.data.frame(tab[pageStart:pageEnd,presCols[which(clickable)]])
                 
@@ -714,16 +714,43 @@ prepHc <- function(env, dim, pres, print = NULL) {
                                              , zIndex = 1
                                              , events = list(click = plotBandSingleSelectJS(env,dim,lbl,plotBandColor,serieType)))
                     
+                        
                 }
-                
                 xAxisOpts$plotBands <- plotBands
                 xAxisOpts$categories <- sanitizeLabel(labelsPage,10)    
                 
-                
-                
-                
-                
             }
+                 
+                if(length(plotBands) == 0 &&
+                   !(serieType %in% c('pie','treemap','gauge','solidgauge')) &&
+                   (chartType == 'stock')) {
+                    
+                    x <- as.data.frame(tab[pageStart:pageEnd,presCols[which(clickable)]])
+                    
+                    complete <- rowSums(is.na(x))<length(x)   # true als er tenminste 1 non-na is
+                    
+                    
+                    for (rec in 1:nrow(tab[pageStart:pageEnd,])) {
+                        
+                        if (length(complete) >= rec && complete[[rec]]) {
+                            lbl <- labelsPage[rec]
+                        } else {
+                            lbl <- ' '
+                        }
+                         
+                        plotBands[[rec]] <- list(color = ifelse(labelsPage[rec] %in% sel,plotBandColor,'rgba(0,0,0,0)')
+                                                 , from = datetime_to_timestamp(as.Date(paste0('01-',labelsPage[rec]),format='%d-%b-%Y')) - (3600*24*15*1000)
+                                                 , to = datetime_to_timestamp(as.Date(paste0('01-',labelsPage[rec]),format='%d-%b-%Y')) +  (3600*24*15*1000)
+                                                 , id = rec - 1
+                                                 , zIndex = 1
+                                                 , events = list(click = plotBandSingleSelectJS(env,dim,lbl,plotBandColor,serieType)))
+                        
+                    }
+                    xAxisOpts$plotBands <- plotBands
+                    xAxisOpts$categories <- sanitizeLabel(labelsPage,10)    
+                    
+            } 
+               
             
         }
         
@@ -873,12 +900,14 @@ renderHighchartDim <- function(env, dim, input,output) {
             if (select || unSelect || drill) {
 
                 tab <- dd$membersFiltered
-
+ 
                 e <- which(tab$member == id)
+                
                 dd$highchartsClickEvent <- e
-
+                
+                
                 if (drill) {
-
+                    
                     if (dd$level < dd$maxLevel) {
                         dd$parent <- dd$membersFiltered$member[e]
                         dd$ancestors <- c(dd$ancestors,dd$parent)
@@ -886,9 +915,9 @@ renderHighchartDim <- function(env, dim, input,output) {
                         dd$reactive$levelChange <- dd$reactive$levelChange + 1
                         printDebug(env, dim, eventIn = 'highchartsClick', eventOut = 'levelChange', info = 'drill')
                     }
-
+                
                 } else {
-
+                    
                     l <- data.frame(
                         level = as.numeric(lvl),
                         parent = parent,
@@ -1008,15 +1037,20 @@ renderHighchartDim <- function(env, dim, input,output) {
             drill <- event$drill
             select <- event$select
             unSelect <- event$unSelect
-
+            
+            
             if(exists(paste0(dim,'HighChartsPbClickHook'),envir = env$ce)) {
                 do.call(paste0(dim,'HighChartsPbClickHook'),list(env = env, event = event),envir = env$ce)
             }
 
             if (select || unSelect || drill) {
 
-                e <- event$data + 0.5
-
+                if (is.null(presList[[pres]]$highChartsOpts$type)) {
+                e <- event$data + 0.5 
+                } else if (presList[[pres]]$highChartsOpts$type == 'stock') {
+                e <- event$id
+                } 
+                
                 if(followPager) {
                     e <- e + pageLength * (currentPage - 1)
                 }
@@ -1030,7 +1064,8 @@ renderHighchartDim <- function(env, dim, input,output) {
                 orderViewColumn <- dd$orderViewColumn
                 orderColumnDir <- dd$orderColumnDir
                 orderViewColumn2 <- dd$orderViewColumn2
-
+                
+                
                 if (!is.null(orderViewColumn2)) {
                     nm <- tab[
                         order(
@@ -1047,8 +1082,8 @@ renderHighchartDim <- function(env, dim, input,output) {
                             method = 'radix',
                             decreasing = (orderColumnDir == 'desc')),][e + 1,]$member
                 }
-
-                e <- which(tab$member == nm)
+                #print(nm)
+                e <- which(tab$member == nm)  
                 dd$highchartsPbClickEvent <- e
 
                 if (drill) {
@@ -1066,7 +1101,7 @@ renderHighchartDim <- function(env, dim, input,output) {
                     l <- data.frame(
                         level = as.numeric(lvl),
                         parent = parent,
-                        label = dd$membersFiltered$member[e],
+                        label = nm, #dd$membersFiltered$member[e],
                         stringsAsFactors = FALSE)
 
                     s <- dd$selected
@@ -1078,7 +1113,7 @@ renderHighchartDim <- function(env, dim, input,output) {
                         dd$selected <- l
                     }
 
-                    dd$rowLastAccessed$value[dd$rowLastAccessed$level == lvl] <- dd$membersFiltered$member[e]
+                    dd$rowLastAccessed$value[dd$rowLastAccessed$level == lvl] <- nm #dd$membersFiltered$member[e] #nm? wat doet deze regel?
 
                     dimCorrectSelectionInfo(input,env,dim)
                     dimSetHasSubselect(env,dim)
