@@ -218,9 +218,14 @@ renderDims <- function(env,input,output) {
                     hideNoFilter <- presList[[dd$pres]]$navOpts$hideNoFilter
                     hideBreadCrumb <- presList[[dd$pres]]$navOpts$hideBreadCrumb
                     hideAll <- presList[[dd$pres]]$navOpts$hideAll
-            
+                    
+                    selLinks <- presList[[dd$pres]]$navOpts$selLinks
+                    
+                    elems <- list()
+                    
                     txt <- ''
-
+                    lnks <- ''
+                    
                     if(!hideBreadCrumb) {
                     
                         txt <- paste0(txt,'<div style="padding-bottom:4px;" id="',gdim, 'Breadcrumb">')
@@ -256,7 +261,22 @@ renderDims <- function(env,input,output) {
 
                         txt <- paste0(txt,'<div style="padding-bottom:4px;">')
                     }
+        
+                    for (ll in selLinks) {
+        
+                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink') {
+                            ele <- shiny::actionLink(inputId = paste0(gdim, ll$id, 'selLink'), label = ll$label)
+                        }
+                        
+                        lnks <- paste0(lnks, '&nbsp&nbsp<span>', ele,'</span>')
+                        
 
+                    }
+                    
+                    if (nchar(lnks) > 1) {
+                        txt <- paste0(txt, lnks)
+                    }
+                    
                     if (any(dd$selected$level > 0) && !hideNoFilter) {
 
                         txt <- paste0(txt,'&nbsp<span style="float:right;">',actionLink(inputId = paste0(gdim,'NoFilter'), label = 'Verwijder Filter', style='color:red'),'</span>')

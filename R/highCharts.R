@@ -1,4 +1,3 @@
-
 plotBandSingleSelectJS <- function(env,dim,label,color,serieType) {
     
     dd <- env$dims[[dim]]
@@ -629,16 +628,19 @@ prepHc <- function(env, dim, pres, print = NULL) {
                         }
                         
                         if (chartType=='stock') {
-                            
                             i <- i + 1
+                            periode <- dd$levelNames[level+1]
                             point <- list(
                                 name = labelsPage[rec],
-                                id = labelsPage[rec], 
-                                x = datetime_to_timestamp(as.Date(paste0('01-',labelsPage[rec]),format='%d-%b-%Y')),
+                                id = labelsPage[rec],
+                                x = labelsPage[rec],
                                 y = dt[rec])
                             
-                        }
+                            point <- xAxisdatetime(x=point, dateType=periode)
                             
+                            
+                        }
+                        
                         fmt <- getFormat2(format,dt[rec])
                         point$ttXtraData <- paste0(colName,': ',fmt,'<br/>')
                         
@@ -720,48 +722,52 @@ prepHc <- function(env, dim, pres, print = NULL) {
                 xAxisOpts$categories <- sanitizeLabel(labelsPage,10)    
                 
             }
-                 
-                if(length(plotBands) == 0 &&
-                   !(serieType %in% c('pie','treemap','gauge','solidgauge')) &&
-                   (chartType == 'stock')) {
+            
+            if(length(plotBands) == 0 &&
+               !(serieType %in% c('pie','treemap','gauge','solidgauge')) &&
+               (chartType == 'stock')) {
+                
+                x <- as.data.frame(tab[pageStart:pageEnd,presCols[which(clickable)]])
+                
+                complete <- rowSums(is.na(x))<length(x)   # true als er tenminste 1 non-na is
+                
+                periode <- dd$levelNames[level+1]
+                for (rec in 1:nrow(tab[pageStart:pageEnd,])) {
                     
-                    x <- as.data.frame(tab[pageStart:pageEnd,presCols[which(clickable)]])
-                    
-                    complete <- rowSums(is.na(x))<length(x)   # true als er tenminste 1 non-na is
-                    
-                    
-                    for (rec in 1:nrow(tab[pageStart:pageEnd,])) {
-                        
-                        if (length(complete) >= rec && complete[[rec]]) {
-                            lbl <- labelsPage[rec]
-                        } else {
-                            lbl <- ' '
-                        }
-                         
-                        plotBands[[rec]] <- list(color = ifelse(labelsPage[rec] %in% sel,plotBandColor,'rgba(0,0,0,0)')
-                                                 , from = datetime_to_timestamp(as.Date(paste0('01-',labelsPage[rec]),format='%d-%b-%Y')) - (3600*24*15*1000)
-                                                 , to = datetime_to_timestamp(as.Date(paste0('01-',labelsPage[rec]),format='%d-%b-%Y')) +  (3600*24*15*1000)
-                                                 , id = rec - 1
-                                                 , zIndex = 1
-                                                 , events = list(click = plotBandSingleSelectJS(env,dim,lbl,plotBandColor,serieType)))
-                        
+                    if (length(complete) >= rec && complete[[rec]]) {
+                        lbl <- labelsPage[rec]
+                    } else {
+                        lbl <- ' '
                     }
-                    xAxisOpts$plotBands <- plotBands
-                    xAxisOpts$categories <- sanitizeLabel(labelsPage,10)    
                     
+                    plotBands[[rec]] <- list(color = ifelse(labelsPage[rec] %in% sel,plotBandColor,'rgba(0,0,0,0)')
+                                             , from = labelsPage[rec]
+                                             , to = labelsPage[rec]
+                                             , id = rec - 1
+                                             , zIndex = 2
+                                             , events = list(click = plotBandSingleSelectJS(env,dim,lbl,plotBandColor,serieType)))
+                    
+                    
+                    plotBands[[rec]] <- xAxisdatetime(x=plotBands[[rec]], dateType=periode)
+                    
+                    
+                }
+                xAxisOpts$plotBands <- plotBands
+                xAxisOpts$categories <- sanitizeLabel(labelsPage,10)    
+                
             } 
-               
+            
             
         }
         
         
         plotOptionsOpts$series$events$hide <- highcharter::JS(paste0("function(){
-                                                             var number = Math.random();
-                                                             Shiny.onInputChange('",gdim,"HighchartHide',{r: number, data: this.options.id})}"))
+                                                                     var number = Math.random();
+                                                                     Shiny.onInputChange('",gdim,"HighchartHide',{r: number, data: this.options.id})}"))
         plotOptionsOpts$series$events$show <- highcharter::JS(paste0("function(){
-                                                               var number = Math.random();
-                                                               Shiny.onInputChange('",gdim,"HighchartShow',{r: number, data: this.options.id})}"))
-    } 
+                                                                     var number = Math.random();
+                                                                     Shiny.onInputChange('",gdim,"HighchartShow',{r: number, data: this.options.id})}"))
+        } 
     
     ret <- list(
         chartType = chartType,
@@ -787,11 +793,11 @@ prepHc <- function(env, dim, pres, print = NULL) {
         env$hcPrep[[dim]] <- ret
     
     ret
-
+    
 }
 
 sanitizeLabel <- function(x, m) {
-
+    
     ret <- c()
     for (s in x) {
         ss <- ''
@@ -801,14 +807,14 @@ sanitizeLabel <- function(x, m) {
             } else {
                 tt <- t
             }
-
+            
             ss <- paste0(ss,tt,' ')
         }
-
+        
         ret <- c(ret,trimws(ss,'right'))
     }
     ret
-
+    
 }
 
 removeCallbacks <- function(chart){
@@ -830,25 +836,25 @@ listDiff <- function(l1,l2) {
 }
 
 renderHighchartDim <- function(env, dim, input,output) {
-
+    
     dd <- env$dims[[dim]]
     gdim <- dd$gdim
     
     outputChart <- paste0(gdim,'DimChart')
     env$hcRenderers[[dim]] <- reactiveValues(count=0)
     obs <- dd$observers
-
+    
     output[[outputChart]] <- highcharter::renderHighchart({
         
         env$hcRenderers[[dim]]$count
-
+        
         pres <- dd$pres
         prep <- env$hcPrep[[dim]]
         
         if (env$hcRenderers[[dim]]$count == 0) {
             return()
         }
-
+        
         printDebug(env, dim, eventIn = 'renderHighCharts', info = paste0('rendercount:', env$hcRenderers[[dim]]$count))
         
         if (is.null(prep))
@@ -863,44 +869,44 @@ renderHighchartDim <- function(env, dim, input,output) {
     
     shiny::outputOptions(output,outputChart,suspendWhenHidden = FALSE)
     shiny::outputOptions(output,outputChart,priority = 5)
-
-
+    
+    
     #
     # observers voor highcharts
     #
-
+    
     highchartsClickEvent <- paste0(gdim,'HighchartClick')
-
+    
     if (!(highchartsClickEvent %in% obs)) {
-
+        
         observeEvent(input[[highchartsClickEvent]], {
             
             lvl <- dd$level
             parent <- dd$parent
             presList <- dd$presList
-
+            
             pres <- dd$pres
             presType <- presList[[pres]]$type
             pageLength <- dd$pageLength
             currentPage <- dd$currentPage
-
+            
             chartType <- input[[highchartsClickEvent]]$type
-
+            
             event <- input[[highchartsClickEvent]]
-
+            
             drill <- event$drill
             select <- event$select
             unSelect <- event$unSelect
             id <- event$id
-
+            
             if(exists(paste0(dim,'HighChartsClickHook'),envir = env$ce)) {
                 do.call(paste0(dim,'HighChartsClickHook'),list(env = env, event = event),envir = env$ce)
             }
-
+            
             if (select || unSelect || drill) {
-
+                
                 tab <- dd$membersFiltered
- 
+                
                 e <- which(tab$member == id)
                 
                 dd$highchartsClickEvent <- e
@@ -914,8 +920,9 @@ renderHighchartDim <- function(env, dim, input,output) {
                         dd$level <- dd$level + 1
                         dd$reactive$levelChange <- dd$reactive$levelChange + 1
                         printDebug(env, dim, eventIn = 'highchartsClick', eventOut = 'levelChange', info = 'drill')
+                        
                     }
-                
+                    
                 } else {
                     
                     l <- data.frame(
@@ -923,43 +930,43 @@ renderHighchartDim <- function(env, dim, input,output) {
                         parent = parent,
                         label = dd$membersFiltered$member[e],
                         stringsAsFactors = FALSE)
-
+                    
                     s <- dd$selected
                     s$level <- as.numeric(s$level)
-
+                    
                     if (identical(s,l)) {
                         dd$selected <- dd$rootSelected
                     } else {
                         dd$selected <- l
                     }
-
+                    
                     dd$rowLastAccessed$value[dd$rowLastAccessed$level == lvl] <- dd$membersFiltered$member[e]
-
+                    
                     dimCorrectSelectionInfo(input,env,dim)
                     dimSetHasSubselect(env,dim)
                     dd$selectSource <- 'highchartsClick'
                     dd$reactive$selectChange <- dd$reactive$selectChange + 1
                     printDebug(env, dim, eventIn = 'highchartsClick', eventOut = 'selectChange', info = 'select')
-
+                    
                 }
             }
-
+            
         })
-
+        
         obs <- c(obs,highchartsClickEvent)
     }
-
-
+    
+    
     highchartsHideEvent <- paste0(gdim,'HighchartHide')
-
+    
     if (!(highchartsHideEvent %in% obs)) {
-
+        
         observeEvent(input[[highchartsHideEvent]], {
             
             e <- input[[highchartsHideEvent]]$data
             pres <- dd$pres
             presList <- dd$presList
-
+            
             seriesOpts <- presList[[pres]]$highChartsOpts$series
             seriesOpts[[e]]$visible <- FALSE
             
@@ -971,7 +978,7 @@ renderHighchartDim <- function(env, dim, input,output) {
             
             seriesOpts <- env$hcPrev[[dim]]$seriesOpts
             seriesOpts[[e]]$visible <- FALSE
-        
+            
             if (e < length(seriesOpts) && !is.null(seriesOpts[[e + 1]]$linkedTo) && seriesOpts[[e + 1]]$linkedTo == ':previous') {
                 seriesOpts[[e + 1]]$visible <- FALSE
             }
@@ -979,21 +986,21 @@ renderHighchartDim <- function(env, dim, input,output) {
             env$hcPrev[[dim]]$seriesOpts <- seriesOpts
             
         })
-
+        
         obs <- c(obs,highchartsHideEvent)
     }
-
+    
     highchartsShowEvent <- paste0(gdim,'HighchartShow')
-
+    
     if (!(highchartsShowEvent %in% obs)) {
-
+        
         observeEvent(input[[highchartsShowEvent]], {
- 
+            
             e <- input[[highchartsShowEvent]]$data
-
+            
             pres <- dd$pres
             presList <- dd$presList
-
+            
             seriesOpts <- presList[[pres]]$highChartsOpts$series
             seriesOpts[[e]]$visible <- TRUE
             
@@ -1002,7 +1009,7 @@ renderHighchartDim <- function(env, dim, input,output) {
             }
             
             dd$presList[[pres]]$highChartsOpts$series <- seriesOpts
-  
+            
             seriesOpts <- env$hcPrev[[dim]]$seriesOpts
             seriesOpts[[e]]$visible <- TRUE
             
@@ -1011,29 +1018,29 @@ renderHighchartDim <- function(env, dim, input,output) {
             }
             
             env$hcPrev[[dim]]$seriesOpts <- seriesOpts
-
+            
         })
-
+        
         obs <- c(obs,highchartsShowEvent)
     }
-
+    
     highchartsPbClickEvent <- paste0(gdim,'HighchartPbClick')
-
+    
     if (!(highchartsPbClickEvent %in% obs)) {
-
+        
         observeEvent(input[[highchartsPbClickEvent]], {
             
             lvl <- dd$level
             parent <- dd$parent
             presList <- dd$presList
-
+            
             pres <- dd$pres
             followPager <- isNull(dd$syncNav,FALSE) && isNull(dd$pageLength,FALSE)
             pageLength <- dd$pageLength
             currentPage <- dd$currentPage
-
+            
             event <- input[[highchartsPbClickEvent]]
-
+            
             drill <- event$drill
             select <- event$select
             unSelect <- event$unSelect
@@ -1042,25 +1049,25 @@ renderHighchartDim <- function(env, dim, input,output) {
             if(exists(paste0(dim,'HighChartsPbClickHook'),envir = env$ce)) {
                 do.call(paste0(dim,'HighChartsPbClickHook'),list(env = env, event = event),envir = env$ce)
             }
-
+            
             if (select || unSelect || drill) {
-
+                
                 if (is.null(presList[[pres]]$highChartsOpts$type)) {
-                e <- event$data + 0.5 
+                    e <- event$data + 0.5 
                 } else if (presList[[pres]]$highChartsOpts$type == 'stock') {
-                e <- event$id
+                    e <- event$id
                 } 
                 
                 if(followPager) {
                     e <- e + pageLength * (currentPage - 1)
                 }
-
+                
                 tab <- dd$membersFiltered
-
+                
                 if (nrow(tab) < e + 1) {
                     return()
                 }
-
+                
                 orderViewColumn <- dd$orderViewColumn
                 orderColumnDir <- dd$orderColumnDir
                 orderViewColumn2 <- dd$orderViewColumn2
@@ -1085,9 +1092,9 @@ renderHighchartDim <- function(env, dim, input,output) {
                 #print(nm)
                 e <- which(tab$member == nm)  
                 dd$highchartsPbClickEvent <- e
-
+                
                 if (drill) {
-
+                    
                     if (dd$level < dd$maxLevel) {
                         dd$parent <- dd$membersFiltered$member[e]
                         dd$ancestors <- c(dd$ancestors,dd$parent)
@@ -1095,26 +1102,26 @@ renderHighchartDim <- function(env, dim, input,output) {
                         dd$reactive$levelChange <- dd$reactive$levelChange + 1
                         printDebug(env, dim, eventIn = 'highchartsPbClick', eventOut = 'levelChange', info = 'drill')
                     }
-
+                    
                 } else {
-
+                    
                     l <- data.frame(
                         level = as.numeric(lvl),
                         parent = parent,
                         label = nm, #dd$membersFiltered$member[e],
                         stringsAsFactors = FALSE)
-
+                    
                     s <- dd$selected
                     s$level <- as.numeric(s$level)
-
+                    
                     if (identical(s,l)) {
                         dd$selected <- dd$rootSelected
                     } else {
                         dd$selected <- l
                     }
-
+                    
                     dd$rowLastAccessed$value[dd$rowLastAccessed$level == lvl] <- nm #dd$membersFiltered$member[e] #nm? wat doet deze regel?
-
+                    
                     dimCorrectSelectionInfo(input,env,dim)
                     dimSetHasSubselect(env,dim)
                     dd$selectSource <- 'highchartsPbClick'
@@ -1123,14 +1130,14 @@ renderHighchartDim <- function(env, dim, input,output) {
                 }
             }
         })
-
+        
         obs <- c(obs,highchartsPbClickEvent)
     }
-
+    
     highchartsReadyEvent <- paste0(gdim,'HighchartReady')
-
+    
     if (!(highchartsReadyEvent %in% obs)) {
-
+        
         observeEvent(input[[highchartsReadyEvent]], {
             printDebug(env, dim, eventIn = 'highchartsReady')
             if (dd$state == 'enabled' && !dd$visible) {
@@ -1138,15 +1145,15 @@ renderHighchartDim <- function(env, dim, input,output) {
                 dd$visible <- TRUE
             }
         })
-
+        
         obs <- c(obs,highchartsReadyEvent)
     }
-
+    
     dd$observers <- obs
 }
 
 processHighCharts <- function(env,dim,pres){
-
+    
     dd <- env$dims[[dim]]
     gdim <- dd$gdim
     
@@ -1154,10 +1161,10 @@ processHighCharts <- function(env,dim,pres){
     
     if (is.null(chart))
         chart <- prepHc(env,dim,pres)
-
+    
     presList <- dd$presList
     useUpdate <- presList[[pres]]$highChartsOpts$dashboard$useUpdate
-
+    
     #check no of series
     
     prevSeriesCount <- length(env$hcPrev[[dim]]$seriesOpts)
@@ -1177,23 +1184,23 @@ processHighCharts <- function(env,dim,pres){
     } else {
         useUpdate <- FALSE
     }
-
+    
     if((is.null(useUpdate) || useUpdate) && length(setdiff(newLength,prevLength)) == 0 && !chart$print) {
-
+        
         change <- FALSE
         chart <- removeCallbacks(chart)
-
+        
         l1 <- list()
         l2 <- list()
-
+        
         for (serie in 1:length(chart$seriesOpts)) {
             l1[[serie]] <- env$hcPrev[[dim]]$seriesOpts[[serie]]$data
             l2[[serie]] <- chart$seriesOpts[[serie]]$data
         }
-
+        
         if(!identical(l1,l2)) {
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'seriesData')
-
+            
             shinyjs::js$updateSeriesData(
                 dim = gdim,
                 seriesData = l2,
@@ -1201,18 +1208,18 @@ processHighCharts <- function(env,dim,pres){
             
             change <- TRUE
         }
-
+        
         l1 <- env$hcPrev[[dim]]$seriesOpts
         l2 <- chart$seriesOpts
-
+        
         for (serie in 1:length(chart$seriesOpts)) {
             l1[[serie]]$data <- NULL
             l2[[serie]]$data <- NULL
         }
-
+        
         if(!identical(l1,l2)) {
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'seriesOpts')
-
+            
             shinyjs::js$updateSeriesOpts(
                 dim = gdim,
                 seriesOpts = lapply(seq_along(l1),function(x) listDiff(l1[[x]],l2[[x]])),
@@ -1220,19 +1227,19 @@ processHighCharts <- function(env,dim,pres){
             
             change <- TRUE
         }
-
+        
         l1 <- env$hcPrev[[dim]]$yAxisOpts
         l2 <- chart$yAxisOpts
-
+        
         if(!identical(l1,l2)) {
-
+            
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'yAxisOpts')
-
+            
             if (class(names(l2)) == 'character') {
                 l1 <- list(l1)
                 l2 <- list(l2)
             }
-
+            
             for (axis in seq_along(l2)) {
                 
                 shinyjs::js$updateYAxis(
@@ -1241,14 +1248,14 @@ processHighCharts <- function(env,dim,pres){
                     yAxisOpts = listDiff(l1[[axis]],l2[[axis]]),
                     redraw = FALSE)
             }
-
+            
             change <- TRUE
         }
-
+        
         if(!identical(env$hcPrev[[dim]]$xAxisOpts,chart$xAxisOpts)) {
-
+            
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'xAxisOpts')
-
+            
             shinyjs::js$updateXAxis(
                 dim = gdim,
                 axis = 0,
@@ -1257,7 +1264,7 @@ processHighCharts <- function(env,dim,pres){
             
             change <- TRUE
         }
-
+        
         if(!identical(env$hcPrev[[dim]]$titleOpts,chart$titleOpts)) {
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'titleOpts')
             shinyjs::js$updateTitle(
@@ -1266,30 +1273,63 @@ processHighCharts <- function(env,dim,pres){
                 redraw = FALSE)
             change <- TRUE
         }
-
-
+        
+        
         if (change) {
             shinyjs::js$redraw(dim = gdim,animate = FALSE)
         }
-
+        
         if (length(chart$plotBands) > 0) {
-
+            
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'xPlotBands')
             shinyjs::js$updateXPlotBands(
                 dim = gdim,
                 plotBands = chart$plotBands,
                 redraw = FALSE)
         }
-
+        
         env$hcPrev[[dim]] <- chart
         env$hcPrep[[dim]] <- NULL
-
+        
     } else {
-
+        
         # trigger render
-
+        
         env$hcRenderers[[dim]]$count <- env$hcRenderers[[dim]]$count + 1
     }
 }
 
 
+xAxisdatetime <- function(x=point, dateType) {
+    
+    if (deparse(substitute(x)) =='point') {
+        if  (dateType=='jaar') {
+            x$name  <- format(as.Date(paste0(as.character(x$name),'-01-01')),format='%Y')
+            x$id    <- x$name
+            x$x     <- datetime_to_timestamp(as.Date(paste0(as.character(x$x),'-01-01')))
+        }
+        if (dateType=='maand') {
+            x$name  <- format(as.Date(paste0('01-', as.character(x$name)),format="%d-%b-%Y"),format='%b-%Y')
+            x$id    <- x$name
+            x$x     <- datetime_to_timestamp(as.Date(paste0('01-',as.character(x$x)),format="%d-%b-%Y"))
+        }
+        return(x)
+    }
+    
+    if (deparse(substitute(x)) =='plotBands[[rec]]') {
+
+        if  (dateType=='jaar') {
+            multiplier = 3600*24*(365/2)*1000 #half jaar
+            x$from  <- datetime_to_timestamp(as.Date(paste0(as.character(x$from),'-01-01'))) - multiplier
+            x$to  <- datetime_to_timestamp(as.Date(paste0(as.character(x$to),'-01-01'))) + multiplier
+            
+        }
+        if (dateType=='maand') {
+            multiplier = 3600*24*(32/2)*1000 #halve maand
+            x$from  <- datetime_to_timestamp(as.Date(paste0('01-',x$from),format='%d-%b-%Y')) - multiplier
+            x$to  <- datetime_to_timestamp(as.Date(paste0('01-',x$to),format='%d-%b-%Y')) + multiplier
+        }
+        return(x)
+    }
+    
+}
