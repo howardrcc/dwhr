@@ -1,7 +1,19 @@
+dwhr 1.1.9000
+==========
+
+changes
+
+* ondersteuning Highstock functionaliteit
+
+breaking changes
+
+* functies in highcharts-options moeten een env parameter hebben met daarin de environment van het sterschema.
+
+
 dwhr 1.1.0
 ==========
 
-### Wijzigingen
+changes
 
 * implementatie van accordion in UI
 
