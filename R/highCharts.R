@@ -437,9 +437,11 @@ prepHc <- function(env, dim, pres, print = NULL) {
     orderViewColumn2 <- dd$orderViewColumn2
 
     if (!is.null(orderViewColumn2)) {
-        tab <- tab[order(tab[,orderViewColumn],tab[,orderViewColumn2],tab$member,method = 'radix', decreasing = (orderColumnDir == 'desc')),]
+        tabOrder <- order(tab[,orderViewColumn],tab[,orderViewColumn2],tab$member,method = 'radix', decreasing = (orderColumnDir == 'desc'))
+        tab <- tab[tabOrder,]
     } else {
-        tab <- tab[order(tab[,orderViewColumn],tab$member,method = 'radix', decreasing = (orderColumnDir == 'desc')),]
+        tabOrder <- order(tab[,orderViewColumn],tab$member,method = 'radix', decreasing = (orderColumnDir == 'desc'))
+        tab <- tab[tabOrder,]
     }
 
     labels <- tab$member
