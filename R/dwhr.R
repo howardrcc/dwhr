@@ -1413,12 +1413,14 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
         navOpts$hideAll <- isNull(navOpts$hideAll,FALSE)
         navOpts$hideBreadCrumb <- isNull(navOpts$hideBreadCrumb,FALSE)
         navOpts$links <- isNull(navOpts$links,list())
+        navOpts$minBreadCrumbLevel <- isNull(navOpts$minBreadCrumbLevel,0)
 
         assert_is_a_bool(navOpts$syncNav)
         assert_is_a_bool(navOpts$hideNoFilter)
         assert_is_a_bool(navOpts$hideAll)
         assert_is_a_bool(navOpts$hideBreadCrumb)
         assert_is_list(navOpts$links)
+        assert_is_a_number(navOpts$minBreadCrumbLevel)
 
         if (!navOpts$syncNav && dim == uiId) {
             navOpts$syncNav <- TRUE
