@@ -422,7 +422,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
     measList <- getMeasList(env,dim)
   
     if ('sort' %in% measList$category) {
-        orderable <- FALSE
+        orderable <- TRUE
     } else {
         orderable <- TRUE
     }
@@ -893,6 +893,11 @@ renderDataTableDim <- function(env,dim,input,output) {
             }
 
             if (info$col > 1) {
+                
+                if(exists(paste0(dim,'PageChangeHook'),envir = env$ce)) {
+                    do.call(paste0(dim,'PageChangeHook'),list(env = env),envir = env$ce)
+                }
+                
                 dd$reactive$clickMeasureEvent$clickCount <- dd$reactive$clickMeasureEvent$clickCount + 1
                 as <- names(env$dtPrev[[dim]]$tab)[info$col + 1]
                 meas <- env$dtPrev[[dim]]$meas
