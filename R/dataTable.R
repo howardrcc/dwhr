@@ -914,6 +914,14 @@ renderDataTableDim <- function(env,dim,input,output) {
         }
 
     }, priority = 10)
+    
+    shiny::observeEvent(env$dims[[dim]]$reactive$clickMeasureEvent,{
+        
+        if(exists(paste0(dim,'ClickMeasureHook'),envir = env$ce)) {
+            do.call(paste0(dim,'ClickMeasureHook'),list(env = env,event = env$dims[[dim]]$reactive$clickMeasureEvent),envir = env$ce)
+        }
+        
+    })
 
     cellsSelected = paste0(gdim,'Dim_cells_selected')
 
