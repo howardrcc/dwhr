@@ -421,7 +421,11 @@ prepDt <- function(env,dim,pres,print = NULL) {
 
     measList <- getMeasList(env,dim)
   
-    orderable <- TRUE
+    if ('sort' %in% measList$category) {
+        orderable <- FALSE
+    } else {
+        orderable <- TRUE
+    }
 
     meas <- rbind(
         merge(measList, measures,by.x = 'viewColumn', by.y = 'viewColumn'),

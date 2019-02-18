@@ -262,8 +262,9 @@ makeHcWidget <- function(env,dim,prep){
         
         if (print) {
             prep$chartOpts$width = 800
+          #  prep$chartOpts$height = 200
         }
-        
+
         a <- do.call(eval(parse(text = 'highcharter::hc_chart')), prep$chartOpts)
     }
     
