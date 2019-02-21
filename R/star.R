@@ -65,7 +65,7 @@ domains <- list(
     simpleOpts = c('inline'),
     navOpts = c('syncNav', 'hideNoFilter', 'hideAll', 'hideBreadCrumb', 'links','selLinks','minBreadCrumbLevel'),
     navOptsLinkTypes = c('actionLink','downloadLink','downloadButton','dropDown','dim'),
-    orderBy = c('key','name'),
+    orderBy = c('key','name','sort'),
     cssOverflow = c('hidden','visible','scroll','auto'),
     presListType = c('dropdown','links')
 )

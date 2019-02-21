@@ -577,7 +577,7 @@ addDimView <- function(
     l$selected <- l$defaultSelected
     l$itemName <- itemName
     l$orderColumn <- itemName
-    l$orderViewColumn <- ifelse(orderBy == 'name','member','memberKey')
+    l$orderViewColumn <- ifelse(orderBy == 'name','member',ifelse(orderBy == 'key', 'memberKey', 'sort_sort'))
     l$orderColumnDir = 'asc'
     l$orderBy = orderBy
     l$na.rm = na.rm
@@ -1505,6 +1505,15 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                     dataTableOpts$measures[[i]]$print <- TRUE
                 }
                 
+                
+                if ('orderable' %in% names(x)) {
+                    assert_is_a_bool(x$orderable)
+                    dataTableOpts$measures[[i]]$orderable <- x$orderable
+                } else {
+                    dataTableOpts$measures[[i]]$orderable <- TRUE
+                }
+                
+                
                 if ('tooltip' %in% names(x)) {
                     assert_is_a_string(x$tooltip)
                 }
@@ -1812,8 +1821,12 @@ setOrdering <- function(env, dim, as,sort, as2 = NULL) {
         if (dd$orderBy =='key') {
             vc <- 'memberKey'
         } else {
-            vc <- 'member'
-        }
+            if (dd$orderBy == 'name') {
+                vc <- 'member'
+            } else {
+                vc <- 'sort_sort'
+            }
+        } 
     } else {
         vc <- ml$viewColumn[ml$as == as]
     }
@@ -1826,7 +1839,11 @@ setOrdering <- function(env, dim, as,sort, as2 = NULL) {
             if (dd$orderBy =='key') {
                 vc2 <- 'memberKey'
             } else {
-                vc2 <- 'member'
+                if (dd$orderBy == 'name') {
+                    vc2 <- 'member'
+                } else {
+                    vc2 <- 'sort_sort'
+                }
             }
         } else {
             vc2 <- ml$viewColumn[ml$as == as2]

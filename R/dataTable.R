@@ -413,7 +413,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     measList <- getMeasList(env,dim)
   
     if ('sort' %in% measList$category) {
-        orderable <- FALSE
+        orderable <- TRUE
     } else {
         orderable <- TRUE
     }
@@ -424,6 +424,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     
     meas$visible[is.na(meas$visible)] <- FALSE
     meas$print[is.na(meas$print)] <- FALSE
+    meas$orderable[is.na(meas$orderable)] <- FALSE
 
     measures <- measures[measures$viewColumn %in% measList$viewColumn &
                          measures$visible &
@@ -679,7 +680,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     if (!(orderViewColumn %in% c(measures$viewColumn,textColumns,'member','memberKey')) || !orderable) {
         notOrderable <- visCols
     } else {
-        notOrderable <- c(0)
+        notOrderable <- c(0,which(names(tab) %in% meas$as[!meas$orderable]) - 1)
     }
 
     leftAlign <- which(names(tab) %in% union(dd$itemName,meas$as[meas$align == 'left'])) - 1
@@ -712,8 +713,14 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
         if (dd$orderBy == 'name') {
             defaultOrderCol <- 1
         } else {
-            defaultOrderCol <- 2
+            if (dd$orderBy == 'key') {
+                defaultOrderCol <- 2
+            } else {
+                defaultOrderCol <- which(names(tab) == 'sort_sort') - 1
+            }
         }
+        
+        #browser(expr = { dim == 'kpi'})
 
         if (!is.null(dd$orderColumn2))
             c2 <- c(which(names(tab) %in% dd$orderColumn2) - 1, defaultOrderCol)
@@ -726,8 +733,12 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
         if (dd$orderBy == 'key')
             columnDefs[[length(columnDefs) + 1]] <- list(targets=1, orderData=c(2))
+        
+        if (dd$orderBy == 'sort')
+            columnDefs[[length(columnDefs) + 1]] <- list(targets=1, orderData=c(which(names(tab) == 'sort_sort') - 1))
 
         orderOpt <- list(which(names(tab) %in% dd$orderColumn) - 1, dd$orderColumnDir)
+        
     }
 
     columnDefs[[length(columnDefs) + 1]] <- list(type = 'string', targets = 1)
@@ -1092,7 +1103,11 @@ print('cells_selected')
                 if (dd$orderBy =='key') {
                     vc <- 'memberKey'
                 } else {
-                    vc <- 'member'
+                    if (dd$orderBy == 'name') {
+                        vc <- 'member'
+                    } else {
+                        vc <- 'sort_sort'
+                    }
                 }
             } else {
                 vc <- ml$viewColumn[ml$as == name]
