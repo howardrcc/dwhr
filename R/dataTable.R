@@ -710,18 +710,17 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     orderOpt <- NULL
 
     if(orderable) {
-        if (dd$orderBy == 'name') {
-            defaultOrderCol <- 1
+        
+        if ('sort_sort' %in% names(tab)) {
+            defaultOrderCol <- which(names(tab) == 'sort_sort') - 1
         } else {
-            if (dd$orderBy == 'key') {
-                defaultOrderCol <- 2
+            if (dd$orderBy == 'name') {
+                defaultOrderCol <- 1
             } else {
-                defaultOrderCol <- which(names(tab) == 'sort_sort') - 1
-            }
+                defaultOrderCol <- 2
+            } 
         }
         
-        #browser(expr = { dim == 'kpi'})
-
         if (!is.null(dd$orderColumn2))
             c2 <- c(which(names(tab) %in% dd$orderColumn2) - 1, defaultOrderCol)
         else
@@ -731,12 +730,13 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
             columnDefs[[length(columnDefs) + 1]] <- list(targets=formattedColNrs[i], orderData=c(orgMeasColNrs[i],c2))
         }
 
-        if (dd$orderBy == 'key')
-            columnDefs[[length(columnDefs) + 1]] <- list(targets=1, orderData=c(2))
-        
-        if (dd$orderBy == 'sort')
+        if ('sort_sort' %in% names(tab)) {
             columnDefs[[length(columnDefs) + 1]] <- list(targets=1, orderData=c(which(names(tab) == 'sort_sort') - 1))
-
+        } else {
+            if (dd$orderBy == 'key')
+                columnDefs[[length(columnDefs) + 1]] <- list(targets=1, orderData=c(2))
+        }
+        
         orderOpt <- list(which(names(tab) %in% dd$orderColumn) - 1, dd$orderColumnDir)
         
     }
@@ -1103,11 +1103,7 @@ print('cells_selected')
                 if (dd$orderBy =='key') {
                     vc <- 'memberKey'
                 } else {
-                    if (dd$orderBy == 'name') {
-                        vc <- 'member'
-                    } else {
-                        vc <- 'sort_sort'
-                    }
+                    vc <- 'member'
                 }
             } else {
                 vc <- ml$viewColumn[ml$as == name]

@@ -577,7 +577,7 @@ addDimView <- function(
     l$selected <- l$defaultSelected
     l$itemName <- itemName
     l$orderColumn <- itemName
-    l$orderViewColumn <- ifelse(orderBy == 'name','member',ifelse(orderBy == 'key', 'memberKey', 'sort_sort'))
+    l$orderViewColumn <- ifelse(orderBy == 'name','member','memberKey')
     l$orderColumnDir = 'asc'
     l$orderBy = orderBy
     l$na.rm = na.rm
@@ -1821,11 +1821,7 @@ setOrdering <- function(env, dim, as,sort, as2 = NULL) {
         if (dd$orderBy =='key') {
             vc <- 'memberKey'
         } else {
-            if (dd$orderBy == 'name') {
-                vc <- 'member'
-            } else {
-                vc <- 'sort_sort'
-            }
+            vc <- 'member'
         } 
     } else {
         vc <- ml$viewColumn[ml$as == as]
@@ -1839,11 +1835,7 @@ setOrdering <- function(env, dim, as,sort, as2 = NULL) {
             if (dd$orderBy =='key') {
                 vc2 <- 'memberKey'
             } else {
-                if (dd$orderBy == 'name') {
-                    vc2 <- 'member'
-                } else {
-                    vc2 <- 'sort_sort'
-                }
+                vc2 <- 'member'
             }
         } else {
             vc2 <- ml$viewColumn[ml$as == as2]
