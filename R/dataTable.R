@@ -389,18 +389,9 @@ makeDtWidget <- function(env,dim,prep) {
 #'
 #' @export
 #'
-prepDt <- function(env,dim,pres,print = NULL) {
+prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     dd <- env$dims[[dim]]
-    
-    dd$membersFilteredPrev <- NULL
-    # if (isNull(dd$serverSideTable,FALSE) && dd$searchTxt != '') {
-    #     tab <- dd$membersFiltered[grep(paste0(".*",dd$searchTxt,".*"),dd$membersFiltered$member,ignore.case = TRUE),]
-    #     if (nrow(tab) > 0) {
-    #         dd$membersFilteredPrev <- dd$membersFiltered
-    #         dd$membersFiltered <- tab
-    #     }
-    # }
     
     print <- isNull(print,isNull(dd$print,FALSE))
     presList <- dd$presList
@@ -440,7 +431,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
 
     tab <- data.frame(
         zoom = '+',
-        addFormatting(env,dim,dd$membersFiltered,measures,FALSE),
+        addFormatting(env,dim,isNull(altData$body,dd$membersFiltered),measures,FALSE),
         stringsAsFactors = FALSE)
     
     
@@ -651,7 +642,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
     
     if (nrow(tab) > 1 && lvl %in% dd$footerLevels) {
         
-        footer <- addFormatting(env,dim,dd$footer,measures,TRUE)
+        footer <- addFormatting(env,dim,isNull(altData$footer,dd$footer),measures,TRUE)
         
         footer$memberKey <- ''
         footer <- footer[,c(names(footer)[1],'memberKey',measViewColNames)]

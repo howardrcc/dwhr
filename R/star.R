@@ -196,12 +196,12 @@ appendZeroRow <- function(member,dim,df) {
 #'
 #' @export
 #' 
-getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL) {
+getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, altData = NULL) {
     dd <- env$dims[[dim]]
 
     f <- NULL
 
-    data <- dd$data
+    data <- isNull(altData,dd$data)
     keyColumn <- names(data)[1]
 
     tmp <- NULL
@@ -392,11 +392,13 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL) {
         names(body) <- c('member',measCols)
         body$member <- as.character(body$member)
 
-        lookup <- unique(dd$pc[dd$pc$level == lvl & dd$pc$parentLabel == parent & dd$pc$gparentLabel == isNull(gparent,''),][,c('label','code')])
+        lookup <- data.table(unique(dd$pc[dd$pc$level == lvl & dd$pc$parentLabel == parent & dd$pc$gparentLabel == isNull(gparent,''),][,c('label','code')]))
         names(lookup) <- c('member','memberKey')
-        #browser(expr = {dim == 'kpi'})
+    
+        body <- as.data.frame(lookup[body,on = 'member'])
+        body$memberKey[is.na(body$memberKey)] <- digest::digest(body$member[is.na(body$memberKey)])
         
-        body <- as.data.frame(body[lookup,on = 'member',nomatch = 0])
+        #browser(expr = {dim == 'kpi'})
         
         if(lvl %in% dd$footerLevels) {
             footer <- as.data.frame(footer)

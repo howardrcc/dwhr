@@ -2532,3 +2532,40 @@ setDtVisible <- function(env,dim,pres,viewColumn,visible) {
     
 }
 
+topx <- function(env,dim,x,orderBy,restCatName) {
+    
+    dd <- env$dims[[dim]]
+    
+    tab <- dd$membersFiltered
+    lvl <- dd$level
+    col <- paste0('level',lvl,'Label')
+    code <- paste0('level',lvl,'Code')
+    dt <- dd$data
+    
+    tab <- tab[order(tab[[orderBy]],decreasing = TRUE, method = 'radix'),]
+    
+    if (nrow(tab) > x) {
+        
+        z <- tab[(x + 1):nrow(tab),]$member
+    
+        dt[dt[[col]] %in% z,][[code]] <- 'xxx'
+        dt[dt[[col]] %in% z,][[col]] <- restCatName
+        altData <- getMembers(env, dim, altData = dt)
+        
+        altData$body <- altData$body[c(
+            setdiff(
+                order(altData$body[[orderBy]],decreasing = TRUE, method = 'radix'),
+                which(altData$body$member == restCatName)),
+            which(altData$body$member == restCatName)),]
+        
+        prep <- prepDt(env = env, dim = dim, pres = dd$pres, altData = altData)
+      
+    } else {
+        
+        prep <- prepDt(env = env, dim = dim, pres = dd$pres, altData = list(body = tab, footer = dd$footer))
+    }
+    
+    prep
+    
+}
+
