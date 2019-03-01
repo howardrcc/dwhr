@@ -2124,7 +2124,7 @@ dimChangeState <- function(env, dim, newState) {
 #'
 #'@export
 #'
-getFacts <- function(file, key = NULL, useRDS = TRUE, sep = ';', fileEncoding = 'UTF-8-BOM', as.df = FALSE, ...) {
+getFacts <- function(file, key = NULL, useRDS = TRUE, sep = ';', fileEncoding = 'UTF-8-BOM', as.df = FALSE, header = FALSE, ...) {
     
     withCallingHandlers({
         assert_is_a_string(file)
@@ -2154,6 +2154,7 @@ getFacts <- function(file, key = NULL, useRDS = TRUE, sep = ';', fileEncoding = 
         facts <- read.csv(
             file = file,
             sep = sep,
+            header = header,
             fileEncoding = fileEncoding,
             stringsAsFactors = FALSE,
             ...)
