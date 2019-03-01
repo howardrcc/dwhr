@@ -1,9 +1,11 @@
-dwhr 1.1.9000
+dwhr 1.2.0
 ==========
 
 changes
 
 * ondersteuning Highstock functionaliteit
+* topx functionaliteit toegevoegd
+* sorteerbaarheid van kolommen datatable aangepast. Als er een footer is: kolom is sorteerbaar.
 
 breaking changes
 
