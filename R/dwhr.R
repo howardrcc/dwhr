@@ -1413,12 +1413,14 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
         navOpts$hideAll <- isNull(navOpts$hideAll,FALSE)
         navOpts$hideBreadCrumb <- isNull(navOpts$hideBreadCrumb,FALSE)
         navOpts$links <- isNull(navOpts$links,list())
+        navOpts$minBreadCrumbLevel <- isNull(navOpts$minBreadCrumbLevel,0)
 
         assert_is_a_bool(navOpts$syncNav)
         assert_is_a_bool(navOpts$hideNoFilter)
         assert_is_a_bool(navOpts$hideAll)
         assert_is_a_bool(navOpts$hideBreadCrumb)
         assert_is_list(navOpts$links)
+        assert_is_a_number(navOpts$minBreadCrumbLevel)
 
         if (!navOpts$syncNav && dim == uiId) {
             navOpts$syncNav <- TRUE
@@ -1502,6 +1504,15 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 } else {
                     dataTableOpts$measures[[i]]$print <- TRUE
                 }
+                
+                
+                if ('orderable' %in% names(x)) {
+                    assert_is_a_bool(x$orderable)
+                    dataTableOpts$measures[[i]]$orderable <- x$orderable
+                } else {
+                    dataTableOpts$measures[[i]]$orderable <- TRUE
+                }
+                
                 
                 if ('tooltip' %in% names(x)) {
                     assert_is_a_string(x$tooltip)
@@ -1811,7 +1822,7 @@ setOrdering <- function(env, dim, as,sort, as2 = NULL) {
             vc <- 'memberKey'
         } else {
             vc <- 'member'
-        }
+        } 
     } else {
         vc <- ml$viewColumn[ml$as == as]
     }
@@ -2527,6 +2538,43 @@ setDtVisible <- function(env,dim,pres,viewColumn,visible) {
         pl[[presNum]]$dataTableOpts$measures[[x]]$visible <- visible
     
     dd$presList <- pl
+    
+}
+
+topx <- function(env,dim,x,orderBy,restCatName) {
+    
+    dd <- env$dims[[dim]]
+    
+    tab <- dd$membersFiltered
+    lvl <- dd$level
+    col <- paste0('level',lvl,'Label')
+    code <- paste0('level',lvl,'Code')
+    dt <- dd$data
+    
+    tab <- tab[order(tab[[orderBy]],decreasing = TRUE, method = 'radix'),]
+    
+    if (nrow(tab) > x) {
+        
+        z <- tab[(x + 1):nrow(tab),]$member
+    
+        dt[dt[[col]] %in% z,][[code]] <- 'xxx'
+        dt[dt[[col]] %in% z,][[col]] <- restCatName
+        altData <- getMembers(env, dim, altData = dt)
+        
+        altData$body <- altData$body[c(
+            setdiff(
+                order(altData$body[[orderBy]],decreasing = TRUE, method = 'radix'),
+                which(altData$body$member == restCatName)),
+            which(altData$body$member == restCatName)),]
+        
+        prep <- prepDt(env = env, dim = dim, pres = dd$pres, altData = altData)
+      
+    } else {
+        
+        prep <- prepDt(env = env, dim = dim, pres = dd$pres, altData = list(body = tab, footer = dd$footer))
+    }
+    
+    prep
     
 }
 

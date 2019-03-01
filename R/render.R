@@ -218,14 +218,23 @@ renderDims <- function(env,input,output) {
                     hideNoFilter <- presList[[dd$pres]]$navOpts$hideNoFilter
                     hideBreadCrumb <- presList[[dd$pres]]$navOpts$hideBreadCrumb
                     hideAll <- presList[[dd$pres]]$navOpts$hideAll
-            
+                    minBreadCrumbLevel <- isNull(presList[[dd$pres]]$navOpts$minBreadCrumbLevel,0)
+                    
+                    selLinks <- presList[[dd$pres]]$navOpts$selLinks
+                    
+                    if (minBreadCrumbLevel > level)
+                        hideBreadCrumb <- TRUE
+                    
+                    elems <- list()
+                    
                     txt <- ''
-
+                    lnks <- ''
+                    
                     if(!hideBreadCrumb) {
                     
                         txt <- paste0(txt,'<div style="padding-bottom:4px;" id="',gdim, 'Breadcrumb">')
 
-                        if (!hideAll) {
+                        if (!hideAll && minBreadCrumbLevel == 0) {
                             if (level == 0) {
                                 txt <- paste0(txt, 'Top')
                             } else {
@@ -235,19 +244,28 @@ renderDims <- function(env,input,output) {
 
                         if (level >= 1) {
                             for (lvl in 0:(level - 1)) {
-                                if (lvl == 0) {
-                                    if (!hideAll) 
-                                        txt <- paste0(txt,'&nbsp>&nbsp')
-                                    if (level == 1)
-                                        txt <- paste0(txt,dd$levelNames[2])
-                                    else 
-                                        txt <- paste0(txt,shiny::actionLink(inputId = paste0(gdim,'DimLink1'), label = dd$levelNames[2]))    
-                                } else {
-                                    if (lvl == (level - 1)) {
-                                        txt <- paste0(txt,'&nbsp>&nbsp',substr(ancestors[lvl + 2],1,30))
+                                if (lvl >= minBreadCrumbLevel) {
+                                    if (lvl == 0) {
+                                        if (!hideAll) 
+                                            txt <- paste0(txt,'&nbsp>&nbsp')
+                                        if (level == 1)
+                                            txt <- paste0(txt,dd$levelNames[2])
+                                        else 
+                                            txt <- paste0(txt,shiny::actionLink(inputId = paste0(gdim,'DimLink1'), label = dd$levelNames[2]))    
                                     } else {
-                                        txt <- paste0(txt,'&nbsp>&nbsp',shiny::actionLink(inputId = paste0(gdim,'DimLink',lvl + 1), label = substr(ancestors[lvl + 2],1,30)))
-                                    }    
+                                        if (lvl == (level - 1)) {
+                                            if (lvl == minBreadCrumbLevel)
+                                                txt <- paste0(txt,'&nbsp')
+                                            else
+                                                txt <- paste0(txt,'&nbsp>&nbsp',substr(ancestors[lvl + 2],1,30))
+                                            
+                                        } else {
+                                            if (lvl == minBreadCrumbLevel)
+                                                txt <- paste0(txt,shiny::actionLink(inputId = paste0(gdim,'DimLink',lvl + 1), label = substr(ancestors[lvl + 2],1,30)))
+                                            else
+                                                txt <- paste0(txt,'&nbsp>&nbsp',shiny::actionLink(inputId = paste0(gdim,'DimLink',lvl + 1), label = substr(ancestors[lvl + 2],1,30)))
+                                        }    
+                                    }
                                 }
                             }
                         }
@@ -256,7 +274,22 @@ renderDims <- function(env,input,output) {
 
                         txt <- paste0(txt,'<div style="padding-bottom:4px;">')
                     }
+        
+                    for (ll in selLinks) {
+        
+                        if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink') {
+                            ele <- shiny::actionLink(inputId = paste0(gdim, ll$id, 'selLink'), label = ll$label)
+                        }
+                        
+                        lnks <- paste0(lnks, '&nbsp&nbsp<span>', ele,'</span>')
+                        
 
+                    }
+                    
+                    if (nchar(lnks) > 1) {
+                        txt <- paste0(txt, lnks)
+                    }
+                    
                     if (any(dd$selected$level > 0) && !hideNoFilter) {
 
                         txt <- paste0(txt,'&nbsp<span style="float:right;">',actionLink(inputId = paste0(gdim,'NoFilter'), label = 'Verwijder Filter', style='color:red'),'</span>')

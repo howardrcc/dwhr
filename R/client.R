@@ -312,7 +312,7 @@ authenticate <- function(session) {
     omg <- glob.env$omgeving
     sql <- paste0("exec R.dbo.check_hash '",user,"','",glob.env$dashboardName,"','",ts,"','",hash,"','",omg,"'")
     res <- RODBC::sqlQuery(glob.env$dbCred[[omg]]$handle, sql)
-    
+
     if (res$status %in% c(3,4,5)) {
         
         if (is.na(res$redir) || res$redir == '') {
@@ -327,7 +327,7 @@ authenticate <- function(session) {
         return(FALSE)
     }
     
-    if (shiny::serverInfo()$edition != 'OS') {
+    if (shiny::serverInfo()[[1]] && shiny::serverInfo()$edition != 'OS') {
         ses$baseUrl <- shiny::isolate(paste0(
             ses$cdata$url_protocol,'//',
             ses$cdata$url_hostname,':',

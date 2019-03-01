@@ -389,18 +389,9 @@ makeDtWidget <- function(env,dim,prep) {
 #'
 #' @export
 #'
-prepDt <- function(env,dim,pres,print = NULL) {
+prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     dd <- env$dims[[dim]]
-    
-    dd$membersFilteredPrev <- NULL
-    # if (isNull(dd$serverSideTable,FALSE) && dd$searchTxt != '') {
-    #     tab <- dd$membersFiltered[grep(paste0(".*",dd$searchTxt,".*"),dd$membersFiltered$member,ignore.case = TRUE),]
-    #     if (nrow(tab) > 0) {
-    #         dd$membersFilteredPrev <- dd$membersFiltered
-    #         dd$membersFiltered <- tab
-    #     }
-    # }
     
     print <- isNull(print,isNull(dd$print,FALSE))
     presList <- dd$presList
@@ -422,7 +413,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
     measList <- getMeasList(env,dim)
   
     if ('sort' %in% measList$category) {
-        orderable <- FALSE
+        orderable <- TRUE
     } else {
         orderable <- TRUE
     }
@@ -433,6 +424,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
     
     meas$visible[is.na(meas$visible)] <- FALSE
     meas$print[is.na(meas$print)] <- FALSE
+    meas$orderable[is.na(meas$orderable)] <- FALSE
 
     measures <- measures[measures$viewColumn %in% measList$viewColumn &
                          measures$visible &
@@ -440,7 +432,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
 
     tab <- data.frame(
         zoom = '+',
-        addFormatting(env,dim,dd$membersFiltered,measures,FALSE),
+        addFormatting(env,dim,isNull(altData$body,dd$membersFiltered),measures,FALSE),
         stringsAsFactors = FALSE)
     
     
@@ -651,7 +643,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
     
     if (nrow(tab) > 1 && lvl %in% dd$footerLevels) {
         
-        footer <- addFormatting(env,dim,dd$footer,measures,TRUE)
+        footer <- addFormatting(env,dim,isNull(altData$footer,dd$footer),measures,TRUE)
         
         footer$memberKey <- ''
         footer <- footer[,c(names(footer)[1],'memberKey',measViewColNames)]
@@ -688,7 +680,7 @@ prepDt <- function(env,dim,pres,print = NULL) {
     if (!(orderViewColumn %in% c(measures$viewColumn,textColumns,'member','memberKey')) || !orderable) {
         notOrderable <- visCols
     } else {
-        notOrderable <- c(0)
+        notOrderable <- c(0,which(names(tab) %in% meas$as[!meas$orderable]) - 1)
     }
 
     leftAlign <- which(names(tab) %in% union(dd$itemName,meas$as[meas$align == 'left'])) - 1
@@ -718,12 +710,17 @@ prepDt <- function(env,dim,pres,print = NULL) {
     orderOpt <- NULL
 
     if(orderable) {
-        if (dd$orderBy == 'name') {
-            defaultOrderCol <- 1
+        
+        if ('sort_sort' %in% names(tab)) {
+            defaultOrderCol <- which(names(tab) == 'sort_sort') - 1
         } else {
-            defaultOrderCol <- 2
+            if (dd$orderBy == 'name') {
+                defaultOrderCol <- 1
+            } else {
+                defaultOrderCol <- 2
+            } 
         }
-
+        
         if (!is.null(dd$orderColumn2))
             c2 <- c(which(names(tab) %in% dd$orderColumn2) - 1, defaultOrderCol)
         else
@@ -733,10 +730,15 @@ prepDt <- function(env,dim,pres,print = NULL) {
             columnDefs[[length(columnDefs) + 1]] <- list(targets=formattedColNrs[i], orderData=c(orgMeasColNrs[i],c2))
         }
 
-        if (dd$orderBy == 'key')
-            columnDefs[[length(columnDefs) + 1]] <- list(targets=1, orderData=c(2))
-
+        if ('sort_sort' %in% names(tab)) {
+            columnDefs[[length(columnDefs) + 1]] <- list(targets=1, orderData=c(which(names(tab) == 'sort_sort') - 1))
+        } else {
+            if (dd$orderBy == 'key')
+                columnDefs[[length(columnDefs) + 1]] <- list(targets=1, orderData=c(2))
+        }
+        
         orderOpt <- list(which(names(tab) %in% dd$orderColumn) - 1, dd$orderColumnDir)
+        
     }
 
     columnDefs[[length(columnDefs) + 1]] <- list(type = 'string', targets = 1)
@@ -893,6 +895,11 @@ renderDataTableDim <- function(env,dim,input,output) {
             }
 
             if (info$col > 1) {
+                
+                if(exists(paste0(dim,'PageChangeHook'),envir = env$ce)) {
+                    do.call(paste0(dim,'PageChangeHook'),list(env = env),envir = env$ce)
+                }
+                
                 dd$reactive$clickMeasureEvent$clickCount <- dd$reactive$clickMeasureEvent$clickCount + 1
                 as <- names(env$dtPrev[[dim]]$tab)[info$col + 1]
                 meas <- env$dtPrev[[dim]]$meas
@@ -913,6 +920,14 @@ renderDataTableDim <- function(env,dim,input,output) {
         }
 
     }, priority = 10)
+    
+    shiny::observeEvent(env$dims[[dim]]$reactive$clickMeasureEvent,{
+        
+        if(exists(paste0(dim,'ClickMeasureHook'),envir = env$ce)) {
+            do.call(paste0(dim,'ClickMeasureHook'),list(env = env,event = env$dims[[dim]]$reactive$clickMeasureEvent),envir = env$ce)
+        }
+        
+    })
 
     cellsSelected = paste0(gdim,'Dim_cells_selected')
 

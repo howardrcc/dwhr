@@ -47,7 +47,7 @@ rowGroupEvent = function(gdim,rowGroup) {
         rowGroup: rowGroup});    
     
 };
-
+ 
 clearPlotbands = function(chart,id,color) {
 
     var len = chart.xAxis[0].plotLinesAndBands.length;
@@ -56,7 +56,7 @@ clearPlotbands = function(chart,id,color) {
     for (i = 0; i < len; i++) {
         var pb = chart.xAxis[0].plotLinesAndBands[i].options;
 
-        if (pb.id == id) {
+        if (pb.id == id) {  
             pb.color = color;
         } else {
             pb.color = 'rgba(0,0,0,0)';
@@ -125,7 +125,7 @@ pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,c
 
         if(chart.xAxis[0].plotLinesAndBands.length > 0) {
 
-            var pbColor = chart.xAxis[0].plotLinesAndBands[point.x].options.color;
+            var pbColor = chart.xAxis[0].plotLinesAndBands[point.index].options.color; 
 
             cnt = countSelected(chart,color);
             
@@ -135,7 +135,7 @@ pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,c
             }
 
             if ((cnt > 1 || pbColor != color) && selectable) {
-                clearPlotbands(chart,point.x,color);
+                clearPlotbands(chart,point.index,color);  
                 select = true;
             }
         }
@@ -188,11 +188,15 @@ pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,c
 plotBandSingleSelect = function(dim,plotBand,event,selectable,unSelectable,drillable,color) {
     var container = '#'.concat(dim,'DimChart');
     var eventName = dim.concat('HighchartPbClick');
-    var data = plotBand.options.from;
+    var data = plotBand.options.from;    
     var chart = $(container).highcharts();
+    //var id = chart.series[0].data[plotBand.options.id].id;
+    //var id = chart.xAxis[0].series[0].data[plotBand.options.id].id;
+    id = plotBand.options.id
     var drill = false;
     var select = false;
     var unSelect = false;
+    
 
     if (!event.ctrlKey) {
 
@@ -207,7 +211,7 @@ plotBandSingleSelect = function(dim,plotBand,event,selectable,unSelectable,drill
 
         if ((cnt > 1 || pBColor != color) && selectable) {
             select = true;
-            clearPlotbands(chart,plotBand.options.id,color);
+            clearPlotbands(chart,plotBand.options.id,color); 
         }
 
     } else {
@@ -220,9 +224,8 @@ plotBandSingleSelect = function(dim,plotBand,event,selectable,unSelectable,drill
         data: data,
         drill: drill,
         select: select,
-        unSelect: unSelect});
-
-
+        unSelect: unSelect,
+        id : id}); //hier komt nu een integer uit, terwijl bij pointclick een categorie string uitkomt.
 };
 
 
@@ -277,7 +280,7 @@ shinyjs.updateYAxis = function(params) {
 
 shinyjs.updateXPlotBands = function(params) {
 
-  //  $.unblockUI();
+  //  $.unblockUI(); 
     var container = '#'.concat(params.dim,'DimChart');
     var chart = $(container).highcharts();
     var len = chart.xAxis[0].plotLinesAndBands.length;
