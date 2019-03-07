@@ -24,19 +24,36 @@ ttPointFormatter = function(point) {
 
 };
 
-toggleAccordion = function(e,id) {
+toggleAccordion = function(e,id,accordionId) {
     var panel = $('#'.concat(id))[0];  
+    var acc = $('#'.concat(accordionId))[0];  
   
     if (panel !== null) {
-        if (panel.style.maxHeight === "0px"){
-            $(e).find('.glyphicon').removeClass('glyphicon-chevron-right');
-            $(e).find('.glyphicon').addClass('glyphicon-chevron-down');
-            panel.style.maxHeight = null;
+        
+        if (e !== null) {
+            if (panel.style.maxHeight === "0px"){
+                $(e).find('.glyphicon').removeClass('glyphicon-chevron-right');
+                $(e).find('.glyphicon').addClass('glyphicon-chevron-down');
+                panel.style.maxHeight = null;
+            } else {
+                $(e).find('.glyphicon').removeClass('glyphicon-chevron-down');
+                $(e).find('.glyphicon').addClass('glyphicon-chevron-right');
+                panel.style.maxHeight = "0px";
+            }     
         } else {
-            $(e).find('.glyphicon').removeClass('glyphicon-chevron-down');
-            $(e).find('.glyphicon').addClass('glyphicon-chevron-right');
-            panel.style.maxHeight = "0px";
-        }     
+            
+            if (acc !== null) {
+                if (panel.style.maxHeight === "0px"){
+                    $(acc).find('.glyphicon').removeClass('glyphicon-chevron-right');
+                    $(acc).find('.glyphicon').addClass('glyphicon-chevron-down');
+                    panel.style.maxHeight = null;
+                } else {
+                    $(acc).find('.glyphicon').removeClass('glyphicon-chevron-down');
+                    $(acc).find('.glyphicon').addClass('glyphicon-chevron-right');
+                    panel.style.maxHeight = "0px";
+                }
+            }
+        }
     }
 };
 
