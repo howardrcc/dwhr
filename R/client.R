@@ -73,7 +73,7 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
         style <- paste0("overflow-x:", overflowX, "; overflow-y:hidden;")
     }
     
-    acc <- paste0('<td class="db-header" style="width: 16px; cursor: pointer;" onclick="toggleAccordion(this,\'', gdim, 'DwhrPanel\');">', 
+    acc <- paste0('<td id="', gdim, 'AccordionId" class="db-header" style="width: 16px; cursor: pointer;" onclick="toggleAccordion(this,\'', gdim, 'DwhrPanel\');">', 
                   shiny::icon('chevron-down',lib = 'glyphicon'), 
                   '</td>')
     
