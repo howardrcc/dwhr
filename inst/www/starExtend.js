@@ -30,6 +30,10 @@ toggleAccordion = function(e,id,accordionId) {
   
     if (panel !== null) {
         
+        if (e === null) {
+            e = acc;
+        }
+        
         if (e !== null) {
             if (panel.style.maxHeight === "0px"){
                 $(e).find('.glyphicon').removeClass('glyphicon-chevron-right');
@@ -40,19 +44,6 @@ toggleAccordion = function(e,id,accordionId) {
                 $(e).find('.glyphicon').addClass('glyphicon-chevron-right');
                 panel.style.maxHeight = "0px";
             }     
-        } else {
-            
-            if (acc !== null) {
-                if (panel.style.maxHeight === "0px"){
-                    $(acc).find('.glyphicon').removeClass('glyphicon-chevron-right');
-                    $(acc).find('.glyphicon').addClass('glyphicon-chevron-down');
-                    panel.style.maxHeight = null;
-                } else {
-                    $(acc).find('.glyphicon').removeClass('glyphicon-chevron-down');
-                    $(acc).find('.glyphicon').addClass('glyphicon-chevron-right');
-                    panel.style.maxHeight = "0px";
-                }
-            }
         }
     }
 };
