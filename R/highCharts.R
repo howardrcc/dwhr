@@ -478,7 +478,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
         
         for (serieNum in 1:length(presCols)) {
             
-            serieType <- serieTypes[[serieNum]]
+            serieType <- isNull(isNull(serieTypes[[serieNum]],highChartsOpts$type),'line')
             pal <- palList[[serieNum]]
             pattern <- patternList[[serieNum]]
             presCol <- presCols[[serieNum]]

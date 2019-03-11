@@ -48,6 +48,23 @@ toggleAccordion = function(e,id,accordionId) {
     }
 };
 
+setAccordion = function(state,id,accordionId) {
+    var panel = $('#'.concat(id))[0];  
+    var e = $('#'.concat(accordionId))[0];  
+  
+    if (panel !== null && e !== null) {
+        if (state) {
+            $(e).find('.glyphicon').removeClass('glyphicon-chevron-right');
+            $(e).find('.glyphicon').addClass('glyphicon-chevron-down');
+            panel.style.maxHeight = null;
+        } else {
+            $(e).find('.glyphicon').removeClass('glyphicon-chevron-down');
+            $(e).find('.glyphicon').addClass('glyphicon-chevron-right');
+            panel.style.maxHeight = "0px";
+        }     
+    }
+};
+
 rowGroupEvent = function(gdim,rowGroup) {
 
     Shiny.onInputChange(gdim.concat('RowGroupEvent'),{
