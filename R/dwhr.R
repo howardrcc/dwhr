@@ -2280,16 +2280,29 @@ clone.star <- function(from, toId, facts = NULL, dimViews = NULL, checkUiId = FA
                     eval(dmCall, envir = from$ce)
                 }
               
+                pres <- sapply(from$dims[[dv]]$presentationCalls,function(x) {x$as})
                 
-                if(isNull(dimViews[[dv]]$presentations,TRUE)) {
-                    
-                    for(pCall in from$dims[[dv]]$presentationCalls) {
-                        pCall$env <- to
-                        pCall$checkUiId <- checkUiId
-                        eval(pCall, envir = from$ce)
+                if (length(pres) > 0) {
+                    if (!is.null(dimViews[[dv]]$presentations)) {
+                        
+                        if (is.character(dimViews[[dv]]$presentations)) {
+                            pres <- dimViews[[dv]]$presentations
+                        } else {
+                            if (is.logical(dimViews[[dv]]$presentations) && !dimViews[[dv]]$presentations) 
+                                pres <- c()
+                            
+                        }
                     }
                     
+                    for(pCall in from$dims[[dv]]$presentationCalls) {
+                        if (pCall$as %in% pres) {
+                            pCall$env <- to
+                            pCall$checkUiId <- checkUiId
+                            eval(pCall, envir = from$ce)
+                        }
+                    }
                 }
+                
             }
             
         }
