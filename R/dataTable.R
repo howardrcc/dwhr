@@ -49,7 +49,7 @@ initCompleteJS <- function(env,dim, row = NULL, pageLength) {
     DT::JS(txt)
 }
 
-callbackJS <- function(env,dim,hasSparkline) {
+callbackJS <- function(env,dim) {
     gdim <- env$dims[[dim]]$gdim
     
     txt <- paste0("table.on('order.dt', function() {
@@ -75,12 +75,25 @@ callbackJS <- function(env,dim,hasSparkline) {
     Shiny.onInputChange('",gdim,"_page_length',{r: number, data: len} );
     });
 ")
-    if (hasSparkline) {
-        txt <- paste0(txt,"$('.sparkline:not(:has(canvas))').sparkline('html', { type: 'bar', barColor: '#41b6c4', negBarColor: '#41b6c4', highlightColor: 'black' });")
+   
+    DT::JS(txt)
+}
+
+sparkDrawCallbackJS <- function(env,dim,sparkOpts) {
+    
+    gdim <- env$dims[[dim]]$gdim
+
+    txt <- 'function(settings) {'
+    for (col in names(sparkOpts)) {
+        sparkClass <- paste0(gdim,'_',col,'Sparkline')
+        txt <- paste0(txt,"$('.",sparkClass,":not(:has(canvas))').sparkline('html',",sparkOpts[[col]],");")
     }
+    
+    txt <- paste0(txt,'}')
     
     DT::JS(txt)
 }
+
 
 renderJS <- function(i) {
 
@@ -103,6 +116,7 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
 
     measList <- getMeasList(env,dim)  # list of measures for this level
     meas <- measList[(measList$viewColumn %in% measures$viewColumn),]
+    gdim <- env$dims[[dim]]$gdim
 
     if (!is.null(nrow(df))) {
 
@@ -179,7 +193,7 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
                 if (isFooter)
                     df[,paste0(vc,'_fc')] <- ''
                 else 
-                    df[,paste0(vc,'_fc')] <- paste0('<span class = "sparkline">',df[[vc]],'</span>')
+                    df[,paste0(vc,'_fc')] <- paste0('<span class = "', gdim, '_', vc, 'Sparkline">',df[[vc]],'</span>')
             }
         }
     }
@@ -234,7 +248,7 @@ makeDtWidget <- function(env,dim,prep) {
         escape = FALSE,
         class = 'compact stripe hover row-border',
         selection = prep$selection,
-        callback = callbackJS(env,dim,prep$hasSparkline),
+        callback = callbackJS(env,dim),
         height = height
     ) %>%
         DT::formatStyle(
@@ -448,9 +462,16 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
                         (measures$print | !print),]
     
     hasSparkline <- FALSE
+    sparkOpts <- list()
     
     if ('format' %in% names(measures) && 'sparkline' %in% measures$format) {
+        require(sparkline)
+        
         hasSparkline <- TRUE
+        sparklineCols <- measures$viewColumn[!is.na(measures$format) & measures$format == 'sparkline']
+        for (slc in sparklineCols) {
+            sparkOpts[[slc]] <- meas$sparkOpts[meas$viewColumn == slc]
+        }
     }
 
     tab <- data.frame(
@@ -783,13 +804,6 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
         }
     }
 
-    # if (hasSparkline) {
-    #     vc <- meas$viewColumn[!is.na(meas$format.y) & meas$format.y == 'sparkline']
-    #     sparkcnr <- which(names(tab) %in% vc) - 1
-    #     columnDefs[[length(columnDefs) + 1]] <- list(targets = sparkcnr, render = renderJSSpark())
-    # }
-    # 
-    
     rowGroup <- FALSE
     
     if ('rowGroupColumn' %in% names(tab)) {
@@ -819,6 +833,10 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     if (!is.null(orderOpt)) {
         options$order = list(orderOpt)
+    }
+    
+    if (hasSparkline) {
+        options$drawCallback <- sparkDrawCallbackJS(env,dim,sparkOpts)
     }
 
     if (any(c('colorBarColor1','fgStyle.values','bgStyle.values') %in% names(meas))) {

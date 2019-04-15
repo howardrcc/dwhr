@@ -1517,6 +1517,11 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 if ('tooltip' %in% names(x)) {
                     assert_is_a_string(x$tooltip)
                 }
+                
+                if ('sparkOpts' %in% names(x)) {
+                    assert_is_list(x$sparkOpts)
+                    dataTableOpts$measures[[i]]$sparkOpts <- as.character(jsonlite::toJSON(x$sparkOpts))
+                }
 
                 dataTableOpts$measures[[i]] <- rlist::list.flatten(dataTableOpts$measures[[i]])
                 dataTableOpts$measures[[i]]$colOrder <- i
