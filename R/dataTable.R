@@ -43,13 +43,13 @@ initCompleteJS <- function(env,dim, row = NULL, pageLength) {
     txt <- paste0("function(settings, json) {
     var api = this.api(); api.page(",page,").draw('page');
     var number = Math.random();
-    var id = this[0].id
+    var id = this[0].id;
     Shiny.onInputChange('",gdim,"_dt_ready',{r: number, id: id} );
     }")
     DT::JS(txt)
 }
 
-callbackJS <- function(env,dim) {
+callbackJS <- function(env,dim,hasSparkline) {
     gdim <- env$dims[[dim]]$gdim
     
     txt <- paste0("table.on('order.dt', function() {
@@ -75,6 +75,10 @@ callbackJS <- function(env,dim) {
     Shiny.onInputChange('",gdim,"_page_length',{r: number, data: len} );
     });
 ")
+    if (hasSparkline) {
+        txt <- paste0(txt,"$('.sparkline:not(:has(canvas))').sparkline('html', { type: 'bar', barColor: '#41b6c4', negBarColor: '#41b6c4', highlightColor: 'black' });")
+    }
+    
     DT::JS(txt)
 }
 
@@ -106,6 +110,8 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
 
             formatRef <- meas$formatRef[meas$as == fc]
             vc <- meas$viewColumn[meas$as == fc]
+            
+            fmt <- measures$format[measures$viewColumn == vc]
 
             if (is.numeric(df[[vc]])) {
 
@@ -113,8 +119,8 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
                     
                     for (rw in row.names(df)) {
 
-                        if ('format' %in% names(measures) && !is.na(measures$format[measures$viewColumn == vc])) {  # overrule format
-                            format <- measures$format[measures$viewColumn == vc]
+                        if ('format' %in% names(measures) && !is.na(fmt)) {  # overrule format
+                            format <- fmt
                         } else {
                             format <- df[rw,formatRef]
                         }
@@ -142,8 +148,8 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
 
                 } else {
 
-                    if ('format' %in% names(measures) && !is.na(measures$format[measures$viewColumn == vc])) {  # overrule format
-                        format <- measures$format[measures$viewColumn == vc]
+                    if ('format' %in% names(measures) && !is.na(fmt)) {  # overrule format
+                        format <- fmt
                     } else {
                         format <- meas$format[meas$viewColumn == vc]
                     }
@@ -167,6 +173,13 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
                         standard = as.character(df[[vc]]))
                 }
 
+            }
+            
+            if ('format' %in% names(measures) && !is.na(fmt) && fmt == 'sparkline') {
+                if (isFooter)
+                    df[,paste0(vc,'_fc')] <- ''
+                else 
+                    df[,paste0(vc,'_fc')] <- paste0('<span class = "sparkline">',df[[vc]],'</span>')
             }
         }
     }
@@ -221,7 +234,7 @@ makeDtWidget <- function(env,dim,prep) {
         escape = FALSE,
         class = 'compact stripe hover row-border',
         selection = prep$selection,
-        callback = callbackJS(env,dim),
+        callback = callbackJS(env,dim,prep$hasSparkline),
         height = height
     ) %>%
         DT::formatStyle(
@@ -383,6 +396,10 @@ makeDtWidget <- function(env,dim,prep) {
         }
     }
     
+    if (prep$hasSparkline) {
+        dt$dependencies <- append(dt$dependencies, htmlwidgets:::getDependency("sparkline"))
+    }
+    
     dt
 }
 
@@ -429,13 +446,18 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     measures <- measures[measures$viewColumn %in% measList$viewColumn &
                          measures$visible &
                         (measures$print | !print),]
+    
+    hasSparkline <- FALSE
+    
+    if ('format' %in% names(measures) && 'sparkline' %in% measures$format) {
+        hasSparkline <- TRUE
+    }
 
     tab <- data.frame(
         zoom = '+',
         addFormatting(env,dim,isNull(altData$body,dd$membersFiltered),measures,FALSE),
         stringsAsFactors = FALSE)
-    
-    
+
     #
     # set firstrow & page
     #
@@ -760,6 +782,13 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
             }
         }
     }
+
+    # if (hasSparkline) {
+    #     vc <- meas$viewColumn[!is.na(meas$format.y) & meas$format.y == 'sparkline']
+    #     sparkcnr <- which(names(tab) %in% vc) - 1
+    #     columnDefs[[length(columnDefs) + 1]] <- list(targets = sparkcnr, render = renderJSSpark())
+    # }
+    # 
     
     rowGroup <- FALSE
     
@@ -815,6 +844,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
         parent = dd$parent,
         visCols = visCols,
         hasFormatting = hasFormatting,
+        hasSparkline = hasSparkline,
         page = (firstRow - 1) %/% pageLength,
         footer = footer)
     
