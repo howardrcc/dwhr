@@ -192,8 +192,19 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
             if ('format' %in% names(measures) && !is.na(fmt) && fmt == 'sparkline') {
                 if (isFooter)
                     df[,paste0(vc,'_fc')] <- ''
-                else 
+                else {
                     df[,paste0(vc,'_fc')] <- paste0('<span class = "', gdim, '_', vc, 'Sparkline">',df[[vc]],'</span>')
+                    
+                    y <- eval(parse(text = paste0('c(',df[[vc]],')')))
+                    
+                    df[[vc]] <- unlist(lapply(paste0('c(',df[[vc]],')'),function(q) {
+                        y <- eval(parse(text = q))
+                        x <- 1:length(y)
+                        co <- coef(lm(y~x))
+                        co[2]
+                    }))
+                    
+                }
             }
         }
     }
