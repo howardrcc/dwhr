@@ -201,7 +201,13 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
                         y <- eval(parse(text = q))
                         x <- 1:length(y)
                         co <- coef(lm(y~x))
-                        co[2]
+                        fn <- function(x,a,b) {(a * x) + b}
+                        ref <- abs(fn(1,co[2],co[1]))
+               
+                        zz <- (fn(1,co[2],co[1]) - fn(length(y),co[2],co[1])) / ref
+                        zz[is.nan(zz)] <- 0
+                        zz
+                        
                     }))
                     
                 }
