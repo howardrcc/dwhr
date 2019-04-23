@@ -951,3 +951,21 @@ makeRangeSelection <- function(env,dim,from,to) {
         NULL
     
 }
+
+#'
+#' @export
+#'
+sparkRelativeChange <- function(spark) {
+    
+    unlist(lapply(paste0('c(',spark,')'),function(q) {
+        y <- eval(parse(text = q))
+        x <- 1:length(y)
+        co <- coef(lm(y~x))
+        fn <- function(x,a,b) {(a * x) + b}
+        #ref <- abs(fn(1,co[2],co[1]))
+        
+        zz <- sign(co[2]) * abs((fn(1,co[2],co[1]) - fn(length(y),co[2],co[1]))) / max(abs(fn(1,co[2],co[1])),abs(fn(length(y),co[2],co[1])))
+        zz[is.nan(zz)] <- 0
+        zz
+    }))
+}
