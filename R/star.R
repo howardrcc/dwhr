@@ -962,9 +962,11 @@ sparkRelativeChange <- function(spark) {
         x <- 1:length(y)
         co <- coef(lm(y~x))
         fn <- function(x,a,b) {(a * x) + b}
-        #ref <- abs(fn(1,co[2],co[1]))
+        ref <- fn(1,co[2],co[1])
         
-        zz <- sign(co[2]) * abs((fn(1,co[2],co[1]) - fn(length(y),co[2],co[1]))) / max(abs(fn(1,co[2],co[1])),abs(fn(length(y),co[2],co[1])))
+        #zz <- sign(co[2]) * abs((fn(1,co[2],co[1]) - fn(length(y),co[2],co[1]))) / max(abs(fn(1,co[2],co[1])),abs(fn(length(y),co[2],co[1])))
+         
+        zz <- (fn(length(y),co[2],co[1]) - ref) / abs(ref)
         zz[is.nan(zz)] <- 0
         zz
     }))
