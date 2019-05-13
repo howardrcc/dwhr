@@ -19,6 +19,16 @@ color: black;
 border: 3px solid #41b6c4;
 }
 
+.jqstooltip { 
+background-color: #fefefe !important;
+color: black !important;  
+border: 2px solid #41b6c4 !important;
+}
+
+.jqsfield { 
+color: black !important;
+}
+
 .disable-pointer{
 pointer-events: none !important;
 }
