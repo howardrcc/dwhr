@@ -83,12 +83,10 @@ sparkDrawCallbackJS <- function(env,dim,sparkOpts) {
     
     gdim <- env$dims[[dim]]$gdim
 
-    txt <- 'function(settings) {
-        debugger
-    '
+    txt <- 'function(settings) {'
     for (col in names(sparkOpts)) {
         selector <- paste0(".",gdim,'_',col,'Sparkline:not(:has(canvas))')
-        txt <- paste0(txt,"addSpark('",selector,"',",sparkOpts[[col]],",",jsonlite::toJSON(rep(0,16)),");")
+        txt <- paste0(txt,"addSpark('",selector,"',",sparkOpts[[col]],",0);")
     }
     
     txt <- paste0(txt,'}')

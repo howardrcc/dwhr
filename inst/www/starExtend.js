@@ -14,7 +14,7 @@ Math.easeOutBounce = function (pos) {
     return (7.5625 * (pos -= (2.625 / 2.75)) * pos + 0.984375);
 };
 
-addSpark = function(selector, sparkOpts, xaxis) {
+addSpark = function(selector, sparkOpts, xaxisValue) {
     
     var e = $(selector);
     
@@ -37,9 +37,14 @@ addSpark = function(selector, sparkOpts, xaxis) {
         
             sparkOpts.chartRangeMin = minVal;
             sparkOpts.chartRangeMax = maxVal;
-            sparkOpts.composite = true, 
+            sparkOpts.composite = true;
+            
+            if (xaxisValue === null)
+                xaxisValue = 0;
         
-            $(e[i]).sparkline(xaxis, {
+            var axis = Array.apply(null, new Array(arr.length)).map(Number.prototype.valueOf,xaxisValue);
+            
+            axisOpts = {
                 type: 'line',
                 chartRangeMin: minVal,
                 chartRangeMax: maxVal,
@@ -49,9 +54,12 @@ addSpark = function(selector, sparkOpts, xaxis) {
                 spotColor: false,
                 minSpotColor: false,
                 maxSpotColor: false,
-                defaultPixelsPerValue: 4,
-                tooltipFormat: ''
-            });
+                tooltipFormat: ''};
+            
+            if (typeof sparkOpts.defaultPixelsPerValue !== 'undefined')
+                axisOpts.defaultPixelsPerValue = sparkOpts.defaultPixelsPerValue;
+            
+            $(e[i]).sparkline(axis, axisOpts);
             
         }
         
