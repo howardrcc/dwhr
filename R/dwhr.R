@@ -65,7 +65,6 @@ new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = 
     # vars for datatable renderer
 
     env$dtRenderers <- list()
-    env$dtPrev <- list()
     env$dtPrep <- list()
     env$dtUiId <- list()
 

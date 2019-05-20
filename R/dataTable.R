@@ -687,8 +687,9 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     footer <- NA
     
-    if (nrow(tab) > 1 && lvl %in% dd$footerLevels) {
+    if (nrow(tab) > 1 && lvl %in% dd$footerLevels && !is.na(isNull(altData$footer,dd$footer))) {
         
+        # browser(expr = {dim == 'kpi'})
         footer <- addFormatting(env,dim,isNull(altData$footer,dd$footer),measures,TRUE)
         
         footer$memberKey <- ''
@@ -871,8 +872,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     
     ret$widget <- makeDtWidget(env,dim,ret)
 
-    if (!print)
-        env$dtPrep[[dim]] <- ret
+    env$dtPrep[[dim]] <- ret
     
     ret
 }
@@ -890,21 +890,14 @@ renderDataTableDim <- function(env,dim,input,output) {
         
         env$dtRenderers[[dim]]$count
         
-        prep <- env$dtPrep[[dim]]
-        pres <- dd$pres
-        
         if (env$dtRenderers[[dim]]$count == 0)
             return()
         
         printDebug(env = env, dim, eventIn = 'renderDT', info = paste0('rendercount:', env$dtRenderers[[dim]]$count))
         
-        if (is.null(prep))
-            prep <- prepDt(env,dim,pres)
-        
-        env$dtPrev[[dim]] <- prep
-        env$dtPrep[[dim]] <- NULL
         dd$selectSource <- 'init'
-        prep$widget
+        env$dtPrep[[dim]]$widget
+        
     }, 
     server = serverSide)
     
@@ -952,10 +945,10 @@ renderDataTableDim <- function(env,dim,input,output) {
                 }
                 
                 dd$reactive$clickMeasureEvent$clickCount <- dd$reactive$clickMeasureEvent$clickCount + 1
-                as <- names(env$dtPrev[[dim]]$tab)[info$col + 1]
-                meas <- env$dtPrev[[dim]]$meas
+                as <- names(env$dtPrep[[dim]]$tab)[info$col + 1]
+                meas <- env$dtPrep[[dim]]$meas
                 vc <- meas$viewColumn[meas$as == as]
-                memberKey <- env$dtPrev[[dim]]$tab[info$row,3]
+                memberKey <- env$dtPrep[[dim]]$tab[info$row,3]
                 dd$reactive$clickMeasureEvent$clickViewColumn <- vc
                 dd$reactive$clickMeasureEvent$clickMemberKey <- memberKey
                 dd$reactive$clickMeasureEvent$clickMember<- dd$membersFiltered$member[dd$membersFiltered$memberKey == memberKey]
@@ -1011,7 +1004,7 @@ print('cells_selected')
             rows <- m[m[,2] == 0,1]
 
             if (length(rows) == 1) {
-                if (env$dtPrev[[dim]]$tab[rows,1] != '+') {
+                if (env$dtPrep[[dim]]$tab[rows,1] != '+') {
                     # op lege kolom geklikt trigger een refresh
                     dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
                     printDebug(env = env, dim, eventIn = 'dataTableCellsSelected', eventOut = 'dimRefresh', info = 'empty column')
@@ -1146,7 +1139,7 @@ print('cells_selected')
 
             dd$orderColumn <- name
             dd$orderColumnDir <- srt
-            env$dtPrev[[dim]]$options$order <- NULL
+            env$dtPrep[[dim]]$options$order <- NULL
 
             ml <- getMeasList(env,dim)
 
@@ -1271,53 +1264,6 @@ print('cells_selected')
 
 processDataTable <- function(env,dim,pres){
     dd <- env$dims[[dim]]
-
-    presList <- dd$presList
-    prep <- env$dtPrep[[dim]]
-
-    if (is.null(prep))
-        prep <- prepDt(env,dim,pres)
-    
-    opt1 <- env$dtPrev[[dim]]$options
-    opt2 <- prep$options
-
-    opt1$initComplete <- NULL
-    opt2$initComplete <- NULL
-
-    if (!(dd$selectMode == 'multi') &&
-        identical(opt1,opt2) &&
-        identical(env$dtPrev[[dim]]$meas,prep$meas) &&
-        !prep$hasFormatting &&
-        !isNull(dd$serverSideTable,FALSE) &&
-        !prep$print &&
-        FALSE    # updates voorlopig uitgezet 
-        ) {
-
-        printDebug(env = env, dim, eventIn = 'DatatableUpdate')
-
-        if (prep$selection$mode == 'single') {
-            s <- prep$selection$selected[[1]]
-        } else {
-            s <- NULL
-        }
-
-        if (!is.null(s) && is.na(s))
-            s <- NULL
-
-        shinyjs::js$updateDT(
-            id = env$dtUiId[[dim]],
-            container = as.character(prep$container),
-            tab = as.matrix(prep$tab),
-            selected = s,
-            dim = env$dims[[dim]]$gdim,
-            page = prep$page)
-
-        env$dtPrev[[dim]] <- prep
-        env$dtPrep[[dim]] <- NULL
-
-    } else {
-
-        # trigger render
-        env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
-    }
+    prep <- prepDt(env,dim,pres)
+    env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
 }
