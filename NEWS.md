@@ -1,3 +1,12 @@
+dwhr 1.3.0
+==========
+
+changes
+
+* ondersteuning sparklines in datatable
+* geen dtPrev gebruiken in datatable
+
+
 dwhr 1.2.0
 ==========
 

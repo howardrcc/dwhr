@@ -57,9 +57,9 @@ domains <- list(
     rangeOpts = c('label','throttle','debounce'),
     dataTableOpts =  c('measures', 'pageLength', 'pageLengthList','serverSideTable'),
     dataTableMeasures = c('colorBarColor1','colorBarColor2','viewColumn','format', 'orderable',
-                          'bgStyle','fgStyle','width','fontWeight','align','cursor','visible','print','tooltip'),
+                          'bgStyle','fgStyle','width','fontWeight','align','cursor','visible','print','tooltip','sparkOpts'),
     dataTableStyle = c('cuts','levels','values','valueColumn'),
-    dataTableFormats = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3','hidden','paperclip'),
+    dataTableFormats = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3','hidden','paperclip','sparkline'),
     fontWeight = c('bold','normal'),
     highChartsOpts = c('type', 'rangeSelector','chart','tooltip','xAxis', 'yAxis', 'legend', 'series', 'plotOptions', 'title','dashboard','pane','navigator'),
     simpleOpts = c('inline'),
@@ -950,4 +950,24 @@ makeRangeSelection <- function(env,dim,from,to) {
     else 
         NULL
     
+}
+
+#'
+#' @export
+#'
+sparkRelativeChange <- function(spark) {
+    
+    unlist(lapply(paste0('c(',spark,')'),function(q) {
+        y <- eval(parse(text = q))
+        x <- 1:length(y)
+        co <- coef(lm(y~x))
+        fn <- function(x,a,b) {(a * x) + b}
+        ref <- fn(1,co[2],co[1])
+        
+        #zz <- sign(co[2]) * abs((fn(1,co[2],co[1]) - fn(length(y),co[2],co[1]))) / max(abs(fn(1,co[2],co[1])),abs(fn(length(y),co[2],co[1])))
+         
+        zz <- (fn(length(y),co[2],co[1]) - ref) / abs(ref)
+        zz[is.nan(zz)] <- 0
+        zz
+    }))
 }

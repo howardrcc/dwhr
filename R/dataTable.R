@@ -43,7 +43,7 @@ initCompleteJS <- function(env,dim, row = NULL, pageLength) {
     txt <- paste0("function(settings, json) {
     var api = this.api(); api.page(",page,").draw('page');
     var number = Math.random();
-    var id = this[0].id
+    var id = this[0].id;
     Shiny.onInputChange('",gdim,"_dt_ready',{r: number, id: id} );
     }")
     DT::JS(txt)
@@ -75,8 +75,25 @@ callbackJS <- function(env,dim) {
     Shiny.onInputChange('",gdim,"_page_length',{r: number, data: len} );
     });
 ")
+   
     DT::JS(txt)
 }
+
+sparkDrawCallbackJS <- function(env,dim,sparkOpts) {
+    
+    gdim <- env$dims[[dim]]$gdim
+
+    txt <- 'function(settings) {'
+    for (col in names(sparkOpts)) {
+        selector <- paste0(".",gdim,'_',col,'Sparkline:not(:has(canvas))')
+        txt <- paste0(txt,"addSpark('",selector,"',",sparkOpts[[col]],",0);")
+    }
+    
+    txt <- paste0(txt,'}')
+    
+    DT::JS(txt)
+}
+
 
 renderJS <- function(i) {
 
@@ -99,6 +116,7 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
 
     measList <- getMeasList(env,dim)  # list of measures for this level
     meas <- measList[(measList$viewColumn %in% measures$viewColumn),]
+    gdim <- env$dims[[dim]]$gdim
 
     if (!is.null(nrow(df))) {
 
@@ -106,6 +124,8 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
 
             formatRef <- meas$formatRef[meas$as == fc]
             vc <- meas$viewColumn[meas$as == fc]
+            
+            fmt <- measures$format[measures$viewColumn == vc]
 
             if (is.numeric(df[[vc]])) {
 
@@ -113,8 +133,8 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
                     
                     for (rw in row.names(df)) {
 
-                        if ('format' %in% names(measures) && !is.na(measures$format[measures$viewColumn == vc])) {  # overrule format
-                            format <- measures$format[measures$viewColumn == vc]
+                        if ('format' %in% names(measures) && !is.na(fmt)) {  # overrule format
+                            format <- fmt
                         } else {
                             format <- df[rw,formatRef]
                         }
@@ -142,8 +162,8 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
 
                 } else {
 
-                    if ('format' %in% names(measures) && !is.na(measures$format[measures$viewColumn == vc])) {  # overrule format
-                        format <- measures$format[measures$viewColumn == vc]
+                    if ('format' %in% names(measures) && !is.na(fmt)) {  # overrule format
+                        format <- fmt
                     } else {
                         format <- meas$format[meas$viewColumn == vc]
                     }
@@ -167,6 +187,16 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
                         standard = as.character(df[[vc]]))
                 }
 
+            }
+            
+            if ('format' %in% names(measures) && !is.na(fmt) && fmt == 'sparkline') {
+                if (isFooter)
+                    df[,paste0(vc,'_fc')] <- ''
+                else {
+                    df[,paste0(vc,'_fc')] <- paste0('<span class = "', gdim, '_', vc, 'Sparkline">',df[[vc]],'</span>')
+                    df[[vc]] <- sparkRelativeChange(df[[vc]])
+                    
+                }
             }
         }
     }
@@ -383,6 +413,10 @@ makeDtWidget <- function(env,dim,prep) {
         }
     }
     
+    if (prep$hasSparkline) {
+        dt$dependencies <- append(dt$dependencies, htmlwidgets:::getDependency("sparkline"))
+    }
+    
     dt
 }
 
@@ -429,13 +463,25 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     measures <- measures[measures$viewColumn %in% measList$viewColumn &
                          measures$visible &
                         (measures$print | !print),]
+    
+    hasSparkline <- FALSE
+    sparkOpts <- list()
+    
+    if ('format' %in% names(measures) && 'sparkline' %in% measures$format) {
+        require(sparkline)
+        
+        hasSparkline <- TRUE
+        sparklineCols <- measures$viewColumn[!is.na(measures$format) & measures$format == 'sparkline']
+        for (slc in sparklineCols) {
+            sparkOpts[[slc]] <- meas$sparkOpts[meas$viewColumn == slc]
+        }
+    }
 
     tab <- data.frame(
         zoom = '+',
         addFormatting(env,dim,isNull(altData$body,dd$membersFiltered),measures,FALSE),
         stringsAsFactors = FALSE)
-    
-    
+
     #
     # set firstrow & page
     #
@@ -641,8 +687,9 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     footer <- NA
     
-    if (nrow(tab) > 1 && lvl %in% dd$footerLevels) {
+    if (nrow(tab) > 1 && lvl %in% dd$footerLevels && !is.na(isNull(altData$footer,dd$footer))) {
         
+        # browser(expr = {dim == 'kpi'})
         footer <- addFormatting(env,dim,isNull(altData$footer,dd$footer),measures,TRUE)
         
         footer$memberKey <- ''
@@ -760,7 +807,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
             }
         }
     }
-    
+
     rowGroup <- FALSE
     
     if ('rowGroupColumn' %in% names(tab)) {
@@ -791,6 +838,10 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     if (!is.null(orderOpt)) {
         options$order = list(orderOpt)
     }
+    
+    if (hasSparkline) {
+        options$drawCallback <- sparkDrawCallbackJS(env,dim,sparkOpts)
+    }
 
     if (any(c('colorBarColor1','fgStyle.values','bgStyle.values') %in% names(meas))) {
         hasFormatting <- TRUE
@@ -815,13 +866,13 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
         parent = dd$parent,
         visCols = visCols,
         hasFormatting = hasFormatting,
+        hasSparkline = hasSparkline,
         page = (firstRow - 1) %/% pageLength,
         footer = footer)
     
     ret$widget <- makeDtWidget(env,dim,ret)
 
-    if (!print)
-        env$dtPrep[[dim]] <- ret
+    env$dtPrep[[dim]] <- ret
     
     ret
 }
@@ -839,21 +890,14 @@ renderDataTableDim <- function(env,dim,input,output) {
         
         env$dtRenderers[[dim]]$count
         
-        prep <- env$dtPrep[[dim]]
-        pres <- dd$pres
-        
         if (env$dtRenderers[[dim]]$count == 0)
             return()
         
         printDebug(env = env, dim, eventIn = 'renderDT', info = paste0('rendercount:', env$dtRenderers[[dim]]$count))
         
-        if (is.null(prep))
-            prep <- prepDt(env,dim,pres)
-        
-        env$dtPrev[[dim]] <- prep
-        env$dtPrep[[dim]] <- NULL
         dd$selectSource <- 'init'
-        prep$widget
+        env$dtPrep[[dim]]$widget
+        
     }, 
     server = serverSide)
     
@@ -901,10 +945,10 @@ renderDataTableDim <- function(env,dim,input,output) {
                 }
                 
                 dd$reactive$clickMeasureEvent$clickCount <- dd$reactive$clickMeasureEvent$clickCount + 1
-                as <- names(env$dtPrev[[dim]]$tab)[info$col + 1]
-                meas <- env$dtPrev[[dim]]$meas
+                as <- names(env$dtPrep[[dim]]$tab)[info$col + 1]
+                meas <- env$dtPrep[[dim]]$meas
                 vc <- meas$viewColumn[meas$as == as]
-                memberKey <- env$dtPrev[[dim]]$tab[info$row,3]
+                memberKey <- env$dtPrep[[dim]]$tab[info$row,3]
                 dd$reactive$clickMeasureEvent$clickViewColumn <- vc
                 dd$reactive$clickMeasureEvent$clickMemberKey <- memberKey
                 dd$reactive$clickMeasureEvent$clickMember<- dd$membersFiltered$member[dd$membersFiltered$memberKey == memberKey]
@@ -960,7 +1004,7 @@ print('cells_selected')
             rows <- m[m[,2] == 0,1]
 
             if (length(rows) == 1) {
-                if (env$dtPrev[[dim]]$tab[rows,1] != '+') {
+                if (env$dtPrep[[dim]]$tab[rows,1] != '+') {
                     # op lege kolom geklikt trigger een refresh
                     dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
                     printDebug(env = env, dim, eventIn = 'dataTableCellsSelected', eventOut = 'dimRefresh', info = 'empty column')
@@ -1095,7 +1139,7 @@ print('cells_selected')
 
             dd$orderColumn <- name
             dd$orderColumnDir <- srt
-            env$dtPrev[[dim]]$options$order <- NULL
+            env$dtPrep[[dim]]$options$order <- NULL
 
             ml <- getMeasList(env,dim)
 
@@ -1220,53 +1264,6 @@ print('cells_selected')
 
 processDataTable <- function(env,dim,pres){
     dd <- env$dims[[dim]]
-
-    presList <- dd$presList
-    prep <- env$dtPrep[[dim]]
-
-    if (is.null(prep))
-        prep <- prepDt(env,dim,pres)
-    
-    opt1 <- env$dtPrev[[dim]]$options
-    opt2 <- prep$options
-
-    opt1$initComplete <- NULL
-    opt2$initComplete <- NULL
-
-    if (!(dd$selectMode == 'multi') &&
-        identical(opt1,opt2) &&
-        identical(env$dtPrev[[dim]]$meas,prep$meas) &&
-        !prep$hasFormatting &&
-        !isNull(dd$serverSideTable,FALSE) &&
-        !prep$print &&
-        FALSE    # updates voorlopig uitgezet 
-        ) {
-
-        printDebug(env = env, dim, eventIn = 'DatatableUpdate')
-
-        if (prep$selection$mode == 'single') {
-            s <- prep$selection$selected[[1]]
-        } else {
-            s <- NULL
-        }
-
-        if (!is.null(s) && is.na(s))
-            s <- NULL
-
-        shinyjs::js$updateDT(
-            id = env$dtUiId[[dim]],
-            container = as.character(prep$container),
-            tab = as.matrix(prep$tab),
-            selected = s,
-            dim = env$dims[[dim]]$gdim,
-            page = prep$page)
-
-        env$dtPrev[[dim]] <- prep
-        env$dtPrep[[dim]] <- NULL
-
-    } else {
-
-        # trigger render
-        env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
-    }
+    prep <- prepDt(env,dim,pres)
+    env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
 }

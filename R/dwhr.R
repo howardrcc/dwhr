@@ -65,7 +65,6 @@ new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = 
     # vars for datatable renderer
 
     env$dtRenderers <- list()
-    env$dtPrev <- list()
     env$dtPrep <- list()
     env$dtUiId <- list()
 
@@ -1517,6 +1516,11 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 if ('tooltip' %in% names(x)) {
                     assert_is_a_string(x$tooltip)
                 }
+                
+                if ('sparkOpts' %in% names(x)) {
+                    assert_is_list(x$sparkOpts)
+                    dataTableOpts$measures[[i]]$sparkOpts <- as.character(jsonlite::toJSON(x$sparkOpts))
+                }
 
                 dataTableOpts$measures[[i]] <- rlist::list.flatten(dataTableOpts$measures[[i]])
                 dataTableOpts$measures[[i]]$colOrder <- i
@@ -2280,16 +2284,29 @@ clone.star <- function(from, toId, facts = NULL, dimViews = NULL, checkUiId = FA
                     eval(dmCall, envir = from$ce)
                 }
               
+                pres <- sapply(from$dims[[dv]]$presentationCalls,function(x) {x$as})
                 
-                if(isNull(dimViews[[dv]]$presentations,TRUE)) {
-                    
-                    for(pCall in from$dims[[dv]]$presentationCalls) {
-                        pCall$env <- to
-                        pCall$checkUiId <- checkUiId
-                        eval(pCall, envir = from$ce)
+                if (length(pres) > 0) {
+                    if (!is.null(dimViews[[dv]]$presentations)) {
+                        
+                        if (is.character(dimViews[[dv]]$presentations)) {
+                            pres <- dimViews[[dv]]$presentations
+                        } else {
+                            if (is.logical(dimViews[[dv]]$presentations) && !dimViews[[dv]]$presentations) 
+                                pres <- c()
+                            
+                        }
                     }
                     
+                    for(pCall in from$dims[[dv]]$presentationCalls) {
+                        if (pCall$as %in% pres) {
+                            pCall$env <- to
+                            pCall$checkUiId <- checkUiId
+                            eval(pCall, envir = from$ce)
+                        }
+                    }
                 }
+                
             }
             
         }

@@ -14,6 +14,60 @@ Math.easeOutBounce = function (pos) {
     return (7.5625 * (pos -= (2.625 / 2.75)) * pos + 0.984375);
 };
 
+addSpark = function(selector, sparkOpts, xaxisValue) {
+    
+    var e = $(selector);
+    
+    for (i = 0; i < e.length; i++) {
+        
+        var arr = JSON.parse("[" + e[i].textContent + "]");
+        
+        if ((typeof sparkOpts.addXaxis !== 'undefined') && sparkOpts.addXaxis) {
+            var minVal = Math.min.apply(null,arr);
+        
+            if (minVal > 0) {
+                minVal = 0;
+            }
+        
+            var maxVal = Math.max.apply(null,arr);
+        
+            if (maxVal < 0) {
+                maxVal = 0;
+            }
+        
+            sparkOpts.chartRangeMin = minVal;
+            sparkOpts.chartRangeMax = maxVal;
+            sparkOpts.composite = true;
+            
+            if (xaxisValue === null)
+                xaxisValue = 0;
+        
+            var axis = Array.apply(null, new Array(arr.length)).map(Number.prototype.valueOf,xaxisValue);
+            
+            axisOpts = {
+                type: 'line',
+                chartRangeMin: minVal,
+                chartRangeMax: maxVal,
+                lineColor: 'black',
+                fillColor:'rgba(0,0,0,0)',
+                lineWidth: 1,
+                spotColor: false,
+                minSpotColor: false,
+                maxSpotColor: false,
+                tooltipFormat: ''};
+            
+            if (typeof sparkOpts.defaultPixelsPerValue !== 'undefined')
+                axisOpts.defaultPixelsPerValue = sparkOpts.defaultPixelsPerValue;
+            
+            $(e[i]).sparkline(axis, axisOpts);
+            
+        }
+        
+        $(e[i]).sparkline(arr,sparkOpts);
+        
+    }
+};
+
 
 ttPointFormatter = function(point) {
     
