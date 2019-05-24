@@ -61,7 +61,7 @@ domains <- list(
     dataTableStyle = c('cuts','levels','values','valueColumn'),
     dataTableFormats = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3','hidden','paperclip','sparkline'),
     fontWeight = c('bold','normal'),
-    highChartsOpts = c('type', 'rangeSelector','chart','tooltip','xAxis', 'yAxis', 'legend', 'series', 'plotOptions', 'title','dashboard','pane','navigator'),
+    highChartsOpts = c('type', 'rangeSelector','chart','tooltip','xAxis', 'yAxis', 'legend', 'series', 'plotOptions', 'title','dashboard','pane','navigator','exporting'),
     simpleOpts = c('inline'),
     navOpts = c('syncNav', 'hideNoFilter', 'hideAll', 'hideBreadCrumb', 'links','selLinks','minBreadCrumbLevel'),
     navOptsLinkTypes = c('actionLink','downloadLink','downloadButton','dropDown','dim'),

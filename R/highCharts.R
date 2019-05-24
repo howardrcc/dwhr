@@ -330,6 +330,11 @@ makeHcWidget <- function(env,dim,prep){
         a <- do.call(eval(parse(text = 'highcharter::hc_rangeSelector')), prep$rangeSelectorOpts)
     }
     
+    if (!is.null(prep$exportingOpts)) {
+        prep$exportingOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_exporting')), prep$exportingOpts)
+    }
+    
     a <- a %>%
             highcharter::hc_add_series_list(prep$seriesOpts) 
     
@@ -384,7 +389,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
     paneOpts <- highChartsOpts$pane
     navigatorOpts <- highChartsOpts$navigator
     rangeSelectorOpts <-  highChartsOpts$rangeSelector
-
+    exportingOpts <- highChartsOpts$exporting
 
     if (is.null(plotBandColor)) {
         plotBandColor <- 'lightGrey'
@@ -786,6 +791,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
         plotBands = plotBands,
         navigatorOpts = navigatorOpts,
         rangeSelectorOpts = rangeSelectorOpts,
+        exportingOpts = exportingOpts,
         print = print)
     
     #if (chartType== 'stock') browser()
@@ -1188,6 +1194,9 @@ processHighCharts <- function(env,dim,pres){
         useUpdate <- FALSE
     }
     
+    if (!identical(env$hcPrev[[dim]]$exportingOpts,chart$exportingOpts))
+        useUpdate <- FALSE
+        
     if((is.null(useUpdate) || useUpdate) && length(setdiff(newLength,prevLength)) == 0 && !chart$print) {
         
         change <- FALSE
