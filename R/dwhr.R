@@ -1491,7 +1491,8 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 }
                 
                 if ('visible' %in% names(x)) {
-                    assert_is_a_bool(x$visible)
+                    if(!is_a_bool(x$visible) && !is_function(x$visible))
+                        assert_is_a_bool(x$visible)
                     dataTableOpts$measures[[i]]$visible <- x$visible
                 } else {
                     dataTableOpts$measures[[i]]$visible <- TRUE

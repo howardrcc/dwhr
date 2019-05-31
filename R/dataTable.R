@@ -431,7 +431,11 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     presList <- dd$presList
     opts <- presList[[pres]]$dataTableOpts
 
-    measures <- rlist::list.stack(isNull(opts$measures,list(viewColumn = 'cnt')),fill = TRUE)
+    expandList <- function(l){
+        lapply(l, function(x) if(class(x) == 'function') do.call(x,list(env = env)) else if(is.list(x)) expandList(x) else x)
+    }
+    
+    measures <- rlist::list.stack(isNull(expandList(opts$measures),list(viewColumn = 'cnt')),fill = TRUE)
 
     pageLength <- opts$pageLength
     pageLengthList <- opts$pageLengthList
