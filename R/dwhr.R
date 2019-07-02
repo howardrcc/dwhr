@@ -1522,7 +1522,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                     assert_is_list(x$sparkOpts)
                     dataTableOpts$measures[[i]]$sparkOpts <- as.character(jsonlite::toJSON(x$sparkOpts))
                 }
-
+                
                 dataTableOpts$measures[[i]] <- rlist::list.flatten(dataTableOpts$measures[[i]])
                 dataTableOpts$measures[[i]]$colOrder <- i
 
@@ -1546,6 +1546,10 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 pl <- as.integer(pl)
             } else {
                 pl <- pll[1]
+            }
+            
+            if ('filterRowGroup' %in% names(dataTableOpts)) {
+                assert_is_a_string(dataTableOpts$filterRowGroup)
             }
 
             pl <- isNull(pl,10)

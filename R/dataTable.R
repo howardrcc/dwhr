@@ -815,9 +815,13 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     rowGroup <- FALSE
     
     if ('rowGroupColumn' %in% names(tab)) {
-        if (any(tab[['Naam']] != tab[['rowGroupColumn']])) {
-            rgcnr <- which(names(tab) %in% 'rowGroupColumn') - 1
-            rowGroup <- list(dataSrc = rgcnr)
+        if (!is.null(opts$filterRowGroup)) {
+            tab <- tab[tab$rowGroupColumn == opts$filterRowGroup,]
+        } else {
+            if (any(tab[['Naam']] != tab[['rowGroupColumn']])) {
+                rgcnr <- which(names(tab) %in% 'rowGroupColumn') - 1
+                rowGroup <- list(dataSrc = rgcnr)
+            }
         }
     }
     
@@ -854,7 +858,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     }
 
     
-    if (!print && dd$type != 'output' && dd$selectMode != 'none' && dd$level %in% dd$selectableLevels) {
+    if (!print && dd$type != 'output' && dd$selectMode != 'none' && dd$level %in% dd$selectableLevels && nrow(tab) > 0) {
         tab[,2] <- paste0('<span class = "underline-on-hover">',tab[,2],'</span>')
     }
     

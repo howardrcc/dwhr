@@ -55,7 +55,7 @@ domains <- list(
     presType = c('dataTable','highCharts','radioButton','selectInput','dateRangeInput','rangeSliderInput'),
     selectMode = c('single','multi','none'),
     rangeOpts = c('label','throttle','debounce'),
-    dataTableOpts =  c('measures', 'pageLength', 'pageLengthList','serverSideTable'),
+    dataTableOpts =  c('measures', 'pageLength', 'pageLengthList','serverSideTable','filterRowGroup'),
     dataTableMeasures = c('colorBarColor1','colorBarColor2','viewColumn','format', 'orderable',
                           'bgStyle','fgStyle','width','fontWeight','align','cursor','visible','print','tooltip','sparkOpts'),
     dataTableStyle = c('cuts','levels','values','valueColumn'),
