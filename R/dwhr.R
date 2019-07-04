@@ -55,6 +55,7 @@ new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = 
     env$call <- match.call()
     env$facts <- facts
     env$dims <- list()
+    env$clones <- list()
     env$caching <- caching
     env$foreignKeyCheck <- foreignKeyCheck
     env$session <- session
