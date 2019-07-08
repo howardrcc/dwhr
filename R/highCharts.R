@@ -394,6 +394,10 @@ prepHc <- function(env, dim, pres, print = NULL) {
     if (is.null(plotBandColor)) {
         plotBandColor <- 'lightGrey'
     }
+    
+    if (print) {
+        plotBandColor <- 'rgba(0,0,0,0)'
+    }
 
     presCols <- sapply(seriesOpts,function(x) {return(x$viewColumn)})
     serieTypes <- sapply(seriesOpts,function(x) {return(x$type)})
