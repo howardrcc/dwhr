@@ -1,3 +1,12 @@
+dwhr 1.4.0
+==========
+
+changes
+
+* clones list in env
+* filterRowGroup optie voor datatable
+* expandList mogelijkheid voor highcharts
+
 dwhr 1.3.0
 ==========
 
