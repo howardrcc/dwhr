@@ -665,13 +665,13 @@ prepHc <- function(env, dim, pres, print = NULL) {
                                 if (isNull(ttXtraData$includeSelf,TRUE)) {
                                     point$ttXtraData <- paste0(colName,': ',fmt,'<br/>')
                                 }
-                                
+
                                 q <- 1
                                 for (ttX in ttXtraData$viewColumns) {
                                     ttXName <-measColNames[which(measCols == ttX)]
                                     ttXFormat <- meas$format[meas$as == ttXName]
                                     ttXName <- isNull(ttXtraData$name[q],ttXName)
-                                    ttXFmt <- getFormat2(ttXFormat,tab[[ttX]][rec])
+                                    ttXFmt <- getFormat2(ttXFormat,tab[pageStart:pageEnd,c(ttX)][rec])
                                     point$ttXtraData <- paste0(point$ttXtraData,ttXName,': ',ttXFmt,'<br/>')
                                     q <- q + 1
                                 }
@@ -1310,7 +1310,6 @@ processHighCharts <- function(env,dim,pres){
     } else {
         
         # trigger render
-        
         env$hcRenderers[[dim]]$count <- env$hcRenderers[[dim]]$count + 1
     }
 }

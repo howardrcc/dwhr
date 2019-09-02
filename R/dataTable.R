@@ -1167,6 +1167,9 @@ print('cells_selected')
             printDebug(env = env, dim, eventIn = 'dataTableOrderChange', eventOut = 'orderChange', info = paste0('column:',name,',dir:',srt))
 
         }
+        
+        dd$currentPage <- 1
+    
     })
 
     readyEvent <- paste0(gdim,'_dt_ready')
