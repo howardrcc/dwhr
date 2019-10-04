@@ -44,7 +44,7 @@ dwhrInit <- function() {
 #' @param checkDups boolean, Als TRUE: controleer of dimensie als in ui is opgenomen.
 #'
 #' @export
-getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflowX = 'hidden', accordion = FALSE, checkDups = TRUE) {
+getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflowX = 'hidden', accordion = FALSE, checkDups = TRUE, resize = FALSE, alsoResize = '') {
     
     withCallingHandlers({
         assert_is_a_string(starId)
@@ -95,7 +95,15 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
                 ),
                 shiny::uiOutput(paste0(gdim,"DimHeader"))),
             div(class = 'dwhrPanel', id = paste0(gdim,'DwhrPanel'),
-                shiny::uiOutput(paste0(gdim,"DimBody")),
+                if (resize) {
+                    shinyjqui::jqui_resizable(
+                        options = list(
+                            handles = 's', 
+                            alsoResize = alsoResize), 
+                        shiny::uiOutput(paste0(gdim,"DimBody"), style ='border-bottom-style:ridge; border-bottom-width:2px'))
+                } else {
+                    shiny::uiOutput(paste0(gdim,"DimBody"))
+                },
                 shiny::uiOutput(paste0(gdim,'DimFooter'))),
             style = style)
     else

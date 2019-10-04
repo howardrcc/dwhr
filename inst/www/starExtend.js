@@ -478,7 +478,6 @@ $.ui.plugin.add("resizable", "alsoResizeReverse", {
 	},
 
 	resize: function(event, ui) {
-	    	    debugger;
 		var that = $(this).resizable( "instance" ),
 			o = that.options,
 			os = that.originalSize,
@@ -498,6 +497,9 @@ $.ui.plugin.add("resizable", "alsoResizeReverse", {
 
 			$.each(css, function(i, prop) {
 				var sum = (start[prop] || 0) - (delta[prop] || 0);
+				if (prop == 'width') {
+				    sum = sum + 50;
+				}
 				if (sum && sum >= 0) {
 					style[prop] = sum || null;
 				}
