@@ -1458,7 +1458,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                     stop('Incorrect combination of measure opts')
                 }
                 
-                if ('format' %in% names(x)) {
+                if ('format' %in% names(x) && !is_function(x$format)) {
                     assert_is_a_string(x$format)
                     assert_is_subset(x$format,domains[['dataTableFormats']])
                 }
