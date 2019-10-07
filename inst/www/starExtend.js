@@ -462,55 +462,64 @@ shinyjs.updateDT = function(params) {
 batchStateFinished = false; 
 
 shinyjs.init = function() {
-$.ui.plugin.add("resizable", "alsoResizeReverse", {
+   
+    $(window).resize(function(){
+        Shiny.onInputChange('windowHeight',{height: window.innerHeight});
+        Shiny.onInputChange('windowWidth',{width: window.innerWidth});
+    });
+    
+   if (typeof $.ui  != 'undefined') {
+        $.ui.plugin.add("resizable", "alsoResizeReverse", {
 
-	start: function() {
-		var that = $(this).resizable( "instance" ),
-			o = that.options;
+    	start: function() {
+	    	var that = $(this).resizable( "instance" ),
+		    	o = that.options;
 
-		$(o.alsoResizeReverse).each(function() {
-			var el = $(this);
-			el.data("ui-resizable-alsoresizeReverse", {
-				width: parseInt(el.width(), 10), height: parseInt(el.height(), 10),
-				left: parseInt(el.css("left"), 10), top: parseInt(el.css("top"), 10)
-			});
-		});
-	},
+		    $(o.alsoResizeReverse).each(function() {
+			    var el = $(this);
+			    el.data("ui-resizable-alsoresizeReverse", {
+				    width: parseInt(el.width(), 10), height: parseInt(el.height(), 10),
+				    left: parseInt(el.css("left"), 10), top: parseInt(el.css("top"), 10),
+				    padding : parseInt(el.css("padding-left"),10) + parseInt(el.css("padding-right"),10)
+			    });
+		    });
+	    },
 
-	resize: function(event, ui) {
-		var that = $(this).resizable( "instance" ),
-			o = that.options,
-			os = that.originalSize,
-			op = that.originalPosition,
-			delta = {
-				height: (that.size.height - os.height) || 0,
-				width: (that.size.width - os.width) || 0,
-				top: (that.position.top - op.top) || 0,
-				left: (that.position.left - op.left) || 0
-			};
+    	resize: function(event, ui) {
+	    	var that = $(this).resizable( "instance" ),
+		    	o = that.options,
+	    		os = that.originalSize,
+		    	op = that.originalPosition,
+		    	delta = {
+			    	height: (that.size.height - os.height) || 0,
+		    		width: (that.size.width - os.width) || 0,
+		    		top: (that.position.top - op.top) || 0,
+		    		left: (that.position.left - op.left) || 0
+	    		};
 
-		$(o.alsoResizeReverse).each(function() {
-			var el = $(this), start = $(this).data("ui-resizable-alsoresize-reverse"), style = {},
-				css = el.parents(ui.originalElement[0]).length ?
-					[ "width", "height" ] :
-					[ "width", "height", "top", "left" ];
+		    $(o.alsoResizeReverse).each(function() {
+		    	var el = $(this), start = $(this).data("ui-resizable-alsoresize-reverse"), style = {},
+		    		css = el.parents(ui.originalElement[0]).length ?
+		    			[ "width", "height" ] :
+		    			[ "width", "height", "top", "left" ];
+    			$.each(css, function(i, prop) {
+    				var sum = (start[prop] || 0) - (delta[prop] || 0);
+    
+    				if (sum && sum >= 0) {
+    				    if (start['padding'] && start['padding'] > 0) {
+    				        sum = sum + start['padding'];
+    				    }
+    					style[prop] = sum || null;
+    				}
+    			});
 
-			$.each(css, function(i, prop) {
-				var sum = (start[prop] || 0) - (delta[prop] || 0);
-				if (prop == 'width') {
-				    sum = sum + 50;
-				}
-				if (sum && sum >= 0) {
-					style[prop] = sum || null;
-				}
-			});
+			    el.css(style);
+		    });
+	    },
 
-			el.css(style);
-		});
-	},
-
-	stop: function() {
-		$(this).removeData("resizable-alsoresize-reverse");
-	}
-});
+    	stop: function() {
+	    	$(this).removeData("resizable-alsoresize-reverse");
+	    }
+    });
+}
 }
