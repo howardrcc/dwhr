@@ -13,12 +13,6 @@ text-align: center;
 color: #FFFFFF;
 }
 
-.ui-tooltip-content {
-background-color: #fefefe;
-color: black;
-border: 3px solid #41b6c4;
-}
-
 .tooltip-inner {
 background-color: #fefefe;
 color: black;

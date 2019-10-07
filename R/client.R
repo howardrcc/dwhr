@@ -44,7 +44,7 @@ dwhrInit <- function() {
 #' @param checkDups boolean, Als TRUE: controleer of dimensie als in ui is opgenomen.
 #'
 #' @export
-getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflowX = 'hidden', accordion = FALSE, checkDups = TRUE, resize = FALSE, alsoResize = '') {
+getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflowX = 'hidden', accordion = FALSE, checkDups = TRUE, resize = FALSE, resizeOptions = list(), bodyStyle = NULL ) {
     
     withCallingHandlers({
         assert_is_a_string(starId)
@@ -56,6 +56,9 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
         assert_is_subset(overflowX,domains[['cssOverflow']])
         assert_is_a_bool(accordion)
         assert_is_a_bool(checkDups)
+        assert_is_a_bool(resize)
+        assert_is_list(resizeOptions)
+        assert_is_a_string(isNull(bodyStyle,''))
         
         gdim <- getGlobalId(starId,dim)
         gdim %in% glob.env$dimUiIds && checkDups && stop('duplicate dims')    
@@ -77,6 +80,14 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
                   shiny::icon('chevron-down',lib = 'glyphicon'), 
                   '</td>')
     
+    if (resize && length(resizeOptions) == 0) {
+        
+        resizeOptions <- list(
+            handles = 's'
+        )
+        
+    }
+    
     if (!skipTopRow) 
         
         shiny::div(
@@ -97,12 +108,10 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
             div(class = 'dwhrPanel', id = paste0(gdim,'DwhrPanel'),
                 if (resize) {
                     shinyjqui::jqui_resizable(
-                        options = list(
-                            handles = 's', 
-                            alsoResize = alsoResize), 
-                        shiny::uiOutput(paste0(gdim,"DimBody"), style ='border-bottom-style:ridge; border-bottom-width:2px'))
+                        options = resizeOptions,
+                        shiny::uiOutput(paste0(gdim,"DimBody"), style = bodyStyle))
                 } else {
-                    shiny::uiOutput(paste0(gdim,"DimBody"))
+                    shiny::uiOutput(paste0(gdim,"DimBody"), style = bodyStyle)
                 },
                 shiny::uiOutput(paste0(gdim,'DimFooter'))),
             style = style)
@@ -110,7 +119,13 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
         shiny::div(
             id = paste0(gdim,'Dimensie'),
             shiny::uiOutput(paste0(gdim,"DimHeader")),
-            shiny::uiOutput(paste0(gdim,"DimBody")),
+            if (resize) {
+                shinyjqui::jqui_resizable(
+                    options = resizeOptions,
+                    shiny::uiOutput(paste0(gdim,"DimBody"), style = bodyStyle))
+            } else {
+                shiny::uiOutput(paste0(gdim,"DimBody"), style = bodyStyle)
+            },
             shiny::uiOutput(paste0(gdim,'DimFooter')),
             style = style)
 

@@ -423,7 +423,7 @@ shinyjs.hideDim = function(params) {
 shinyjs.showDim = function(params) {
     var container = '#'.concat(params.dim,'Dimensie');
     $(container).removeClass("hide-db");
-    $(container).fadeTo(500,1);
+    $(container).fadeTo(100,1);
 };
 
 
@@ -491,8 +491,8 @@ shinyjs.init = function() {
 	    		os = that.originalSize,
 		    	op = that.originalPosition,
 		    	delta = {
-			    	height: (that.size.height - os.height) || 0,
-		    		width: (that.size.width - os.width) || 0,
+			    	height: (that.size.height - Math.round(that.sizeDiff.height) - os.height) || 0,
+		    		width: (that.size.width - Math.round(that.sizeDiff.width) - os.width) || 0,
 		    		top: (that.position.top - op.top) || 0,
 		    		left: (that.position.left - op.left) || 0
 	    		};
