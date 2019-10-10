@@ -92,11 +92,13 @@ toggleAccordion = function(e,id,accordionId) {
             if (panel.style.maxHeight === "0px"){
                 $(e).find('.glyphicon').removeClass('glyphicon-chevron-right');
                 $(e).find('.glyphicon').addClass('glyphicon-chevron-down');
-                panel.style.maxHeight = null;
+                panel.style.maxHeight = '9999px';
+                Shiny.onInputChange(id,{toggleState: 1});
             } else {
                 $(e).find('.glyphicon').removeClass('glyphicon-chevron-down');
                 $(e).find('.glyphicon').addClass('glyphicon-chevron-right');
                 panel.style.maxHeight = "0px";
+                Shiny.onInputChange(id,{toggleState: 0});
             }     
         }
     }

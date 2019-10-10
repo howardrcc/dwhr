@@ -117,7 +117,7 @@ renderDims <- function(env,input,output) {
                     if (presType %in% c('selectInput','radioButton') || length(dd$name) == 0) {
                         name <- ''
                     } else {
-                        name <- h4(dd$name)
+                        name <- h5(dd$name, style = 'margin-top: 0;margin-bottom: 0;')
                     }
                     
                     name
