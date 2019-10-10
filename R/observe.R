@@ -205,16 +205,16 @@ startObserversData <- function(env,dim) {
                         }
                     }
                     
+                    if (dd$debounce) {
+                        shinyjs::js$blockUI(
+                            timeout = glob.env$debounceTimeout,
+                            backgroundColor = glob.env$debounceBackgroundColor,
+                            opacity = glob.env$debounceOpacity)
+                    } else {
+                        dd$debounce <- TRUE
+                    }
+                    
                     if (is.null(dd$parentDim)) {
-                        
-                        if (dd$debounce) {
-                            shinyjs::js$blockUI(
-                                timeout = glob.env$debounceTimeout,
-                                backgroundColor = glob.env$debounceBackgroundColor,
-                                opacity = glob.env$debounceOpacity)
-                        } else {
-                            dd$debounce <- TRUE
-                        }
                         
                         dd$reactive$selectedIdsChange <- dd$reactive$selectedIdsChange + 1
                         
