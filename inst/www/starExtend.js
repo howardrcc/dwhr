@@ -533,6 +533,9 @@ shinyjs.hcSetHeight = function(params) {
     
     $(body).css("height",params.height);
     $(container).css("height","100%");
-    chart.setSize(null,params.height,true);
+    
+    if (typeof chart != 'undefined' && params.source != 'chartChange') {
+        chart.setSize(null,params.height,true);
+    }
     
 }
