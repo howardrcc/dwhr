@@ -826,7 +826,10 @@ sanitizeLabel <- function(x, m) {
         
         ret <- c(ret,trimws(ss,'right'))
     }
-    ret
+    if (length(ret) == 1)
+        list(ret)
+    else
+        ret
     
 }
 

@@ -525,3 +525,14 @@ shinyjs.init = function() {
     });
 }
 }
+
+shinyjs.hcSetHeight = function(params) {
+    container = '#'.concat(params.gdim,'DimChart');
+    body = '#'.concat(params.gdim,'DimBody');
+    chart = $(container).highcharts();
+    
+    $(body).css("height",params.height);
+    $(container).css("height","100%");
+    chart.setSize(null,params.height,true);
+    
+}
