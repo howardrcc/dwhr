@@ -340,15 +340,18 @@ startObserversPres <- function(env,dim,pres) {
 
         shiny::observeEvent(inp[[dimWait]], {
 
-            for (d in setdiff(inputDims(env),dim)) {
-                g <- env$dims[[d]]$gdim
-                if(!inp[[dimWait]]) {
-                    shinyjs::runjs(paste0('$("#',g,'Dimensie").unblock()'))
-                } else {
-                    shinyjs::runjs(paste0('$("#',g,'Dimensie").block({ message: null, overlayCSS: { backgroundColor: "#f2f2f2"} })'))
-                }
+            if(!inp[[dimWait]]) {
+                shinyjs::removeClass(paste0(gdim,'DimBody'),'lift')
+                shinyjs::removeClass(paste0(gdim,'DimFooter'),'lift')
+                shinyjs::runjs('$.unblockUI()')
+            } else {
+                shinyjs::runjs('$.blockUI({ message: null, overlayCSS: { backgroundColor: "#f2f2f2"} });')
+                shinyjs::addClass(paste0(gdim,'DimBody'),'lift')
+                shinyjs::addClass(paste0(gdim,'DimFooter'),'lift')
+                shinyjs::runjs(paste0('$("#',gdim,'DimBody").unblock();'))
+                shinyjs::runjs(paste0('$("#',gdim,'DimFooter").unblock();'))
             }
-
+            
             if(!inp[[dimWait]]) {
                 if (dd$wait) {
                     dd$wait <- FALSE
