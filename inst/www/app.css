@@ -99,14 +99,3 @@ width: 97%;
   background-color: white;
   z-index: 1001;
 }
-
-.lift {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    padding: 50px;
-    border: solid black 2px;
-    z-index: 1001;
-}
