@@ -643,11 +643,7 @@ dimCorrectSelectionInfo <- function(input,env,dim) {
         if(length(rw) == 1) {
             l <- l[rw,]
         } else {
-            l <- data.frame( 
-                level = dd$level,
-                parent = dd$parent,
-                label = rwv,
-                stringsAsFactors = FALSE)
+            l <- l[1,]
         }
 
         dd$selected <- l
