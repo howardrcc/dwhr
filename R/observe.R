@@ -464,6 +464,7 @@ startObserversPres <- function(env,dim,pres) {
             dd$selected <- dd$rootSelected
             dimSetHasSubselect(env,dim)
             dd$selectSource <- 'NoFilter'
+            dd$searchTxt <- ''
             dd$reactive$selectChange <- dd$reactive$selectChange + 1
             printDebug(env = env, dim, eventIn = 'NoFilter', eventOut = 'selectChange')
             dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
