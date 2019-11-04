@@ -158,6 +158,10 @@ renderDims <- function(env,input,output) {
                                 ele <- shiny::downloadButton(outputId = ll$id, label = ll$label)
                             }
                             
+                            if (!is.null(ll$id) && ll$type == 'uiOutput') {
+                                ele <- shiny::uiOutput(outputId = ll$id, inline = isNull(ll$inline,FALSE))
+                            }
+                            
                             if (!is.null(ll$id) && ll$type == 'dropDown') {
                                 
                                 if (!is.null(ll$choiceFun)) {

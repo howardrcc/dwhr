@@ -64,7 +64,7 @@ domains <- list(
     highChartsOpts = c('type', 'rangeSelector','chart','tooltip','xAxis', 'yAxis', 'legend', 'series', 'plotOptions', 'title','dashboard','pane','navigator','exporting'),
     simpleOpts = c('inline'),
     navOpts = c('syncNav', 'hideNoFilter', 'hideAll', 'hideBreadCrumb', 'links','selLinks','minBreadCrumbLevel'),
-    navOptsLinkTypes = c('actionLink','downloadLink','downloadButton','dropDown','dim'),
+    navOptsLinkTypes = c('actionLink','downloadLink','downloadButton','dropDown','dim','uiOutput'),
     orderBy = c('key','name'),
     cssOverflow = c('hidden','visible','scroll','auto'),
     presListType = c('dropdown','links')

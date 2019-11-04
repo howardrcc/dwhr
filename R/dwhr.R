@@ -1426,6 +1426,10 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
             navOpts$syncNav <- TRUE
         } 
         
+        if (length(useLevels) != 0) {
+            navOpts$syncNav <- FALSE
+        }
+        
         if (is.null(simpleOpts)  + is.null(dataTableOpts) + is.null(highChartsOpts) + is.null(rangeOpts) != 3) {
             stop('Invalid options')
         }
@@ -1558,7 +1562,9 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
 
             pl %in% pll || stop('pageLength not in pageLengthList')
 
-            #is.null(dd$pageLength) || dd$pageLength == pl ||  stop(paste0('pageLength already set to', dd$pageLength))
+            if (navOpts$syncNav) {
+                is.null(dd$pageLength) || dd$pageLength == pl ||  stop(paste0('pageLength already set to', dd$pageLength))
+            }
 
             dataTableOpts$pageLength <- pl
             dataTableOpts$pageLengthList <- pll
