@@ -1365,7 +1365,7 @@ addRowGroupColumn <- function(env, dim, rowGroupColumn, levels = NULL) {
 #'@export
 #'
 addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault = FALSE, height = NULL, width = NULL,
-    useLevels = NULL, navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL, rangeOpts = NULL, checkUiId = TRUE) {
+    useLevels = NULL, navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL, rangeOpts = NULL, checkUiId = TRUE, state = NULL) {
 
     withCallingHandlers({
 
@@ -1558,7 +1558,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
 
             pl %in% pll || stop('pageLength not in pageLengthList')
 
-            is.null(dd$pageLength) || dd$pageLength == pl ||  stop(paste0('pageLength already set to', dd$pageLength))
+            #is.null(dd$pageLength) || dd$pageLength == pl ||  stop(paste0('pageLength already set to', dd$pageLength))
 
             dataTableOpts$pageLength <- pl
             dataTableOpts$pageLengthList <- pll
@@ -1621,6 +1621,9 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                     call$selectedIds <- dd$selectedIds
                 }
             }
+            
+            if (!is.null(state)) 
+                call$state <- state
             
             is.null(dd$syncNav) || dd$syncNav == navOpts$syncNav || dwhrStop('Incompatible syncNav')
             
