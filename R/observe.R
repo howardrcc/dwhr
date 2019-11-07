@@ -35,6 +35,7 @@ startObserversData <- function(env,dim) {
 
                     if (env$dims[[d]]$level != dd$level) {
 
+                        env$dims[[d]]$prevLevel <- env$dims[[d]]$level
                         env$dims[[d]]$level <- dd$level
                         env$dims[[d]]$parent <- dd$parent
                         env$dims[[d]]$ancestors <- dd$ancestors
@@ -386,6 +387,7 @@ startObserversPres <- function(env,dim,pres) {
     if (!(dimLink0 %in% obs) && !hideBreadCrumb && !hideAll) {
 
         shiny::observeEvent(inp[[dimLink0]], {
+            dd$prevLevel <- dd$level
             dd$level <- 0
             dd$parent <- ''
             dd$ancestors <- c('')
@@ -401,6 +403,7 @@ startObserversPres <- function(env,dim,pres) {
     if (!(dimLink1 %in% obs) && !hideBreadCrumb) {
 
         shiny::observeEvent(inp[[dimLink1]] , {
+            dd$prevLevel <- dd$level
             dd$level <- 1
             dd$parent <- dd$rootLabel
             dd$ancestors <- dd$ancestors[1:2]
@@ -416,6 +419,7 @@ startObserversPres <- function(env,dim,pres) {
     if (!(dimLink2 %in% obs) && !hideBreadCrumb && maxLevel >= 2) {
 
         shiny::observeEvent(inp[[dimLink2]] , {
+            dd$prevLevel <- dd$level
             dd$level <- 2
             dd$parent <- dd$ancestors[3]
             dd$ancestors <- dd$ancestors[1:3]
@@ -431,6 +435,7 @@ startObserversPres <- function(env,dim,pres) {
     if (!(dimLink3 %in% obs) && !hideBreadCrumb && maxLevel >= 3) {
 
         shiny::observeEvent(inp[[dimLink3]] , {
+            dd$prevLevel <- dd$level
             dd$level <- 3
             dd$parent <- dd$ancestors[4]
             dd$ancestors <- dd$ancestors[1:4]
@@ -446,6 +451,7 @@ startObserversPres <- function(env,dim,pres) {
     if (!(dimLink4 %in% obs) && !hideBreadCrumb && maxLevel >= 4) {
         
         shiny::observeEvent(inp[[dimLink4]] , {
+            dd$prevLevel <- dd$level
             dd$level <- 4
             dd$parent <- dd$ancestors[5]
             dd$ancestors <- dd$ancestors[1:5]

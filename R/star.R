@@ -296,6 +296,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
             parent = dd$rootLabel
             lvl = 1
 
+            dd$prevLevel <- dd$level
             dd$level <- lvl
             dd$parent <- parent
             dd$ancestors <- c('',parent)

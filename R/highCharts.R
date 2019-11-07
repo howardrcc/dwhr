@@ -933,6 +933,7 @@ renderHighchartDim <- function(env, dim, input,output) {
                     if (dd$level < dd$maxLevel) {
                         dd$parent <- dd$membersFiltered$member[e]
                         dd$ancestors <- c(dd$ancestors,dd$parent)
+                        dd$prevLevel <- dd$level
                         dd$level <- dd$level + 1
                         dd$reactive$levelChange <- dd$reactive$levelChange + 1
                         printDebug(env, dim, eventIn = 'highchartsClick', eventOut = 'levelChange', info = 'drill')
@@ -1114,6 +1115,7 @@ renderHighchartDim <- function(env, dim, input,output) {
                     if (dd$level < dd$maxLevel) {
                         dd$parent <- dd$membersFiltered$member[e]
                         dd$ancestors <- c(dd$ancestors,dd$parent)
+                        dd$prevLevel <- dd$level
                         dd$level <- dd$level + 1
                         dd$reactive$levelChange <- dd$reactive$levelChange + 1
                         printDebug(env, dim, eventIn = 'highchartsPbClick', eventOut = 'levelChange', info = 'drill')

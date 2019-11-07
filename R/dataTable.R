@@ -939,6 +939,7 @@ renderDataTableDim <- function(env,dim,input,output) {
                 } else {
                     dd$parent <- dd$membersFiltered$member[info$row]
                     dd$ancestors <- c(dd$ancestors,dd$parent)
+                    dd$prevLevel <- dd$level
                     dd$level <- dd$level + 1
                     dd$reactive$levelChange <- dd$reactive$levelChange + 1
                     printDebug(env = env, dim, eventIn = 'dataTableCellClicked', eventOut = 'levelChange')

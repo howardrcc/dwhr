@@ -556,6 +556,7 @@ addDimView <- function(
     l$parent <- initParent
     l$ancestors <- ancestors
     l$level <- initLevel
+    l$prevLevel <- initLevel
     l$maxLevel <- maxLevel
     l$levelNames <- levelNames
     l$rootLabel <- rootLabel
@@ -2110,6 +2111,7 @@ dimChangeState <- function(env, dim, newState) {
                 dd$selected <- dd$rootSelected
                 dimSetHasSubselect(env,dim)
                 dd$reactive$selectChange <- dd$reactive$selectChange + 1
+                dd$prevLevel <- dd$level
                 dd$level <- 0
                 dd$parent <- ''
                 dd$ancestors <- c('')
@@ -2373,6 +2375,7 @@ navigate <- function(env, dim, level, parent, gparent = NULL) {
             }
         }
         
+        dd$prevLevel <- dd$level
         dd$level <- level
         dd$parent <- parent
         dd$ancestors <- ancestors
