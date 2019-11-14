@@ -1366,7 +1366,7 @@ addRowGroupColumn <- function(env, dim, rowGroupColumn, levels = NULL) {
 #'@export
 #'
 addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault = FALSE, height = NULL, width = NULL,
-    useLevels = NULL, navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL, rangeOpts = NULL, checkUiId = TRUE, state = NULL) {
+    useLevels = NULL, navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL, rangeOpts = NULL, checkUiId = TRUE, state = NULL, selectMode = NULL, selectableLevels = NULL) {
 
     withCallingHandlers({
 
@@ -1463,7 +1463,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                     stop('Incorrect combination of measure opts')
                 }
                 
-                if ('format' %in% names(x) && !is_function(x$format)) {
+                if ('format' %in% names(x) && !is_function(x$format) && !(class(x$format) == 'call')) {
                     assert_is_a_string(x$format)
                     assert_is_subset(x$format,domains[['dataTableFormats']])
                 }
@@ -1497,7 +1497,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 }
                 
                 if ('visible' %in% names(x)) {
-                    if(!is_a_bool(x$visible) && !is_function(x$visible))
+                    if(!is_a_bool(x$visible) && !is_function(x$visible) && !(class(x$visible) == 'call'))
                         assert_is_a_bool(x$visible)
                     dataTableOpts$measures[[i]]$visible <- x$visible
                 } else {
@@ -1628,15 +1628,20 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                     call$selectedIds <- dd$selectedIds
                 }
             }
+        
+            if (!is.null(selectableLevels)) 
+                call$selectableLevels <- selectableLevels
             
             if (!is.null(state)) 
                 call$state <- state
             
             is.null(dd$syncNav) || dd$syncNav == navOpts$syncNav || dwhrStop('Incompatible syncNav')
             
-            if (!is.null(highChartsOpts) && dd$selectMode %in% c('multi')) {
+            if (!is.null(highChartsOpts) && isNull(selectMode,dd$selectMode) %in% c('multi')) {
                 warning('multi-select not implemented for highCharts: dimView set to single-select')
                 call$selectMode <- 'single' 
+            } else {
+                call$selectMode <- isNull(selectMode,dd$selectMode) 
             }
 
             if (!is.null(rangeOpts)) {

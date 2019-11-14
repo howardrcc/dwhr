@@ -968,3 +968,17 @@ sparkRelativeChange <- function(spark) {
         zz
     }))
 }
+
+expandList <- function(env,l){
+    lapply(l, function(x) {
+        if(class(x) == 'function')
+            do.call(x,list(env = env)) 
+        else 
+            if(class(x) == 'call')
+                eval(x,envir = env$ce)
+        else 
+            if(is.list(x)) 
+                expandList(env,x) 
+        else x
+    })
+}
