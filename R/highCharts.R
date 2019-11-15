@@ -409,7 +409,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
     goToPage <- dd$goToPage
     
     presCols <- intersect(presCols,meas$viewColumn)
-
+    clickable[!names(clickable) %in% presCols] <- FALSE
     
     tab <- data.frame(dd$membersFiltered)
     
@@ -698,8 +698,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
             }
             
             series[[length(series)+1]] <- seriesList
-            
-            
+
             if(length(plotBands) == 0 &&
                !(serieType %in% c('pie','treemap','gauge','solidgauge')) &&
                !(chartType == 'stock')) {

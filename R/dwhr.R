@@ -2116,11 +2116,11 @@ dimChangeState <- function(env, dim, newState) {
                 dd$selected <- dd$rootSelected
                 dimSetHasSubselect(env,dim)
                 dd$reactive$selectChange <- dd$reactive$selectChange + 1
-                dd$prevLevel <- dd$level
-                dd$level <- 0
-                dd$parent <- ''
-                dd$ancestors <- c('')
-                dd$reactive$levelChange <- dd$reactive$levelChange + 1
+                # dd$prevLevel <- dd$level
+                # dd$level <- 0
+                # dd$parent <- ''
+                # dd$ancestors <- c('')
+                # dd$reactive$levelChange <- dd$reactive$levelChange + 1
 
             }
         }
