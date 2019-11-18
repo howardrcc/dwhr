@@ -2,6 +2,10 @@ plotBandSingleSelectJS <- function(env,dim,label,color,serieType) {
     
     dd <- env$dims[[dim]]
     gdim <- dd$gdim
+    presList <- dd$presList
+    
+    pres <- dd$pres
+    hideBreadCrumb <- presList[[pres]]$navOpts$hideBreadCrumb
     
     selectable <- 'true'
     unSelectable <- 'true'
@@ -35,7 +39,7 @@ plotBandSingleSelectJS <- function(env,dim,label,color,serieType) {
         unSelectable <- 'false'
     }
 
-    if (dd$level == dd$maxLevel) {
+    if (dd$level == dd$maxLevel || hideBreadCrumb) {
         drillable <- 'false'
     }
 
@@ -54,6 +58,10 @@ pointSingleSelectJS <- function(env,dim,color,serieType) {
     
     dd <- env$dims[[dim]]
     gdim <- dd$gdim
+    presList <- dd$presList
+    
+    pres <- dd$pres
+    hideBreadCrumb <- presList[[pres]]$navOpts$hideBreadCrumb
     
     selectable <- 'true'
     unSelectable <- 'true'
@@ -87,7 +95,7 @@ pointSingleSelectJS <- function(env,dim,color,serieType) {
         unSelectable = 'false'
     }
 
-    if (dd$level == dd$maxLevel) {
+    if (dd$level == dd$maxLevel || hideBreadCrumb) {
         drillable <- 'false'
     }
     
@@ -177,41 +185,6 @@ getMemberValue <- function(env, dim, memberLevel, memberValue, viewColumn) {
     
     dd <- env$dims[[dim]]
     
-    pc <- dd$pc
-    memberParent <- pc$parentLabel[pc$level == memberLevel & pc$label == memberValue]
-    length(memberParent) > 0 || dwhrStop('member not found')
-
-    meas <- getMeasList(env,dim)
-    if (dd$level != memberLevel || dd$parent != memberParent) {
-        df <- getMembers(env = env, dim = dim,level = memberLevel, parent = memberParent)$body
-    } else {
-        df <- data.frame(dd$membersFiltered)
-    }
-
-    format <- meas$format[meas$viewColumn == viewColumn]
-    formatRef <- meas$formatRef[meas$viewColumn == viewColumn]
-
-    if(!is.na(formatRef)) {
-        format <- df[df$member == memberValue,c(formatRef)]
-    }
-
-    y <- df[df$member == memberValue,c(viewColumn)]
-
-    if (length(format) > 0 && format %in% c('perc','perc1','perc2')) {
-        y <- y * 100
-    }
-
-    return(list(value = y, format = format))
-
-}
-
-getAdhocSlice <- function(env, dim,level,parent,selected) {
-
-    dd <- env$dims[[dim]]
-    
-    is.null(selected) || length(setdiff(c('dim', 'level','parent','label'),names(selected))) == 0 || dwhrStop('Invalid selected parameter')
-    is.null(selected) || 'data.frame' %in% class(selected) || dwhrStop('Invalid selected parameter')
-
     pc <- dd$pc
     memberParent <- pc$parentLabel[pc$level == memberLevel & pc$label == memberValue]
     length(memberParent) > 0 || dwhrStop('member not found')
@@ -454,7 +427,11 @@ prepHc <- function(env, dim, pres, print = NULL) {
     sel <- NULL
 
     if (mode == 'single') {
-        sel <- selected$label[selected$level == level & selected$parent == parent]
+        if (isNull(dd$ignoreParent,FALSE)) {
+            sel <- selected$label[selected$level == level]
+        } else {
+            sel <- selected$label[selected$level == level & selected$parent == parent]
+        }
     }
 
     if (is.null(sel) || length(sel) == 0) {

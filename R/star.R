@@ -146,12 +146,13 @@ cacheFind <- function(env, dim) {
 #' 
 getSelectedIds <- function(env, dim, selected = NULL) {
 
-    data <- env$dims[[dim]]$data
+    dd <- env$dims[[dim]]
+    data <- dd$data
     keyColumn <- names(data)[1]
 
     is.null(selected) || length(setdiff(c('level','parent','label'),names(selected))) == 0 || dwhrStop('Invalid selected parameter')
 
-    s <- isNull(selected,env$dims[[dim]]$selected)
+    s <- isNull(selected,dd$selected)
     ids <- NULL
 
     if (any(s$level == 0)) {
@@ -160,11 +161,15 @@ getSelectedIds <- function(env, dim, selected = NULL) {
 
         for (lvl in 1:max(s$level)) {
 
-            colsX <- c(paste0('level',lvl - 1,'Label'),paste0('level',lvl,'Label'))
-            colsY <- c('parent','label')
+            if (isNull(dd$ignoreParent,FALSE)) {
+                colsX <- c(paste0('level',lvl,'Label'))
+                colsY <- c('label')
+            } else {
+                colsX <- c(paste0('level',lvl - 1,'Label'),paste0('level',lvl,'Label'))
+                colsY <- c('parent','label')
+            }
             
             ids <- union(ids,merge(data,s[s$level == lvl,],by.x = colsX, by.y = colsY)[[keyColumn]])
-
         }}
 
     sort(ids)
@@ -240,7 +245,8 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
     ignoreDims <- union(dimProxySelect(env),dd$ignoreDims)
 
     ml <- getMeasList(env,dim)
-
+    ignoreParent <- isNull(dd$ignoreParent,FALSE)
+    
     meas <- ml[ml$type == 'direct',]
     measCols <- meas$viewColumn[order(meas$sort)]
     sortColumn <- meas$viewColumn[grepl('*_sort',meas$viewColumn)]
@@ -269,10 +275,14 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
         
         cnt1 <- nrow(tmp)
         
-        if (is.null(gparent)) {
-            parentFilter <- paste0('level', lvl - 1, 'Label == parent')
+        if (ignoreParent) {
+            parentFilter <- '1 == 1'
         } else {
-            parentFilter <- paste0('level', lvl - 1, 'Label == parent & level', lvl - 2, 'Label == gparent')
+            if (is.null(gparent)) {
+                parentFilter <- paste0('level', lvl - 1, 'Label == parent')
+            } else {
+                parentFilter <- paste0('level', lvl - 1, 'Label == parent & level', lvl - 2, 'Label == gparent')
+            }
         }
         
         if (dd$fixedMembers) {
@@ -373,7 +383,11 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
             
         } else {
             
-            parentFilter <- paste0('level', lvl - 1, 'Label == parent')
+            if (ignoreParent) {
+                parentFilter <- '1 == 1'
+            } else {
+                parentFilter <- paste0('level', lvl - 1, 'Label == parent')
+            }
             byText <- paste0('level',lvl,'Label')
             
             body <- tmp[eval(expr = parse(text = parentFilter)),
@@ -393,30 +407,19 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
         names(body) <- c('member',measCols)
         body$member <- as.character(body$member)
 
-        lookup <- data.table(unique(dd$pc[dd$pc$level == lvl & dd$pc$parentLabel == parent & dd$pc$gparentLabel == isNull(gparent,''),][,c('label','code')]))
+        if (isNull(dd$ignoreParent,FALSE)) {
+            lookup <- data.table(unique(dd$pc[dd$pc$level == lvl,][,c('label','code')]))
+        } else {
+            lookup <- data.table(unique(dd$pc[dd$pc$level == lvl & dd$pc$parentLabel == parent & dd$pc$gparentLabel == isNull(gparent,''),][,c('label','code')]))
+        }
         names(lookup) <- c('member','memberKey')
     
         body <- as.data.frame(lookup[body,on = 'member'])
         body$memberKey[is.na(body$memberKey)] <- digest::digest(body$member[is.na(body$memberKey)])
         
-        #browser(expr = {dim == 'kpi'})
-        
         if(lvl %in% dd$footerLevels) {
             footer <- as.data.frame(footer)
         }
-        
-        # if (dim %in% selectableDims(env) && !(dd$type == 'output')) {
-        #     
-        #     diff <- setdiff(s$label[s$level == lvl &
-        #                                 s$parent == parent],body$member)
-        #     
-        #     if (length(diff) > 0) {
-        #         for (s in diff) {
-        #             body <- appendZeroRow(s,dim,body)
-        #         }
-        #     }
-        #     
-        # }
         
         if (nrow(body) == 0) {
             body <- appendZeroRow('Onbekend',dim,body)

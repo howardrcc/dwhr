@@ -215,7 +215,11 @@ getSelectedItems <- function(env,dim){
     
     s <- dd$selected
 
-    s <- s[(s$level == level & s$parent == parent),]
+    if (isNull(dd$ignoreParent,FALSE)) {
+        s <- s[(s$level == level),]
+    } else {
+        s <- s[(s$level == level & s$parent == parent),]
+    }
 
     m <- NA
 
@@ -430,6 +434,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     print <- isNull(print,isNull(dd$print,FALSE))
     presList <- dd$presList
     opts <- presList[[pres]]$dataTableOpts
+    hideBreadCrumb <- presList[[pres]]$navOpts$hideBreadCrumb
 
     measures <- rlist::list.stack(isNull(expandList(env,opts$measures),list(viewColumn = 'cnt')),fill = TRUE)
 
@@ -532,7 +537,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     # fix zoom
     #
 
-    if(lvl == length(dd$levelNames) - 1) {
+    if(lvl == length(dd$levelNames) - 1 || hideBreadCrumb) {
         tab$zoom = ''
     }
 

@@ -185,7 +185,7 @@ startObserversData <- function(env,dim) {
                 } else {
                     dd$reactive$isFiltered <- TRUE
                 }
-
+                
                 ids <- getSelectedIds(env,dim)
 
                 if (!(identical(ids,dd$selectedIds))) {

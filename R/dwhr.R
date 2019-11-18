@@ -268,7 +268,6 @@ addDimView <- function(
             code <- paste0('level',x,'Code')
             label %in% names(data) || stop(paste0('level',x,'Label missing in data'))
             if (!code %in% names(data)) {
-                #data[[code]] <<- apply(data[,c(label),drop = FALSE],1,digest::digest)
                 data[[code]] <<- data[[label]]
             }
 
@@ -278,6 +277,7 @@ addDimView <- function(
         # filter dimension data 
         
         keyColumn <- names(data)[1]
+        data <- data[,c(keyColumn, setdiff(sort(names(data)),keyColumn))]
 
         if(!fixedMembers) {
             keyColumn %in% names(env$facts) || stop(paste0('keyColumn ', dim, ' is not a foreign key in fact-table'))
@@ -404,11 +404,11 @@ addDimView <- function(
             levelNames <- levelNames[c(useLevels + 1)]
 
             if (initLevel %in% old) {
-                initLevel <- nw[which(initLevel %in% old)]
+                initLevel <- nw[which(old %in% initLevel)]
             }
 
             if (selectLevel %in% old) {
-                selectLevel <- nw[which(selectLevel %in% old)]
+                selectLevel <- nw[which(old %in% selectLevel)]
             }
 
             maxLevel <- length(levelNames) - 1
@@ -1962,7 +1962,7 @@ setSelection2 <- function(env,dim,dimOrg,source = 'setSelection',dimRefresh = TR
     selIds <- ddOrg$selectedIds
     
     dd <- env$dims[[dim]]
-    
+
     if (!identical(dd$selectedIds, selIds)) {
         
         dd$debounce <- FALSE
