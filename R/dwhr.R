@@ -1415,6 +1415,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
         navOpts$hideBreadCrumb <- isNull(navOpts$hideBreadCrumb,FALSE)
         navOpts$links <- isNull(navOpts$links,list())
         navOpts$minBreadCrumbLevel <- isNull(navOpts$minBreadCrumbLevel,0)
+        navOpts$noDrill <- isNull(navOpts$noDrill,FALSE)
 
         assert_is_a_bool(navOpts$syncNav)
         assert_is_a_bool(navOpts$hideNoFilter)
@@ -1422,6 +1423,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
         assert_is_a_bool(navOpts$hideBreadCrumb)
         assert_is_list(navOpts$links)
         assert_is_a_number(navOpts$minBreadCrumbLevel)
+        assert_is_a_bool(navOpts$noDrill)
 
         if (!navOpts$syncNav && dim == uiId) {
             navOpts$syncNav <- TRUE
@@ -2111,19 +2113,19 @@ dimChangeState <- function(env, dim, newState) {
             printDebug(env = env, dim, eventIn = 'dimChangeState', eventOut = 'visChange', info = paste0('visible: ', newVis))
         }
 
-        if (oldFilt != newFilt) {
-            if (any(dd$selected$level > 0)) {
-                dd$selected <- dd$rootSelected
-                dimSetHasSubselect(env,dim)
-                dd$reactive$selectChange <- dd$reactive$selectChange + 1
-                # dd$prevLevel <- dd$level
-                # dd$level <- 0
-                # dd$parent <- ''
-                # dd$ancestors <- c('')
-                # dd$reactive$levelChange <- dd$reactive$levelChange + 1
-
-            }
-        }
+        # if (oldFilt != newFilt) {
+        #     if (any(dd$selected$level > 0)) {
+        #         dd$selected <- dd$rootSelected
+        #         dimSetHasSubselect(env,dim)
+        #         dd$reactive$selectChange <- dd$reactive$selectChange + 1
+        #         # dd$prevLevel <- dd$level
+        #         # dd$level <- 0
+        #         # dd$parent <- ''
+        #         # dd$ancestors <- c('')
+        #         # dd$reactive$levelChange <- dd$reactive$levelChange + 1
+        # 
+        #     }
+        # }
 
     }
     env

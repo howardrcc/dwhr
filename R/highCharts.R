@@ -5,7 +5,7 @@ plotBandSingleSelectJS <- function(env,dim,label,color,serieType) {
     presList <- dd$presList
     
     pres <- dd$pres
-    hideBreadCrumb <- presList[[pres]]$navOpts$hideBreadCrumb
+    noDrill <- presList[[pres]]$navOpts$noDrill
     
     selectable <- 'true'
     unSelectable <- 'true'
@@ -39,7 +39,7 @@ plotBandSingleSelectJS <- function(env,dim,label,color,serieType) {
         unSelectable <- 'false'
     }
 
-    if (dd$level == dd$maxLevel || hideBreadCrumb) {
+    if (dd$level == dd$maxLevel || noDrill) {
         drillable <- 'false'
     }
 
@@ -61,7 +61,7 @@ pointSingleSelectJS <- function(env,dim,color,serieType) {
     presList <- dd$presList
     
     pres <- dd$pres
-    hideBreadCrumb <- presList[[pres]]$navOpts$hideBreadCrumb
+    noDrill <- presList[[pres]]$navOpts$noDrill
     
     selectable <- 'true'
     unSelectable <- 'true'
@@ -95,7 +95,7 @@ pointSingleSelectJS <- function(env,dim,color,serieType) {
         unSelectable = 'false'
     }
 
-    if (dd$level == dd$maxLevel || hideBreadCrumb) {
+    if (dd$level == dd$maxLevel || noDrill) {
         drillable <- 'false'
     }
     

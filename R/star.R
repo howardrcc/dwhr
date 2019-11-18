@@ -63,7 +63,7 @@ domains <- list(
     fontWeight = c('bold','normal'),
     highChartsOpts = c('type', 'rangeSelector','chart','tooltip','xAxis', 'yAxis', 'legend', 'series', 'plotOptions', 'title','dashboard','pane','navigator','exporting'),
     simpleOpts = c('inline'),
-    navOpts = c('syncNav', 'hideNoFilter', 'hideAll', 'hideBreadCrumb', 'links','selLinks','minBreadCrumbLevel'),
+    navOpts = c('syncNav', 'hideNoFilter', 'hideAll', 'hideBreadCrumb', 'links','selLinks','minBreadCrumbLevel','noDrill'),
     navOptsLinkTypes = c('actionLink','downloadLink','downloadButton','dropDown','dim','uiOutput'),
     orderBy = c('key','name'),
     cssOverflow = c('hidden','visible','scroll','auto'),

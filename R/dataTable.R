@@ -434,7 +434,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     print <- isNull(print,isNull(dd$print,FALSE))
     presList <- dd$presList
     opts <- presList[[pres]]$dataTableOpts
-    hideBreadCrumb <- presList[[pres]]$navOpts$hideBreadCrumb
+    noDrill <- presList[[pres]]$navOpts$noDrill
 
     measures <- rlist::list.stack(isNull(expandList(env,opts$measures),list(viewColumn = 'cnt')),fill = TRUE)
 
@@ -537,7 +537,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     # fix zoom
     #
 
-    if(lvl == length(dd$levelNames) - 1 || hideBreadCrumb) {
+    if(lvl == length(dd$levelNames) - 1 || noDrill) {
         tab$zoom = ''
     }
 
