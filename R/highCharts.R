@@ -187,7 +187,7 @@ getMemberValue <- function(env, dim, memberLevel, memberValue, viewColumn) {
     
     pc <- dd$pc
     memberParent <- pc$parentLabel[pc$level == memberLevel & pc$label == memberValue]
-    length(memberParent) > 0 || dwhrStop('member not found')
+    length(memberParent) > 0 || stop('member not found')
 
     meas <- getMeasList(env,dim)
     if (dd$level != memberLevel || dd$parent != memberParent) {
@@ -524,7 +524,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
                 
                 if (!is.null(memberValue)) {
                     memberLevel <- isNull(seriesOpts[[serieNum]]$memberLevel,dd$maxLevel)
-                    memberLevel %in% dd$useLevels || dwhrStop('Invalid memberLevel')
+                    memberLevel %in% dd$useLevels || stop('Invalid memberLevel')
                 } else {
                     sel <- dd$selected
                     memberLevel <- sel$level

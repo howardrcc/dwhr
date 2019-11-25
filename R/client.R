@@ -46,27 +46,21 @@ dwhrInit <- function() {
 #' @export
 getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflowX = 'hidden', accordion = FALSE, checkDups = TRUE, resize = FALSE, resizeOptions = list(), bodyStyle = NULL ) {
     
-    withCallingHandlers({
-        assert_is_a_string(starId)
-        assert_is_a_string(dim)
-        assert_is_a_bool(skipTopRow)
-        assert_is_a_number(isNull(maxHeight,0))
-        maxHeight <- as.integer(maxHeight)
-        assert_is_a_string(overflowX)
-        assert_is_subset(overflowX,domains[['cssOverflow']])
-        assert_is_a_bool(accordion)
-        assert_is_a_bool(checkDups)
-        assert_is_a_bool(resize)
-        assert_is_list(resizeOptions)
-        assert_is_a_string(isNull(bodyStyle,''))
-        
-        gdim <- getGlobalId(starId,dim)
-        gdim %in% glob.env$dimUiIds && checkDups && stop('duplicate dims')    
-    },
+    assert_is_a_string(starId)
+    assert_is_a_string(dim)
+    assert_is_a_bool(skipTopRow)
+    assert_is_a_number(isNull(maxHeight,0))
+    maxHeight <- as.integer(maxHeight)
+    assert_is_a_string(overflowX)
+    assert_is_subset(overflowX,domains[['cssOverflow']])
+    assert_is_a_bool(accordion)
+    assert_is_a_bool(checkDups)
+    assert_is_a_bool(resize)
+    assert_is_list(resizeOptions)
+    assert_is_a_string(isNull(bodyStyle,''))
     
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+    gdim <- getGlobalId(starId,dim)
+    gdim %in% glob.env$dimUiIds && checkDups && stop('duplicate dims')    
     
     glob.env$dimUiIds <- c(glob.env$dimUiIds,gdim)
     
@@ -164,7 +158,7 @@ initGlob <- function() {
         glob.env$globalCache <- list()
         glob.env$reservedColumnPatterns <- c('*_fc','*_org','*_tooltip','*_text','*_sort')
         
-        glob.env$securityModel %in% c('none','proxy') || dwhrStop('Invalid securityModel')
+        glob.env$securityModel %in% c('none','proxy') || stop('Invalid securityModel')
         
         # account data
         
@@ -174,7 +168,7 @@ initGlob <- function() {
             
             if (is.na(file.info(credFile)$mtime)) {
                 
-                dwhrStop(paste0('credentials file: ', credFile, ' not found'))
+                stop(paste0('credentials file: ', credFile, ' not found'))
             }
             
             dbCred <- readRDS(credFile)
@@ -241,17 +235,12 @@ initGlob <- function() {
 #' @export
 getDbHandle <- function(omg) {
     
-    withCallingHandlers({
-        assert_is_a_string(omg)
-    },
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+    assert_is_a_string(omg)
     
     if (is.null(glob.env$dbCred))
         return()
     
-    omg %in% names(glob.env$dbCred) || dwhrStop(paste0('No credentials for omg:', omg))
+    omg %in% names(glob.env$dbCred) || stop(paste0('No credentials for omg:', omg))
     
     if (is.null(glob.env$dbCred[[omg]]$handle)) {
         

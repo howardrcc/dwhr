@@ -97,6 +97,8 @@ outer join tussen dimensie en feiten-tabel.}
  \item dropdown: lijst wordt getoond via een dropdown box
  \item links: lijst wordt getoond via meerdere links 
 }}
+
+\item{ignoreParent}{boolean, als TRUE: members worden niet gefilterd naargelang het bovenliggende parent-level maar worden onafhankelijk van elkaar getoond.}
 }
 \value{
 gewijzigd sterschema-object.

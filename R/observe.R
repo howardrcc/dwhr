@@ -284,7 +284,7 @@ startObserversData <- function(env,dim) {
                     }
                 } else {
 
-                    dwhrStop('Lege dataset')
+                    stop('Lege dataset')
 
                 }
 

@@ -18,31 +18,24 @@
 #' @export
 new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = TRUE) {
 
-    withCallingHandlers({
-        assert_is_a_string(starId)
-        assert_is_data.frame(facts)
-        assert_is_a_bool(caching)
-        assert_is_a_bool(foreignKeyCheck)
-
-        'ShinySession' %in% class(session) || stop('session is not of class shinySession')
-
-        ses <- session$userData
-
-        if (!exists('authenticated', envir = ses) || !ses$authenticated) {
-            stop('Not authenticated')
-        }
-
-        if (!exists('starList',envir = ses)) {
-            ses$starList <- list()
-        } else {
-            starId %in% ses$starList && stop(paste0('star-object with id: ', starId, 'already exists'))
-        }
-
-    },
-
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+    assert_is_a_string(starId)
+    assert_is_data.frame(facts)
+    assert_is_a_bool(caching)
+    assert_is_a_bool(foreignKeyCheck)
+    
+    'ShinySession' %in% class(session) || stop('session is not of class shinySession')
+    
+    ses <- session$userData
+    
+    if (!exists('authenticated', envir = ses) || !ses$authenticated) {
+        stop('Not authenticated')
+    }
+    
+    if (!exists('starList',envir = ses)) {
+        ses$starList <- list()
+    } else {
+        starId %in% ses$starList && stop(paste0('star-object with id: ', starId, 'already exists'))
+    }
 
     ses$starList <- c(ses$starList,starId)
 
@@ -193,6 +186,7 @@ new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = 
 #'  \item dropdown: lijst wordt getoond via een dropdown box
 #'  \item links: lijst wordt getoond via meerdere links 
 #'}
+#'@param ignoreParent boolean, als TRUE: members worden niet gefilterd naargelang het bovenliggende parent-level maar worden onafhankelijk van elkaar getoond.
 #'
 #'@return gewijzigd sterschema-object.
 #'
@@ -204,319 +198,313 @@ addDimView <- function(
     na.rm = TRUE, orderBy = 'name', selectableLevels = NULL, footerLevels = NA_integer_ , presListType = 'dropdown',
     returnPrepData = FALSE, selectedIds = NULL, ignoreParent = FALSE) {
 
-    withCallingHandlers({
-        class(env) == 'star' || stop('env is not of class star')
-
-        assert_is_a_string(dim)
-        assert_is_a_string(name)
-        assert_is_data.frame(data)
-        data <- as.data.frame(data)
-        assert_is_character(levelNames)
-        assert_is_a_number(initLevel)
-        initLevel <- as.integer(initLevel)
-        assert_is_a_string(initParent)
-        assert_is_a_number(selectLevel)
-        selectLevel <- as.integer(selectLevel)
-        assert_is_character(selectLabel)
-        assert_is_a_string(isNull(selectParent,''))
-        assert_is_a_string(state)
-        state %in% c('enabled','disabled','hidden') || stop('invalid state parameter')
-        assert_is_a_string(type)
-        type %in% c('bidir','input','output') || stop('invalid type parameter')
-        assert_is_a_string(selectMode)
-        selectMode %in% c('none','single','multi') || stop('invalid selectMode parameter')
-        assert_is_numeric(isNull(useLevels,0))
-        useLevels <- as.integer(useLevels)
-        assert_is_numeric(isNull(selectableLevels,0))
-        selectableLevels <- as.integer(selectableLevels)
-        assert_is_numeric(isNull(footerLevels,0))
-        assert_is_a_string(cntName)
-        assert_is_a_string(itemName)
-        assert_is_character(isNull(ignoreDims,''))
-        assert_is_a_bool(leafOnly)
-        assert_is_a_bool(fixedMembers)
-        assert_is_a_bool(keepUnused)
-        assert_is_a_bool(na.rm)
-        assert_is_a_string(orderBy)
-        assert_is_subset(orderBy,domains[['orderBy']])
-        assert_is_a_string(presListType)
-        assert_is_subset(presListType,domains[['presListType']])
-        assert_is_subset(isNull(selectedIds,data[1,1]),data[[1]])
-        assert_is_a_bool(ignoreParent)
+    class(env) == 'star' || stop('env is not of class star')
+    
+    assert_is_a_string(dim)
+    assert_is_a_string(name)
+    assert_is_data.frame(data)
+    data <- as.data.frame(data)
+    assert_is_character(levelNames)
+    assert_is_a_number(initLevel)
+    initLevel <- as.integer(initLevel)
+    assert_is_a_string(initParent)
+    assert_is_a_number(selectLevel)
+    selectLevel <- as.integer(selectLevel)
+    assert_is_character(selectLabel)
+    assert_is_a_string(isNull(selectParent,''))
+    assert_is_a_string(state)
+    state %in% c('enabled','disabled','hidden') || stop('invalid state parameter')
+    assert_is_a_string(type)
+    type %in% c('bidir','input','output') || stop('invalid type parameter')
+    assert_is_a_string(selectMode)
+    selectMode %in% c('none','single','multi') || stop('invalid selectMode parameter')
+    assert_is_numeric(isNull(useLevels,0))
+    useLevels <- as.integer(useLevels)
+    assert_is_numeric(isNull(selectableLevels,0))
+    selectableLevels <- as.integer(selectableLevels)
+    assert_is_numeric(isNull(footerLevels,0))
+    assert_is_a_string(cntName)
+    assert_is_a_string(itemName)
+    assert_is_character(isNull(ignoreDims,''))
+    assert_is_a_bool(leafOnly)
+    assert_is_a_bool(fixedMembers)
+    assert_is_a_bool(keepUnused)
+    assert_is_a_bool(na.rm)
+    assert_is_a_string(orderBy)
+    assert_is_subset(orderBy,domains[['orderBy']])
+    assert_is_a_string(presListType)
+    assert_is_subset(presListType,domains[['presListType']])
+    assert_is_subset(isNull(selectedIds,data[1,1]),data[[1]])
+    assert_is_a_bool(ignoreParent)
+    
+    if (!is.null(selectedIds) || selectMode == 'none') {
+        selectLevel <- 0
+        selectLabel <- levelNames[1]
+        selectParent <- NULL
+    }
+    
+    maxLevel <- length(levelNames) - 1
+    rootLabel <- levelNames[1]
+    
+    # correct type
+    
+    if (type %in% c('bidir','input') && selectMode == 'none' ) {
+        type = 'output'
+    }
+    
+    # add level0Label
+    data$level0Label <- rootLabel
+    
+    # check column names
+    
+    lapply(c(1:maxLevel),function(x) {
+        label <- paste0('level',x,'Label')
+        code <- paste0('level',x,'Code')
+        label %in% names(data) || stop(paste0('level',x,'Label missing in data'))
+        if (!code %in% names(data)) {
+            data[[code]] <<- data[[label]]
+        }
         
-        if (!is.null(selectedIds) || selectMode == 'none') {
-            selectLevel <- 0
-            selectLabel <- levelNames[1]
-            selectParent <- NULL
+        length(unique(data[[code]])) >= length(unique(data[[label]])) || stop(paste0('level',x,'Code is no key for level',x,'Label'))
+    })
+    
+    # filter dimension data 
+    
+    keyColumn <- names(data)[1]
+    data <- data[,c(keyColumn, setdiff(sort(names(data)),keyColumn))]
+    
+    if(!fixedMembers) {
+        keyColumn %in% names(env$facts) || stop(paste0('keyColumn ', dim, ' is not a foreign key in fact-table'))
+        if (!keepUnused) {
+            data <- data[data[[keyColumn]] %in% unique(env$facts[[keyColumn]]),]
+            nrow(data) > 0 || stop('dimension and facts are completely disjoint')
         }
-
-        maxLevel <- length(levelNames) - 1
-        rootLabel <- levelNames[1]
-
-        # correct type
-
-        if (type %in% c('bidir','input') && selectMode == 'none' ) {
-            type = 'output'
+    }
+    
+    # foreignkey check
+    if (env$foreignKeyCheck) {
+        missing <- setdiff(unique(env$facts[[keyColumn]]),data[[keyColumn]])
+        if (length(missing) > 0) {
+            stop(c(paste0(dim, ': Foreign key error. first 10:'), paste0('    ',head(missing,10))))
         }
-
-        # add level0Label
-        data$level0Label <- rootLabel
-
-        # check column names
-
-        lapply(c(1:maxLevel),function(x) {
-            label <- paste0('level',x,'Label')
-            code <- paste0('level',x,'Code')
-            label %in% names(data) || stop(paste0('level',x,'Label missing in data'))
-            if (!code %in% names(data)) {
-                data[[code]] <<- data[[label]]
-            }
-
-            length(unique(data[[code]])) >= length(unique(data[[label]])) || stop(paste0('level',x,'Code is no key for level',x,'Label'))
-        })
-
-        # filter dimension data 
+    } else {
+        nr1 <- nrow(env$facts)
+        env$facts <- env$facts[env$facts[[keyColumn]] %in% data[[keyColumn]],] 
+        nr2 <- nrow(env$facts)
+        if (nr2 < nr1) {
+            warning(paste0(dim,': removing ',nr1 - nr2, ' records from facts'))
+        }
+    }
+    
+    # setting/checking selectLevel selectLabel, selectMode, initLevel and useLevels
+    
+    if (leafOnly) {
         
-        keyColumn <- names(data)[1]
-        data <- data[,c(keyColumn, setdiff(sort(names(data)),keyColumn))]
-
-        if(!fixedMembers) {
-            keyColumn %in% names(env$facts) || stop(paste0('keyColumn ', dim, ' is not a foreign key in fact-table'))
-            if (!keepUnused) {
-                data <- data[data[[keyColumn]] %in% unique(env$facts[[keyColumn]]),]
-                nrow(data) > 0 || stop('dimension and facts are completely disjoint')
-            }
+        selectLevel <- maxLevel
+        selectableLevels <- maxLevel
+        footerLevels <- c()
+        
+        if (!selectMode == 'single') {
+            warning(paste0(dim,': Invalid selectMode for leafOnly dim, selectMode set to single'))
+            selectMode = 'single'
         }
-
-        # foreignkey check
-        if (env$foreignKeyCheck) {
-            missing <- setdiff(unique(env$facts[[keyColumn]]),data[[keyColumn]])
-            if (length(missing) > 0) {
-                stop(c(paste0(dim, ': Foreign key error. first 10:'), paste0('    ',head(missing,10))))
-            }
-        } else {
-            nr1 <- nrow(env$facts)
-            env$facts <- env$facts[env$facts[[keyColumn]] %in% data[[keyColumn]],] 
-            nr2 <- nrow(env$facts)
-            if (nr2 < nr1) {
-                warning(paste0(dim,': removing ',nr1 - nr2, ' records from facts'))
-            }
-        }
-
-        # setting/checking selectLevel selectLabel, selectMode, initLevel and useLevels
-
+        
+    } 
+    
+    if(length(useLevels) > 0) {
         if (leafOnly) {
-            
-            selectLevel <- maxLevel
-            selectableLevels <- maxLevel
-            footerLevels <- c()
-            
-            if (!selectMode == 'single') {
-                warning(paste0(dim,': Invalid selectMode for leafOnly dim, selectMode set to single'))
-                selectMode = 'single'
-            }
-
-        } 
-
-        if(length(useLevels) > 0) {
-            if (leafOnly) {
-                if (!maxLevel %in% useLevels) {
-                    warning(paste0(dim,': for leafOnly useLevels must contain maxLevel, useLevels set to c(0..maxLevel).'))
-                    useLevels <- c(0:maxLevel)
-                }
-            }
-            useLevels <- unique(c(0,useLevels))
-            if (!all(useLevels %in% c(0:maxLevel))) {
-                warning(paste0(dim,': useLevels out of range, useLevels set to c(0..maxLevel)'))
+            if (!maxLevel %in% useLevels) {
+                warning(paste0(dim,': for leafOnly useLevels must contain maxLevel, useLevels set to c(0..maxLevel).'))
                 useLevels <- c(0:maxLevel)
             }
-        } else {
+        }
+        useLevels <- unique(c(0,useLevels))
+        if (!all(useLevels %in% c(0:maxLevel))) {
+            warning(paste0(dim,': useLevels out of range, useLevels set to c(0..maxLevel)'))
             useLevels <- c(0:maxLevel)
         }
-        
-        if(length(selectableLevels) > 0) {
-            if (!all(selectableLevels %in% useLevels)) {
-                warning(paste0(dim,': selectableLevels out of range, selectableLevels set to useLevels'))
-                selectableLevels <- useLevels
-            }
-        } else {
+    } else {
+        useLevels <- c(0:maxLevel)
+    }
+    
+    if(length(selectableLevels) > 0) {
+        if (!all(selectableLevels %in% useLevels)) {
+            warning(paste0(dim,': selectableLevels out of range, selectableLevels set to useLevels'))
             selectableLevels <- useLevels
         }
-        
-        if (!is.null(footerLevels)) {
-            if(!any(is.na(footerLevels))) {
-                if (!all(footerLevels %in% useLevels)) {
-                    warning(paste0(dim,': footerLevels out of range, footerLevels set to useLevels'))
-                    footerLevels <- useLevels
-                }
-            } else {
+    } else {
+        selectableLevels <- useLevels
+    }
+    
+    if (!is.null(footerLevels)) {
+        if(!any(is.na(footerLevels))) {
+            if (!all(footerLevels %in% useLevels)) {
+                warning(paste0(dim,': footerLevels out of range, footerLevels set to useLevels'))
                 footerLevels <- useLevels
             }
-        }
-        
-        if (!initLevel %in% useLevels) {
-            warning(paste0(dim,': initLevel out of range. initLevel set to 0'))
-            initLevel <- 0
-        }
-        
-        if (!selectLevel %in% selectableLevels) {
-            warning(paste0(dim,': selectLevel out of range. selectLevel set to selectableLevels[1]'))
-            selectLevel <- selectableLevels[1]
-        }
-
-        if (!selectLevel %in% useLevels) {
-            warning(paste0(dim,': selectLevel out of range. selectLevel set to 0'))
-            selectLevel <- 0
-        }
-        
-        if (!any(selectLabel %in% data[[paste0('level',selectLevel,'Label')]])) {
-            warning(paste0(dim,': selectLabel not in data, label set to first label in selectLevel'))
-            selectLabel <- data[[paste0('level',selectLevel,'Label')]][1]
-        }
-
-        # map columns based on useLevels
-        
-        org <- list(
-            data = data,
-            levelNames = levelNames,
-            maxLevel = maxLevel,
-            initLevel = initLevel,
-            selectLevel = selectLevel)
-
-        if (length(setdiff(c(0:maxLevel),useLevels)) != 0)  {
-
-            nw <- c()
-            old <- c()
-            a <- 1
-
-            for (i in c(1:maxLevel)) {
-                if (!(i %in% useLevels)) {
-                    data[[paste0('level',i,'Label')]] <- NULL
-                    data[[paste0('level',i,'Code')]] <- NULL
-                } else {
-                    old <- c(old,i)
-                    nw <- c(nw,a)
-                    a <- a + 1
-                }
-            }
-
-            names(data)[names(data) %in% paste0('level',old,'Label')] <- paste0('level',nw,'Label')
-            names(data)[names(data) %in% paste0('level',old,'Code')] <- paste0('level',nw,'Code')
-            levelNames <- levelNames[c(useLevels + 1)]
-
-            if (initLevel %in% old) {
-                initLevel <- nw[which(old %in% initLevel)]
-            }
-
-            if (selectLevel %in% old) {
-                selectLevel <- nw[which(old %in% selectLevel)]
-            }
-
-            maxLevel <- length(levelNames) - 1
-
-            levelMap <- data.frame(
-                from = c(0,old),
-                to = c(0,nw)
-            )
-
         } else {
-            levelMap <- data.frame(
-                from = 0:maxLevel,
-                to = 0:maxLevel
-            )
+            footerLevels <- useLevels
         }
-
-        # parent-child relatie opbouwen
-
-        pc <- data.frame(
-            level = 0,
+    }
+    
+    if (!initLevel %in% useLevels) {
+        warning(paste0(dim,': initLevel out of range. initLevel set to 0'))
+        initLevel <- 0
+    }
+    
+    if (!selectLevel %in% selectableLevels) {
+        warning(paste0(dim,': selectLevel out of range. selectLevel set to selectableLevels[1]'))
+        selectLevel <- selectableLevels[1]
+    }
+    
+    if (!selectLevel %in% useLevels) {
+        warning(paste0(dim,': selectLevel out of range. selectLevel set to 0'))
+        selectLevel <- 0
+    }
+    
+    if (!any(selectLabel %in% data[[paste0('level',selectLevel,'Label')]])) {
+        warning(paste0(dim,': selectLabel not in data, label set to first label in selectLevel'))
+        selectLabel <- data[[paste0('level',selectLevel,'Label')]][1]
+    }
+    
+    # map columns based on useLevels
+    
+    org <- list(
+        data = data,
+        levelNames = levelNames,
+        maxLevel = maxLevel,
+        initLevel = initLevel,
+        selectLevel = selectLevel)
+    
+    if (length(setdiff(c(0:maxLevel),useLevels)) != 0)  {
+        
+        nw <- c()
+        old <- c()
+        a <- 1
+        
+        for (i in c(1:maxLevel)) {
+            if (!(i %in% useLevels)) {
+                data[[paste0('level',i,'Label')]] <- NULL
+                data[[paste0('level',i,'Code')]] <- NULL
+            } else {
+                old <- c(old,i)
+                nw <- c(nw,a)
+                a <- a + 1
+            }
+        }
+        
+        names(data)[names(data) %in% paste0('level',old,'Label')] <- paste0('level',nw,'Label')
+        names(data)[names(data) %in% paste0('level',old,'Code')] <- paste0('level',nw,'Code')
+        levelNames <- levelNames[c(useLevels + 1)]
+        
+        if (initLevel %in% old) {
+            initLevel <- nw[which(old %in% initLevel)]
+        }
+        
+        if (selectLevel %in% old) {
+            selectLevel <- nw[which(old %in% selectLevel)]
+        }
+        
+        maxLevel <- length(levelNames) - 1
+        
+        levelMap <- data.frame(
+            from = c(0,old),
+            to = c(0,nw)
+        )
+        
+    } else {
+        levelMap <- data.frame(
+            from = 0:maxLevel,
+            to = 0:maxLevel
+        )
+    }
+    
+    # parent-child relatie opbouwen
+    
+    pc <- data.frame(
+        level = 0,
+        gparentLabel = '',
+        gparentCode = '',
+        parentLabel = '',
+        parentCode = '',
+        label = rootLabel,
+        code = 'root',
+        stringsAsFactors = FALSE)
+    
+    pc <- rbind(
+        pc,
+        data.frame(
+            level = 1,
             gparentLabel = '',
             gparentCode = '',
-            parentLabel = '',
-            parentCode = '',
-            label = rootLabel,
-            code = 'root',
-            stringsAsFactors = FALSE)
-
-        pc <- rbind(
-            pc,
-            data.frame(
-                level = 1,
-                gparentLabel = '',
-                gparentCode = '',
-                parentLabel = rootLabel,
-                parentCode = 'root',
-                label = unique(data$level1Label),
-                code = unique(data$level1Code),
-                stringsAsFactors = FALSE))
-
-        if (maxLevel >= 2) {
-            for (lvl in 2:maxLevel) {
-                c1 <- paste0('level',lvl - 2,'Label')
-                c2 <- paste0('level',lvl - 2,'Code')
-                c3 <- paste0('level',lvl - 1,'Label')
-                c4 <- paste0('level',lvl - 1,'Code')
-                c5 <- paste0('level',lvl,'Label')
-                c6 <- paste0('level',lvl,'Code')
-                
-                if (lvl == 2) {
-                    l2 <- unique(data[c(c3,c4,c5,c6)])
-                    l2$gparent <- rootLabel
-                    l2$gparentCode <- 'root'
-                    l2$level <- lvl
-                    names(l2) = c('parentLabel','parentCode','label','code','gparentLabel','gparentCode','level')
-                } else {
-                    l2 <- unique(data[c(c1,c2,c3,c4,c5,c6)])
-                    l2$level <- lvl
-                    names(l2) = c('gparentLabel','gparentCode','parentLabel','parentCode','label','code','level')
-                }
-
-                pc <- rbind(pc,l2)
+            parentLabel = rootLabel,
+            parentCode = 'root',
+            label = unique(data$level1Label),
+            code = unique(data$level1Code),
+            stringsAsFactors = FALSE))
+    
+    if (maxLevel >= 2) {
+        for (lvl in 2:maxLevel) {
+            c1 <- paste0('level',lvl - 2,'Label')
+            c2 <- paste0('level',lvl - 2,'Code')
+            c3 <- paste0('level',lvl - 1,'Label')
+            c4 <- paste0('level',lvl - 1,'Code')
+            c5 <- paste0('level',lvl,'Label')
+            c6 <- paste0('level',lvl,'Code')
+            
+            if (lvl == 2) {
+                l2 <- unique(data[c(c3,c4,c5,c6)])
+                l2$gparent <- rootLabel
+                l2$gparentCode <- 'root'
+                l2$level <- lvl
+                names(l2) = c('parentLabel','parentCode','label','code','gparentLabel','gparentCode','level')
+            } else {
+                l2 <- unique(data[c(c1,c2,c3,c4,c5,c6)])
+                l2$level <- lvl
+                names(l2) = c('gparentLabel','gparentCode','parentLabel','parentCode','label','code','level')
             }
+            
+            pc <- rbind(pc,l2)
         }
-
-        selectCode <- pc$code[pc$label %in% selectLabel & pc$level == selectLevel]
-
-        if (initParent == '' || initLevel <= 1) {
-            initParent <- pc$parentLabel[pc$level == initLevel ][1]
-        } else {
-            if (!(initParent %in% pc$parentLabel[pc$level == initLevel])) {
-                warning(paste0('initParent: ', initParent, ' not found for initLevel: ',initLevel,'. initParent set to first parent.'))
-                initParent <- pc$parentLabel[pc$level == initLevel][1]
-            }
+    }
+    
+    selectCode <- pc$code[pc$label %in% selectLabel & pc$level == selectLevel]
+    
+    if (initParent == '' || initLevel <= 1) {
+        initParent <- pc$parentLabel[pc$level == initLevel ][1]
+    } else {
+        if (!(initParent %in% pc$parentLabel[pc$level == initLevel])) {
+            warning(paste0('initParent: ', initParent, ' not found for initLevel: ',initLevel,'. initParent set to first parent.'))
+            initParent <- pc$parentLabel[pc$level == initLevel][1]
         }
-
-        parentCode <- pc$code[pc$label == initParent & pc$level == initLevel]
-
-        ancestors <- c(initParent)
-
-        if (initLevel >= 1) {
-            for (i in initLevel:1) {
-                p <- ancestors[1]
-                ancestors <- c(unique(pc$parentLabel[pc$level == i - 1 & pc$label == p]),ancestors)
-            }
+    }
+    
+    parentCode <- pc$code[pc$label == initParent & pc$level == initLevel]
+    
+    ancestors <- c(initParent)
+    
+    if (initLevel >= 1) {
+        for (i in initLevel:1) {
+            p <- ancestors[1]
+            ancestors <- c(unique(pc$parentLabel[pc$level == i - 1 & pc$label == p]),ancestors)
         }
-        
-        if (is.null(selectParent)) {
+    }
+    
+    if (is.null(selectParent)) {
+        selectParent <- pc$parentLabel[pc$level == selectLevel & pc$label %in% selectLabel]
+    } else {
+        if (!(selectParent %in% pc$parentLabel[pc$level == selectLevel & pc$label %in% selectLabel])) {
+            warning(paste0('selectParent: ', selectParent, ' not found for selectLevel: ',selectLevel,' and selectLabel: ',selectLabel, '. selectParent set to first parent.'))
             selectParent <- pc$parentLabel[pc$level == selectLevel & pc$label %in% selectLabel]
-        } else {
-            if (!(selectParent %in% pc$parentLabel[pc$level == selectLevel & pc$label %in% selectLabel])) {
-                warning(paste0('selectParent: ', selectParent, ' not found for selectLevel: ',selectLevel,' and selectLabel: ',selectLabel, '. selectParent set to first parent.'))
-                selectParent <- pc$parentLabel[pc$level == selectLevel & pc$label %in% selectLabel]
-            }
         }
-
-        if(is.null(selectParent)) {
-            selectParent = ''
-            selectLevel = 0
-            selectLabel = rootLabel
-            selectCode = 'root'
-        }
-    },
-
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+    }
+    
+    if(is.null(selectParent)) {
+        selectParent = ''
+        selectLevel = 0
+        selectLabel = rootLabel
+        selectCode = 'root'
+    }
     
     
     if (returnPrepData) {
@@ -534,10 +522,10 @@ addDimView <- function(
         selectLabel <- sel$label
         selectParent <- sel$parent
     }
-
+    
     l <- new.env(parent = emptyenv())
     class(l) <- 'dimView'
-
+    
     l$org <- org
     l$presListType <- presListType
     l$call <- match.call()
@@ -852,56 +840,48 @@ addDimView <- function(
 #'@export
 addMeasure <- function(env, dim, factColumn, fun, as = factColumn, viewColumn = NULL,
                        sort = NULL, format = 'standard', formatColumn = NULL, levels = NULL) {
-
-    withCallingHandlers({
-
-        class(env) == 'star' || stop('env is not of class star')
-
-        assert_is_a_string(dim)
-        dim %in% names(env$dims) || stop('Unknown dim')
-
-        dd <- env$dims[[dim]]
-        class(dd) == 'dimView' || stop('dim is not of class dimView')
-        ml <- dd$measList
-
-        assert_is_character(factColumn)
-        for (c in factColumn) {
-            c %in% names(env$facts) || stop(paste0(c, ' is not a valid factColumn'))
-            # if(!is.numeric(env$facts[[c]]))
-            #     stop(paste0('factColumn ', c, ' is not numeric'))
-        }
-
-        if (dd$leafOnly) {
-            levels <- max(dd$useLevels)
-        }
-        
-        levels <- .setLevels(dd,levels)
-
-        as <- .setAs(dd,levels,as)
-        assert_are_same_length(as,factColumn)
-
-        sort <- .setSort(dd,length(as),sort)
-
-        assert_is_character(fun)
-        
-        for (x in fun) {
-            x %in% domains[['aggregateFun']] || class(get(x, envir = env$ce)) == 'function' ||  stop('Invalid function')   
-        }
-        
-        length(fun) %in% c(1,length(factColumn)) || stop('Invalid length fun')
-
-        viewColumn <- .setViewColumn(dd,levels,as,isNull(viewColumn,paste0(fun,'_',factColumn)))
-        format <- .setFormat(as,format)
-        formatColumn <- .setFormatColumn(dd,as,formatColumn)
-        formatRef <- isNull(formatColumn,NA)
-
-        length(dd$presList) + length(dd$childDims) == 0 || stop('Dimension already has presentation')
-
-    },
-
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+    
+    class(env) == 'star' || stop('env is not of class star')
+    
+    assert_is_a_string(dim)
+    dim %in% names(env$dims) || stop('Unknown dim')
+    
+    dd <- env$dims[[dim]]
+    class(dd) == 'dimView' || stop('dim is not of class dimView')
+    ml <- dd$measList
+    
+    assert_is_character(factColumn)
+    for (c in factColumn) {
+        c %in% names(env$facts) || stop(paste0(c, ' is not a valid factColumn'))
+        # if(!is.numeric(env$facts[[c]]))
+        #     stop(paste0('factColumn ', c, ' is not numeric'))
+    }
+    
+    if (dd$leafOnly) {
+        levels <- max(dd$useLevels)
+    }
+    
+    levels <- .setLevels(dd,levels)
+    
+    as <- .setAs(dd,levels,as)
+    assert_are_same_length(as,factColumn)
+    
+    sort <- .setSort(dd,length(as),sort)
+    
+    assert_is_character(fun)
+    
+    for (x in fun) {
+        x %in% domains[['aggregateFun']] || class(get(x, envir = env$ce)) == 'function' ||  stop('Invalid function')   
+    }
+    
+    length(fun) %in% c(1,length(factColumn)) || stop('Invalid length fun')
+    
+    viewColumn <- .setViewColumn(dd,levels,as,isNull(viewColumn,paste0(fun,'_',factColumn)))
+    format <- .setFormat(as,format)
+    formatColumn <- .setFormatColumn(dd,as,formatColumn)
+    formatRef <- isNull(formatColumn,NA)
+    
+    length(dd$presList) + length(dd$childDims) == 0 || stop('Dimension already has presentation')
     
     dd$measureCalls[[length(dd$measureCalls) + 1]] <- match.call()
 
@@ -974,54 +954,48 @@ addMeasure <- function(env, dim, factColumn, fun, as = factColumn, viewColumn = 
 #' @export
 addMeasureDerrived <- function(env, dim, userFunc, as, viewColumn = NULL, sort = NULL, processingOrder = NULL,
                                format = 'standard', formatColumn = NULL, levels = NULL) {
-    withCallingHandlers({
-
-        class(env) == 'star' || stop('env is not of class star')
-
-        assert_is_a_string(dim)
-        dim %in% names(env$dims) || stop('Unknown dim')
-
-        dd <- env$dims[[dim]]
-        class(dd) == 'dimView' || stop('dim is not of class dimView')
-        ml <- dd$measList
-        
-        if (dd$leafOnly) {
-            levels <- max(dd$useLevels)
-        }
-        
-        levels <- .setLevels(dd,levels)
-        as <- .setAs(dd,levels,as)
-
-        assert_is_character(userFunc)
-        all(unique(sapply(userFunc,function(x) class(get(x, envir = env$ce)))) == 'function') ||
-            stop('Invalid function')
-        assert_are_same_length(userFunc,as)
-
-        sort <- .setSort(dd,length(as),sort)
-
-        assert_is_numeric(isNull(processingOrder,0))
-        processingOrder <- as.integer(processingOrder)
-        if (length(processingOrder) == 0) {
-            mx <- max(ml$processingOrder[ml$processingOrder < 999])
-            processingOrder <- c((mx + 1):(mx + length(as)))
-        } else {
-            assert_are_same_length(processingOrder,as)
-            assert_are_disjoint_sets(ml$processingOrder, processingOrder)
-        }
-
-        viewColumn <- .setViewColumn(dd,levels,as,isNull(viewColumn,paste0('d',processingOrder)))
-        format <- .setFormat(as,format)
-
-        formatColumn <- .setFormatColumn(dd,as,formatColumn)
-        formatRef <- isNull(formatColumn,NA)
-
-        length(dd$presList) + length(dd$childDims) == 0 || stop('Dimension already has presentation')
-    },
-
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
-
+    
+    class(env) == 'star' || stop('env is not of class star')
+    
+    assert_is_a_string(dim)
+    dim %in% names(env$dims) || stop('Unknown dim')
+    
+    dd <- env$dims[[dim]]
+    class(dd) == 'dimView' || stop('dim is not of class dimView')
+    ml <- dd$measList
+    
+    if (dd$leafOnly) {
+        levels <- max(dd$useLevels)
+    }
+    
+    levels <- .setLevels(dd,levels)
+    as <- .setAs(dd,levels,as)
+    
+    assert_is_character(userFunc)
+    all(unique(sapply(userFunc,function(x) class(get(x, envir = env$ce)))) == 'function') ||
+        stop('Invalid function')
+    assert_are_same_length(userFunc,as)
+    
+    sort <- .setSort(dd,length(as),sort)
+    
+    assert_is_numeric(isNull(processingOrder,0))
+    processingOrder <- as.integer(processingOrder)
+    if (length(processingOrder) == 0) {
+        mx <- max(ml$processingOrder[ml$processingOrder < 999])
+        processingOrder <- c((mx + 1):(mx + length(as)))
+    } else {
+        assert_are_same_length(processingOrder,as)
+        assert_are_disjoint_sets(ml$processingOrder, processingOrder)
+    }
+    
+    viewColumn <- .setViewColumn(dd,levels,as,isNull(viewColumn,paste0('d',processingOrder)))
+    format <- .setFormat(as,format)
+    
+    formatColumn <- .setFormatColumn(dd,as,formatColumn)
+    formatRef <- isNull(formatColumn,NA)
+    
+    length(dd$presList) + length(dd$childDims) == 0 || stop('Dimension already has presentation')
+    
     dd$derrivedMeasureCalls[[length(dd$derrivedMeasureCalls) + 1]] <- match.call()
     
     ml <- rbind(
@@ -1082,29 +1056,21 @@ addMeasureDerrived <- function(env, dim, userFunc, as, viewColumn = NULL, sort =
 #' @export
 addSortColumn <- function(env, dim, sortColumn, levels = NULL) {
 
-    withCallingHandlers({
+    class(env) == 'star' || stop('env is not of class star')
 
-        class(env) == 'star' || stop('env is not of class star')
-
-        assert_is_a_string(dim)
-        assert_is_a_string(sortColumn)
-
-        dd <- env$dims[[dim]]
-        class(dd) == 'dimView' || stop('dim is not of class dimView')
-        sortColumn %in% names(dd$data) || stop('Invalid sortColumn')
-        levels <- .setLevels(dd,levels)
-
-        ml <- dd$measList
-
-        sort <- max(ml$sort) + 1
-        as <- .setAs(dd,levels,'sort_sort')
-        viewColumn <- as
-
-    },
-
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+    assert_is_a_string(dim)
+    assert_is_a_string(sortColumn)
+    
+    dd <- env$dims[[dim]]
+    class(dd) == 'dimView' || stop('dim is not of class dimView')
+    sortColumn %in% names(dd$data) || stop('Invalid sortColumn')
+    levels <- .setLevels(dd,levels)
+    
+    ml <- dd$measList
+    
+    sort <- max(ml$sort) + 1
+    as <- .setAs(dd,levels,'sort_sort')
+    viewColumn <- as
     
     dd$measureCalls[[length(dd$measureCalls) + 1]] <- match.call()
 
@@ -1136,28 +1102,20 @@ addSortColumn <- function(env, dim, sortColumn, levels = NULL) {
 #' @export
 addTooltipColumn <- function(env, dim, tooltipColumn, levels = NULL) {
 
-    withCallingHandlers({
-
-        class(env) == 'star' || stop('env is not of class star')
-
-        assert_is_a_string(dim)
-        assert_is_a_string(tooltipColumn)
-
-        dd <- env$dims[[dim]]
-        class(dd) == 'dimView' || stop('dim is not of class dimView')
-        tooltipColumn %in% names(dd$data) || stop('Invalid tooltipColumn')
-        levels <- .setLevels(dd,levels)
-
-        ml <- dd$measList
-
-        as <- .setAs(dd,levels,'member_tooltip')
-        viewColumn <- as
-
-    },
-
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+    class(env) == 'star' || stop('env is not of class star')
+    
+    assert_is_a_string(dim)
+    assert_is_a_string(tooltipColumn)
+    
+    dd <- env$dims[[dim]]
+    class(dd) == 'dimView' || stop('dim is not of class dimView')
+    tooltipColumn %in% names(dd$data) || stop('Invalid tooltipColumn')
+    levels <- .setLevels(dd,levels)
+    
+    ml <- dd$measList
+    
+    as <- .setAs(dd,levels,'member_tooltip')
+    viewColumn <- as
     
     dd$measureCalls[[length(dd$measureCalls) + 1]] <- match.call()
     
@@ -1190,31 +1148,23 @@ addTooltipColumn <- function(env, dim, tooltipColumn, levels = NULL) {
 #' @export
 addTextColumn <- function(env, dim, textColumn, as, viewColumn, sort = NULL, levels = NULL) {
 
-
-    withCallingHandlers({
-
-        class(env) == 'star' || stop('env is not of class star')
-
-        assert_is_a_string(dim)
-        assert_is_a_string(textColumn)
-        assert_is_a_string(as)
-        assert_is_a_string(viewColumn)
-
-        dd <- env$dims[[dim]]
-        class(dd) == 'dimView' || stop('dim is not of class dimView')
-        textColumn %in% names(dd$data) || stop('Invalid textColumn')
-        levels <- .setLevels(dd,levels)
-
-        ml <- dd$measList
-
-        as <- .setAs(dd,levels,as)
-        viewColumn <- .setViewColumn(dd,levels,as,viewColumn)
-        sort <- .setSort(dd,length(as),sort)
-
-    },
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+    class(env) == 'star' || stop('env is not of class star')
+    
+    assert_is_a_string(dim)
+    assert_is_a_string(textColumn)
+    assert_is_a_string(as)
+    assert_is_a_string(viewColumn)
+    
+    dd <- env$dims[[dim]]
+    class(dd) == 'dimView' || stop('dim is not of class dimView')
+    textColumn %in% names(dd$data) || stop('Invalid textColumn')
+    levels <- .setLevels(dd,levels)
+    
+    ml <- dd$measList
+    
+    as <- .setAs(dd,levels,as)
+    viewColumn <- .setViewColumn(dd,levels,as,viewColumn)
+    sort <- .setSort(dd,length(as),sort)
     
     dd$measureCalls[[length(dd$measureCalls) + 1]] <- match.call()
 
@@ -1246,29 +1196,20 @@ addTextColumn <- function(env, dim, textColumn, as, viewColumn, sort = NULL, lev
 #' @export
 addRowGroupColumn <- function(env, dim, rowGroupColumn, levels = NULL) {
     
+    class(env) == 'star' || stop('env is not of class star')
     
-    withCallingHandlers({
-        
-        class(env) == 'star' || stop('env is not of class star')
-        
-        assert_is_a_string(dim)
-        assert_is_a_string(rowGroupColumn)
-        
-        dd <- env$dims[[dim]]
-        class(dd) == 'dimView' || stop('dim is not of class dimView')
-        rowGroupColumn %in% names(dd$data) || stop('Invalid rowGroupColumn')
-        levels <- .setLevels(dd,levels)
-        
-        ml <- dd$measList
-        
-        as <- .setAs(dd,levels,'rowGroupColumn')
-        viewColumn <- as
+    assert_is_a_string(dim)
+    assert_is_a_string(rowGroupColumn)
     
-        
-    },
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+    dd <- env$dims[[dim]]
+    class(dd) == 'dimView' || stop('dim is not of class dimView')
+    rowGroupColumn %in% names(dd$data) || stop('Invalid rowGroupColumn')
+    levels <- .setLevels(dd,levels)
+    
+    ml <- dd$measList
+    
+    as <- .setAs(dd,levels,'rowGroupColumn')
+    viewColumn <- as
     
     dd$measureCalls[[length(dd$measureCalls) + 1]] <- match.call()
     sort <- max(ml$sort) + 1
@@ -1368,249 +1309,243 @@ addRowGroupColumn <- function(env, dim, rowGroupColumn, levels = NULL) {
 #'@export
 #'
 addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault = FALSE, height = NULL, width = NULL,
-    useLevels = NULL, navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL, rangeOpts = NULL, checkUiId = TRUE, state = NULL, selectMode = NULL, selectableLevels = NULL) {
-
-    withCallingHandlers({
-
-        class(env) == 'star' || stop('env is not of class star')
-
-        assert_is_a_string(dim)
-        assert_is_a_string(uiId)
-        assert_is_a_string(type)
-        assert_is_a_string(as)
-        assert_is_a_string(name)
-        assert_is_a_bool(isDefault)
-        assert_is_a_number(isNull(height,0))
-        height <- as.integer(height)
-        assert_is_a_number(isNull(width,0))
-        width <- as.integer(width)
-        assert_is_numeric(isNull(useLevels,0))
-        useLevels <- as.integer(useLevels)
-
-        assert_is_list(isNull(navOpts,list()))
-        assert_is_list(isNull(simpleOpts,list()))
-        assert_is_list(isNull(dataTableOpts,list()))
-        assert_is_list(isNull(highChartsOpts,list()))
-        assert_is_list(isNull(rangeOpts,list()))
-
-        dd <- env$dims[[dim]]
-        class(dd) == 'dimView' || stop('dim is not of class dimView')
-
-        gdim <- getGlobalId(env$id,uiId)
+                            useLevels = NULL, navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL, rangeOpts = NULL, checkUiId = TRUE, state = NULL, selectMode = NULL, selectableLevels = NULL) {
+    
+    class(env) == 'star' || stop('env is not of class star')
+    
+    assert_is_a_string(dim)
+    assert_is_a_string(uiId)
+    assert_is_a_string(type)
+    assert_is_a_string(as)
+    assert_is_a_string(name)
+    assert_is_a_bool(isDefault)
+    assert_is_a_number(isNull(height,0))
+    height <- as.integer(height)
+    assert_is_a_number(isNull(width,0))
+    width <- as.integer(width)
+    assert_is_numeric(isNull(useLevels,0))
+    useLevels <- as.integer(useLevels)
+    
+    assert_is_list(isNull(navOpts,list()))
+    assert_is_list(isNull(simpleOpts,list()))
+    assert_is_list(isNull(dataTableOpts,list()))
+    assert_is_list(isNull(highChartsOpts,list()))
+    assert_is_list(isNull(rangeOpts,list()))
+    
+    dd <- env$dims[[dim]]
+    class(dd) == 'dimView' || stop('dim is not of class dimView')
+    
+    gdim <- getGlobalId(env$id,uiId)
+    
+    !checkUiId || gdim %in% glob.env$dimUiIds || stop('uiId not in UI')
+    length(useLevels) == 0 || dim != uiId || stop('useLevels not valid for dim == uiId')
+    
+    assert_is_subset(type,domains[['presType']])
+    
+    # navOpts checks
+    
+    if (!is.null(navOpts))
+        assert_is_subset(names(navOpts),domains[['navOpts']])
+    else
+        navOpts <- list()
+    
+    navOpts$syncNav <- isNull(navOpts$syncNav,TRUE)
+    navOpts$hideNoFilter <- isNull(navOpts$hideNoFilter,FALSE)
+    if (!0 %in% dd$selectableLevels) navOpts$hideNoFilter <- TRUE
+    navOpts$hideAll <- isNull(navOpts$hideAll,FALSE)
+    navOpts$hideBreadCrumb <- isNull(navOpts$hideBreadCrumb,FALSE)
+    navOpts$links <- isNull(navOpts$links,list())
+    navOpts$minBreadCrumbLevel <- isNull(navOpts$minBreadCrumbLevel,0)
+    navOpts$noDrill <- isNull(navOpts$noDrill,FALSE)
+    
+    assert_is_a_bool(navOpts$syncNav)
+    assert_is_a_bool(navOpts$hideNoFilter)
+    assert_is_a_bool(navOpts$hideAll)
+    assert_is_a_bool(navOpts$hideBreadCrumb)
+    assert_is_list(navOpts$links)
+    assert_is_a_number(navOpts$minBreadCrumbLevel)
+    assert_is_a_bool(navOpts$noDrill)
+    
+    if (!navOpts$syncNav && dim == uiId) {
+        navOpts$syncNav <- TRUE
+    } 
+    
+    if (length(useLevels) != 0) {
+        navOpts$syncNav <- FALSE
+    }
+    
+    if (is.null(simpleOpts)  + is.null(dataTableOpts) + is.null(highChartsOpts) + is.null(rangeOpts) != 3) {
+        stop('Invalid options')
+    }
+    
+    # simpleOpts checks
+    
+    if (!is.null(simpleOpts)) {
+        assert_is_subset(names(simpleOpts),domains[['simpleOpts']])
+        simpleOpts$inline <- isNull(simpleOpts$inline,FALSE)
+        assert_is_a_bool(simpleOpts$inline)
+    }
+    
+    # dataTableOpts checks
+    
+    if (!is.null(dataTableOpts)) {
         
-        !checkUiId || gdim %in% glob.env$dimUiIds || stop('uiId not in UI')
-        length(useLevels) == 0 || dim != uiId || stop('useLevels not valid for dim == uiId')
-
-        assert_is_subset(type,domains[['presType']])
-
-        # navOpts checks
-
-        if (!is.null(navOpts))
-            assert_is_subset(names(navOpts),domains[['navOpts']])
-        else
-            navOpts <- list()
-
-        navOpts$syncNav <- isNull(navOpts$syncNav,TRUE)
-        navOpts$hideNoFilter <- isNull(navOpts$hideNoFilter,FALSE)
-        if (!0 %in% dd$selectableLevels) navOpts$hideNoFilter <- TRUE
-        navOpts$hideAll <- isNull(navOpts$hideAll,FALSE)
-        navOpts$hideBreadCrumb <- isNull(navOpts$hideBreadCrumb,FALSE)
-        navOpts$links <- isNull(navOpts$links,list())
-        navOpts$minBreadCrumbLevel <- isNull(navOpts$minBreadCrumbLevel,0)
-        navOpts$noDrill <- isNull(navOpts$noDrill,FALSE)
-
-        assert_is_a_bool(navOpts$syncNav)
-        assert_is_a_bool(navOpts$hideNoFilter)
-        assert_is_a_bool(navOpts$hideAll)
-        assert_is_a_bool(navOpts$hideBreadCrumb)
-        assert_is_list(navOpts$links)
-        assert_is_a_number(navOpts$minBreadCrumbLevel)
-        assert_is_a_bool(navOpts$noDrill)
-
-        if (!navOpts$syncNav && dim == uiId) {
-            navOpts$syncNav <- TRUE
-        } 
+        assert_is_subset(names(dataTableOpts),domains[['dataTableOpts']])
+        assert_is_list(dataTableOpts$measures)
+        assert_is_non_empty(dataTableOpts$measures,'elements')
         
-        if (length(useLevels) != 0) {
-            navOpts$syncNav <- FALSE
-        }
-        
-        if (is.null(simpleOpts)  + is.null(dataTableOpts) + is.null(highChartsOpts) + is.null(rangeOpts) != 3) {
-            stop('Invalid options')
-        }
-
-        # simpleOpts checks
-
-        if (!is.null(simpleOpts)) {
-            assert_is_subset(names(simpleOpts),domains[['simpleOpts']])
-            simpleOpts$inline <- isNull(simpleOpts$inline,FALSE)
-            assert_is_a_bool(simpleOpts$inline)
-        }
-
-        # dataTableOpts checks
-
-        if (!is.null(dataTableOpts)) {
-
-            assert_is_subset(names(dataTableOpts),domains[['dataTableOpts']])
-            assert_is_list(dataTableOpts$measures)
-            assert_is_non_empty(dataTableOpts$measures,'elements')
-
-            i <- 1
-            for (x in dataTableOpts$measures) {
-                is.null(x$viewColumn) && stop('Missing viewColumn field')
-                assert_is_subset(names(x), domains[['dataTableMeasures']])
-
-                if ('colorBarColor2' %in% names(x) && !('colorBarColor1' %in% names(x))) {
-                    stop('Missing colorBarColor1')
-                }
-                if ('colorBarColor1' %in% names(x) && ('bgStyle' %in% names(x))) {
-                    stop('Incorrect combination of measure opts')
-                }
-                
-                if ('format' %in% names(x) && !is_function(x$format) && !(class(x$format) == 'call')) {
-                    assert_is_a_string(x$format)
-                    assert_is_subset(x$format,domains[['dataTableFormats']])
-                }
-
-                if ('bgStyle' %in% names(x)) {
-                    dataTableOpts$measures[[i]]$bgStyle <- .setStyle(x$bgStyle)
-                }
-
-                if ('fgStyle' %in% names(x)) {
-                    dataTableOpts$measures[[i]]$fgStyle <- .setStyle(x$fgStyle)
-                }
-
-                if ('fontWeight' %in% names(x)) {
-                    assert_is_a_string(x$fontWeight)
-                    assert_is_subset(x$fontWeight, domains[['fontWeight']])
-                }
-
-                if ('width' %in% names(x)) {
-                    assert_is_a_number(x$width)
-                    assert_all_are_positive(x$width)
-                    dataTableOpts$measures[[i]]$width <- as.integer(x$width)
-                }
-
-                if ('align' %in% names(x)) {
-                    assert_is_a_string(x$align)
-                    assert_is_subset(x$align,c('left','center','right'))
-                }
-
-                if ('cursor' %in% names(x)) {
-                    assert_is_a_string(x$cursor)
-                }
-                
-                if ('visible' %in% names(x)) {
-                    if(!is_a_bool(x$visible) && !is_function(x$visible) && !(class(x$visible) == 'call'))
-                        assert_is_a_bool(x$visible)
-                    dataTableOpts$measures[[i]]$visible <- x$visible
-                } else {
-                    dataTableOpts$measures[[i]]$visible <- TRUE
-                }
-                
-                if ('print' %in% names(x)) {
-                    assert_is_a_bool(x$print)
-                    dataTableOpts$measures[[i]]$print <- x$print
-                } else {
-                    dataTableOpts$measures[[i]]$print <- TRUE
-                }
-                
-                
-                if ('orderable' %in% names(x)) {
-                    assert_is_a_bool(x$orderable)
-                    dataTableOpts$measures[[i]]$orderable <- x$orderable
-                } else {
-                    dataTableOpts$measures[[i]]$orderable <- TRUE
-                }
-                
-                
-                if ('tooltip' %in% names(x)) {
-                    assert_is_a_string(x$tooltip)
-                }
-                
-                if ('sparkOpts' %in% names(x)) {
-                    assert_is_list(x$sparkOpts)
-                    dataTableOpts$measures[[i]]$sparkOpts <- as.character(jsonlite::toJSON(x$sparkOpts))
-                }
-                
-                dataTableOpts$measures[[i]] <- rlist::list.flatten(dataTableOpts$measures[[i]])
-                dataTableOpts$measures[[i]]$colOrder <- i
-
-                i <- i + 1
-
+        i <- 1
+        for (x in dataTableOpts$measures) {
+            is.null(x$viewColumn) && stop('Missing viewColumn field')
+            assert_is_subset(names(x), domains[['dataTableMeasures']])
+            
+            if ('colorBarColor2' %in% names(x) && !('colorBarColor1' %in% names(x))) {
+                stop('Missing colorBarColor1')
             }
-
-            if ('pageLengthList' %in% names(dataTableOpts)) {
-                assert_is_numeric(dataTableOpts$pageLengthList)
-                assert_all_are_positive(dataTableOpts$pageLengthList)
-                pll <- dataTableOpts$pageLengthList
-                pll <- sort(unique(as.integer(pll)))
-            } else {
-                pll <- c()
-            }
-
-            if ('pageLength' %in% names(dataTableOpts)) {
-                assert_is_a_number(dataTableOpts$pageLength)
-                assert_all_are_positive(dataTableOpts$pageLength)
-                pl <- dataTableOpts$pageLength
-                pl <- as.integer(pl)
-            } else {
-                pl <- pll[1]
+            if ('colorBarColor1' %in% names(x) && ('bgStyle' %in% names(x))) {
+                stop('Incorrect combination of measure opts')
             }
             
-            if ('filterRowGroup' %in% names(dataTableOpts)) {
-                assert_is_a_string(dataTableOpts$filterRowGroup)
+            if ('format' %in% names(x) && !is_function(x$format) && !(class(x$format) == 'call')) {
+                assert_is_a_string(x$format)
+                assert_is_subset(x$format,domains[['dataTableFormats']])
             }
-
-            pl <- isNull(pl,10)
-            pll <- isNull(pll,pl)
-
-            pl %in% pll || stop('pageLength not in pageLengthList')
-
-            if (navOpts$syncNav) {
-                is.null(dd$pageLength) || dd$pageLength == pl ||  stop(paste0('pageLength already set to', dd$pageLength))
+            
+            if ('bgStyle' %in% names(x)) {
+                dataTableOpts$measures[[i]]$bgStyle <- .setStyle(x$bgStyle)
             }
-
-            dataTableOpts$pageLength <- pl
-            dataTableOpts$pageLengthList <- pll
-            dd$pageLength <- pl
-
-            if ('serverSideTable' %in% names(dataTableOpts)) {
-                assert_is_a_bool(dataTableOpts$serverSideTable)
-                is.null(dd$serverSideTable) || dd$serverSideTable == dataTableOpts$serverSideTable ||
-                    stop(paste0('serverSideYable already set to', dd$serverSideTable))
-                dd$serverSideTable <- dataTableOpts$serverSideTable
+            
+            if ('fgStyle' %in% names(x)) {
+                dataTableOpts$measures[[i]]$fgStyle <- .setStyle(x$fgStyle)
+            }
+            
+            if ('fontWeight' %in% names(x)) {
+                assert_is_a_string(x$fontWeight)
+                assert_is_subset(x$fontWeight, domains[['fontWeight']])
+            }
+            
+            if ('width' %in% names(x)) {
+                assert_is_a_number(x$width)
+                assert_all_are_positive(x$width)
+                dataTableOpts$measures[[i]]$width <- as.integer(x$width)
+            }
+            
+            if ('align' %in% names(x)) {
+                assert_is_a_string(x$align)
+                assert_is_subset(x$align,c('left','center','right'))
+            }
+            
+            if ('cursor' %in% names(x)) {
+                assert_is_a_string(x$cursor)
+            }
+            
+            if ('visible' %in% names(x)) {
+                if(!is_a_bool(x$visible) && !is_function(x$visible) && !(class(x$visible) == 'call'))
+                    assert_is_a_bool(x$visible)
+                dataTableOpts$measures[[i]]$visible <- x$visible
             } else {
-                dd$serverSideTable <- isNull(dd$serverSideTable,FALSE)
-                dataTableOpts$serverSideTable <- dd$serverSideTable
+                dataTableOpts$measures[[i]]$visible <- TRUE
             }
-        }
-        
-        # highChartsOpts checks
-        
-        if (!is.null(highChartsOpts)) {
-
-            (dd$selectMode %in% c('none','single')) || (uiId != dim) || stop('HighCharts presentation not available for multi-select')
+            
+            if ('print' %in% names(x)) {
+                assert_is_a_bool(x$print)
+                dataTableOpts$measures[[i]]$print <- x$print
+            } else {
+                dataTableOpts$measures[[i]]$print <- TRUE
+            }
+            
+            
+            if ('orderable' %in% names(x)) {
+                assert_is_a_bool(x$orderable)
+                dataTableOpts$measures[[i]]$orderable <- x$orderable
+            } else {
+                dataTableOpts$measures[[i]]$orderable <- TRUE
+            }
+            
+            
+            if ('tooltip' %in% names(x)) {
+                assert_is_a_string(x$tooltip)
+            }
+            
+            if ('sparkOpts' %in% names(x)) {
+                assert_is_list(x$sparkOpts)
+                dataTableOpts$measures[[i]]$sparkOpts <- as.character(jsonlite::toJSON(x$sparkOpts))
+            }
+            
+            dataTableOpts$measures[[i]] <- rlist::list.flatten(dataTableOpts$measures[[i]])
+            dataTableOpts$measures[[i]]$colOrder <- i
+            
+            i <- i + 1
             
         }
         
-        # check links
-
-        if (length(navOpts$links) > 0) {
-            types <- sapply(navOpts$links,function(x) {x$type})
-            assert_is_subset(types,domains[['navOptsLinkTypes']])
+        if ('pageLengthList' %in% names(dataTableOpts)) {
+            assert_is_numeric(dataTableOpts$pageLengthList)
+            assert_all_are_positive(dataTableOpts$pageLengthList)
+            pll <- dataTableOpts$pageLengthList
+            pll <- sort(unique(as.integer(pll)))
+        } else {
+            pll <- c()
         }
-    },
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+        
+        if ('pageLength' %in% names(dataTableOpts)) {
+            assert_is_a_number(dataTableOpts$pageLength)
+            assert_all_are_positive(dataTableOpts$pageLength)
+            pl <- dataTableOpts$pageLength
+            pl <- as.integer(pl)
+        } else {
+            pl <- pll[1]
+        }
+        
+        if ('filterRowGroup' %in% names(dataTableOpts)) {
+            assert_is_a_string(dataTableOpts$filterRowGroup)
+        }
+        
+        pl <- isNull(pl,10)
+        pll <- isNull(pll,pl)
+        
+        pl %in% pll || stop('pageLength not in pageLengthList')
+        
+        if (navOpts$syncNav) {
+            is.null(dd$pageLength) || dd$pageLength == pl ||  stop(paste0('pageLength already set to', dd$pageLength))
+        }
+        
+        dataTableOpts$pageLength <- pl
+        dataTableOpts$pageLengthList <- pll
+        dd$pageLength <- pl
+        
+        if ('serverSideTable' %in% names(dataTableOpts)) {
+            assert_is_a_bool(dataTableOpts$serverSideTable)
+            is.null(dd$serverSideTable) || dd$serverSideTable == dataTableOpts$serverSideTable ||
+                stop(paste0('serverSideYable already set to', dd$serverSideTable))
+            dd$serverSideTable <- dataTableOpts$serverSideTable
+        } else {
+            dd$serverSideTable <- isNull(dd$serverSideTable,FALSE)
+            dataTableOpts$serverSideTable <- dd$serverSideTable
+        }
+    }
+    
+    # highChartsOpts checks
+    
+    if (!is.null(highChartsOpts)) {
+        
+        (dd$selectMode %in% c('none','single')) || (uiId != dim) || stop('HighCharts presentation not available for multi-select')
+        
+    }
+    
+    # check links
+    
+    if (length(navOpts$links) > 0) {
+        types <- sapply(navOpts$links,function(x) {x$type})
+        assert_is_subset(types,domains[['navOptsLinkTypes']])
+    }
     
     dd$presentationCalls[[length(dd$presentationCalls) + 1]] <- match.call()
 
     if (!is.null(highChartsOpts)) domainCheck(names(highChartsOpts),'highChartsOpts')
 
     if (type %in% c('radioButton','selectInput'))
-        (dd$type == 'input' && isSingleLevel(env,dim) && dd$selectMode == 'single') || dwhrStop('Presentation type not valid for this dim')
+        (dd$type == 'input' && isSingleLevel(env,dim) && dd$selectMode == 'single') || stop('Presentation type not valid for this dim')
 
     if (uiId != dim) {
 
@@ -1625,21 +1560,21 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
             
             if (length(useLevels) != 0) {
                 navOpts$syncNav <- FALSE
-                max(dd$useLevels) == max(useLevels) || dwhrStop('invalid useLevels parameter')
+                max(dd$useLevels) == max(useLevels) || stop('invalid useLevels parameter')
                 call$useLevels <- useLevels
                 
                 if (any(dd$selected$level > 0)) {
                     call$selectedIds <- dd$selectedIds
                 }
             }
-        
+            
             if (!is.null(selectableLevels)) 
                 call$selectableLevels <- selectableLevels
             
             if (!is.null(state)) 
                 call$state <- state
             
-            is.null(dd$syncNav) || dd$syncNav == navOpts$syncNav || dwhrStop('Incompatible syncNav')
+            is.null(dd$syncNav) || dd$syncNav == navOpts$syncNav || stop('Incompatible syncNav')
             
             if (!is.null(highChartsOpts) && isNull(selectMode,dd$selectMode) %in% c('multi')) {
                 warning('multi-select not implemented for highCharts: dimView set to single-select')
@@ -1647,7 +1582,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
             } else {
                 call$selectMode <- isNull(selectMode,dd$selectMode) 
             }
-
+            
             if (!is.null(rangeOpts)) {
                 call$initLevel <- max(dd$useLevels)
                 call$initParent <- ""
@@ -1657,89 +1592,81 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
             
             
             eval(call, envir = env$ce)
-
+            
             env$dims[[uiId]]$measList <- dd$measList
             env$dims[[uiId]]$parentDim <- dim
-
+            
             for (x in dd$childDims) {
                 env$dims[[x]]$ignoreDims <- unique(c(env$dims[[x]]$ignoreDims,uiId))
             }
-
+            
             dd$childDims <-  c(dd$childDims,uiId)
             dd$ignoreDims <- c(dd$ignoreDims,uiId)
-
+            
             dd$syncNav <- navOpts$syncNav
             env$dims[[uiId]]$syncNav <- navOpts$syncNav
-
+            
             if (navOpts$syncNav) {
-
-                length(dd$presList) > 0 || dwhrStop(paste0(dim, ': no presentation to sync with'))
-                #  !is.null(dd$pageLength) || dwhrStop('No paging source')
+                
+                length(dd$presList) > 0 || stop(paste0(dim, ': no presentation to sync with'))
+                #  !is.null(dd$pageLength) || stop('No paging source')
                 setOrdering(env = env, dim = uiId, as = dd$orderColumn, sort = dd$orderColumnDir, as2 = dd$orderColumn2)
                 env$dims[[uiId]]$pageLength <- dd$pageLength
             }
-
+            
             for (z in names(env$dims)) {
                 ign <- env$dims[[z]]$ignoreDims
                 if (dim %in% ign && !(uiId %in% ign)) {
                     env$dims[[z]]$ignoreDims <- c(ign,uiId)
                 }
             }
-
+            
             # env$proxyDims <- c(env$proxyDims,uiId)
-
+            
         }
-
+        
         dim <- uiId
         dd <- env$dims[[dim]]
-
+        
     }
     
-    withCallingHandlers({
+    # rangeOpts checks
+    
+    if (!is.null(rangeOpts)) {
+        dd$maxLevel == 1 || stop('dim has too many levels for dateRange or rangeSlider presentation')
+        dd$level == 1 || stop('dim level must be 1 for dateRange or rangeSlider presentation')
+        assert_is_subset(names(rangeOpts),domains[['rangeOpts']])
         
-        # rangeOpts checks
-        
-        if (!is.null(rangeOpts)) {
-            dd$maxLevel == 1 || stop('dim has too many levels for dateRange or rangeSlider presentation')
-            dd$level == 1 || stop('dim level must be 1 for dateRange or rangeSlider presentation')
-            assert_is_subset(names(rangeOpts),domains[['rangeOpts']])
+        if (type == 'dateRangeInput') {
+            dates <- unique(dd$data[['level1Label']])
             
-            if (type == 'dateRangeInput') {
-                dates <- unique(dd$data[['level1Label']])
-                
-                assert_is_character(dates)
-                assert_all_are_date_strings(dates,format = '%Y-%m-%d')
-            }
-            
-            if (!is.null(rangeOpts$label)) {
-                assert_is_a_string(rangeOpts$label)
-            }
-            
-            if (!is.null(rangeOpts$throttle)) {
-                assert_is_a_number(rangeOpts$throttle)
-            }
-            
-            if (!is.null(rangeOpts$debounce)) {
-                assert_is_a_number(rangeOpts$debounce)
-            }
-            
-            minVal <- min(dd$data[['level1Label']])
-            maxVal <- max(dd$data[['level1Label']])
-            rangeOpts[['min']] <- minVal
-            rangeOpts[['max']] <- maxVal
-            
-            navOpts$hideBreadCrumb <- TRUE
-            
+            assert_is_character(dates)
+            assert_all_are_date_strings(dates,format = '%Y-%m-%d')
         }
         
-    },
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+        if (!is.null(rangeOpts$label)) {
+            assert_is_a_string(rangeOpts$label)
+        }
+        
+        if (!is.null(rangeOpts$throttle)) {
+            assert_is_a_number(rangeOpts$throttle)
+        }
+        
+        if (!is.null(rangeOpts$debounce)) {
+            assert_is_a_number(rangeOpts$debounce)
+        }
+        
+        minVal <- min(dd$data[['level1Label']])
+        maxVal <- max(dd$data[['level1Label']])
+        rangeOpts[['min']] <- minVal
+        rangeOpts[['max']] <- maxVal
+        
+        navOpts$hideBreadCrumb <- TRUE
+        
+    }
     
-
     pl <- dd$presList
-    as %in% sapply(pl,function(x) x$as) && dwhrStop('Prestentation already exists')
+    as %in% sapply(pl,function(x) x$as) && stop('Prestentation already exists')
 
     # eerst vector bijwerken
 
@@ -1856,7 +1783,7 @@ setOrdering <- function(env, dim, as,sort, as2 = NULL) {
         vc <- ml$viewColumn[ml$as == as]
     }
 
-    length(vc) > 0 || dwhrStop('invalid sortcolumn')
+    length(vc) > 0 || stop('invalid sortcolumn')
 
     if (!is.null(as2)) {
 
@@ -1870,7 +1797,7 @@ setOrdering <- function(env, dim, as,sort, as2 = NULL) {
             vc2 <- ml$viewColumn[ml$as == as2]
         }
 
-        length(vc2) > 0 || dwhrStop('invalid sortcolumn2')
+        length(vc2) > 0 || stop('invalid sortcolumn2')
 
     }
 
@@ -1921,36 +1848,46 @@ setOrdering <- function(env, dim, as,sort, as2 = NULL) {
 #'
 setSelection <- function(env,dim,sel,source = 'setSelection',dimRefresh = TRUE) {
     
-    withCallingHandlers({
-        
-        class(env) == 'star' || stop('env is not of class star')
-        assert_is_a_string(dim)
-        
-        dd <- env$dims[[dim]]
-        class(dd) == 'dimView' || stop('dim is not of class dimView')
-        
-        assert_is_data.frame(sel)
+    class(env) == 'star' || stop(paste0(dim,': env is not of class star'))
+    assert_is_a_string(dim)
     
-        length(intersect(names(sel),c('label','level'))) == 2 || stop(paste0(dim,': Invalid format selection data.frame'))
+    dd <- env$dims[[dim]]
+    class(dd) == 'dimView' || stop(paste0(dim,': dim is not of class dimView'))
+    
+    assert_is_data.frame(sel)
+    
+    length(intersect(names(sel),c('label','level'))) == 2 || stop(paste0(dim,': Invalid format selection data.frame'))
+    
+    if (!'parent' %in% names(sel)) {
+        if (any(sel$level > 1) && !dd$ignoreParent)
+            stop(paste0(dim,':missing parent column in selection data.frame'))
         
-        if (!'parent' %in% names(sel)) {
-            if (any(sel$level > 1) && !dd$ignoreParent)
-                stop(paste0(dim,':missing parent column in selection data.frame'))
-            
-            if (dd$ignoreParent || all(sel$level == 0)) {
-                sel$parent <- ''
-            } else {
-                sel$parent[sel$level == 1] <- dd$levelNames[1]
-            }
+        if (dd$ignoreParent || all(sel$level == 0)) {
+            sel$parent <- ''
+        } else {
+            sel$parent[sel$level == 1] <- dd$levelNames[1]
         }
+    }
     
-        assert_is_a_string(source)
-        assert_is_a_bool(dimRefresh)
+    for (i in 0:sel$level) {
+        for (j in sel$label[sel$level == i]) {
+            if (!any(j %in% dd$data[[paste0('level',i,'Label')]])) {
+                stop(paste0(dim,': selectLabel: ', j, ' selectLevel: ', i, ' not in data'))
+            }
+        
+            if (!dd$ignoreParent && i > 0) {
+                p <- sel$parent[sel$level == i & sel$label == j]
+                
+                if (!any(p %in% dd$data[[paste0('level',i - 1,'Label')]])) {
+                    stop(paste0(dim,': parent: ', p, ' selectLevel: ', i, ' not in data'))
+                }
+            }
+            
+        }
+    }
     
-    },
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+    assert_is_a_string(source)
+    assert_is_a_bool(dimRefresh)
     
     dd$selected$level <- as.numeric(dd$selected$level)
     sel$level <- as.numeric(sel$level)
@@ -2087,19 +2024,13 @@ getSelected <- function(data,maxLevel,selectableLevels,selectedIds) {
 #'
 dimChangeState <- function(env, dim, newState) {
     
-    withCallingHandlers({
-        
-        class(env) == 'star' || stop('env is not of class star')
-        assert_is_a_string(dim)
-        assert_is_a_string(newState)
-        
-        dd <- env$dims[[dim]]
-        class(dd) == 'dimView' || stop('dim is not of class dimView')
-    },
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
-        
+    class(env) == 'star' || stop('env is not of class star')
+    assert_is_a_string(dim)
+    assert_is_a_string(newState)
+    
+    dd <- env$dims[[dim]]
+    class(dd) == 'dimView' || stop('dim is not of class dimView')
+    
     state <- dd$state
     gdim <- dd$gdim
 
@@ -2168,17 +2099,12 @@ dimChangeState <- function(env, dim, newState) {
 #'
 getFacts <- function(file, key = NULL, useRDS = TRUE, sep = ';', fileEncoding = 'UTF-8-BOM', as.df = FALSE, header = FALSE, ...) {
     
-    withCallingHandlers({
-        assert_is_a_string(file)
-        assert_is_character(isNull(key,''))
-        assert_is_a_bool(useRDS)
-        assert_is_a_string(sep)
-        assert_is_a_string(fileEncoding)
-        assert_is_a_bool(as.df)
-    },
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+    assert_is_a_string(file)
+    assert_is_character(isNull(key,''))
+    assert_is_a_bool(useRDS)
+    assert_is_a_string(sep)
+    assert_is_a_string(fileEncoding)
+    assert_is_a_bool(as.df)
     
     if (exists('glob.env',envir = globalenv())) {
         tmpFactsFile <- paste0(getwd(),'/tmp/',glob.env$dashboardName,'_',unlist(strsplit(basename(file),'[.]'))[1],'.rds')
@@ -2243,10 +2169,10 @@ setColumnName <- function(env,dim,colFrom, viewColFrom = NULL,colTo) {
     ml <- env$dims[[dim]]$measList
     
     if (!is.null(viewColFrom)) {
-        viewColFrom %in% ml$viewColumn || dwhrStop('viewColFrom invalid')
+        viewColFrom %in% ml$viewColumn || stop('viewColFrom invalid')
         colFrom <- ml$as[ml$viewColumn == viewColFrom]
     } else {
-        colFrom %in% ml$as || dwhrStop('colFrom invalid')
+        colFrom %in% ml$as || stop('colFrom invalid')
     }
     
     if (colTo %in% ml$as)
@@ -2449,36 +2375,30 @@ runExampleDwhr <- function (example = NA, port = NULL, launch.browser = getOptio
 #' 
 changeDtFgStyle <- function(env,dim,pres,viewColumn,fgStyle = NULL) {
     
-    withCallingHandlers({
-        class(env) == 'star' || stop('env is not of class star')
-        
-        assert_is_a_string(dim)
-        dim %in% names(env$dims) || stop('Unknown dim')
-        dd <- env$dims[[dim]]
-        class(dd) == 'dimView' || stop('dim is not of class dimView')
-        
-        assert_is_a_string(pres)
-        
-        pl <- dd$presList
-        presAs <- sapply(pl,function(x) x$as)
-        pres %in% presAs || dwhrStop('Prestentation does not exist')
-        presNum <- which(presAs == pres)
-        
-        pl[[presNum]]$type == 'dataTable' || dwhrStop('Presentation is not of type dataTable')
-        
-        assert_is_a_string(viewColumn)
-        presVc <- sapply(pl[[presNum]]$dataTableOpts$measures,function(x) x$viewColumn)
-        viewColumn %in% presVc || dwhrStop('viewColumn invalid')
-        measNum <- which(presVc == viewColumn)
-
-        if (!is.null(fgStyle)) {
-            fgStyle  <- .setStyle(fgStyle)
-        }
-    },
+    class(env) == 'star' || stop('env is not of class star')
     
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+    assert_is_a_string(dim)
+    dim %in% names(env$dims) || stop('Unknown dim')
+    dd <- env$dims[[dim]]
+    class(dd) == 'dimView' || stop('dim is not of class dimView')
+    
+    assert_is_a_string(pres)
+    
+    pl <- dd$presList
+    presAs <- sapply(pl,function(x) x$as)
+    pres %in% presAs || stop('Prestentation does not exist')
+    presNum <- which(presAs == pres)
+    
+    pl[[presNum]]$type == 'dataTable' || stop('Presentation is not of type dataTable')
+    
+    assert_is_a_string(viewColumn)
+    presVc <- sapply(pl[[presNum]]$dataTableOpts$measures,function(x) x$viewColumn)
+    viewColumn %in% presVc || stop('viewColumn invalid')
+    measNum <- which(presVc == viewColumn)
+    
+    if (!is.null(fgStyle)) {
+        fgStyle  <- .setStyle(fgStyle)
+    }
     
     pl[[presNum]]$dataTableOpts$measures[[measNum]]$fgStyle.cuts <- NULL
     pl[[presNum]]$dataTableOpts$measures[[measNum]]$fgStyle.values <- NULL
@@ -2509,36 +2429,30 @@ changeDtFgStyle <- function(env,dim,pres,viewColumn,fgStyle = NULL) {
 #' 
 changeDtBgStyle <- function(env,dim,pres,viewColumn,bgStyle = NULL) {
     
-    withCallingHandlers({
-        class(env) == 'star' || stop('env is not of class star')
-        
-        assert_is_a_string(dim)
-        dim %in% names(env$dims) || stop('Unknown dim')
-        dd <- env$dims[[dim]]
-        class(dd) == 'dimView' || stop('dim is not of class dimView')
-        
-        assert_is_a_string(pres)
-        
-        pl <- dd$presList
-        presAs <- sapply(pl,function(x) x$as)
-        pres %in% presAs || dwhrStop('Prestentation does not exist')
-        presNum <- which(presAs == pres)
-        
-        pl[[presNum]]$type == 'dataTable' || dwhrStop('Presentation is not of type dataTable')
-        
-        assert_is_a_string(viewColumn)
-        presVc <- sapply(pl[[presNum]]$dataTableOpts$measures,function(x) x$viewColumn)
-        viewColumn %in% presVc || dwhrStop('viewColumn invalid')
-        measNum <- which(presVc == viewColumn)
-        
-        if (!is.null(bgStyle)) {
-            bgStyle  <- .setStyle(bgStyle)
-        }
-    },
+    class(env) == 'star' || stop('env is not of class star')
     
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+    assert_is_a_string(dim)
+    dim %in% names(env$dims) || stop('Unknown dim')
+    dd <- env$dims[[dim]]
+    class(dd) == 'dimView' || stop('dim is not of class dimView')
+    
+    assert_is_a_string(pres)
+    
+    pl <- dd$presList
+    presAs <- sapply(pl,function(x) x$as)
+    pres %in% presAs || stop('Prestentation does not exist')
+    presNum <- which(presAs == pres)
+    
+    pl[[presNum]]$type == 'dataTable' || stop('Presentation is not of type dataTable')
+    
+    assert_is_a_string(viewColumn)
+    presVc <- sapply(pl[[presNum]]$dataTableOpts$measures,function(x) x$viewColumn)
+    viewColumn %in% presVc || stop('viewColumn invalid')
+    measNum <- which(presVc == viewColumn)
+    
+    if (!is.null(bgStyle)) {
+        bgStyle  <- .setStyle(bgStyle)
+    }
     
     pl[[presNum]]$dataTableOpts$measures[[measNum]]$bgStyle.cuts <- NULL
     pl[[presNum]]$dataTableOpts$measures[[measNum]]$bgStyle.values <- NULL
@@ -2562,35 +2476,29 @@ changeDtBgStyle <- function(env,dim,pres,viewColumn,bgStyle = NULL) {
 #'
 setDtVisible <- function(env,dim,pres,viewColumn,visible) {
     
-    withCallingHandlers({
-        class(env) == 'star' || stop('env is not of class star')
-        
-        assert_is_a_string(dim)
-        dim %in% names(env$dims) || stop('Unknown dim')
-        dd <- env$dims[[dim]]
-        class(dd) == 'dimView' || stop('dim is not of class dimView')
-        
-        assert_is_a_string(pres)
-        
-        pl <- dd$presList
-        presAs <- sapply(pl,function(x) x$as)
-        pres %in% presAs || dwhrStop('Prestentation does not exist')
-        presNum <- which(presAs == pres)
-        
-        pl[[presNum]]$type == 'dataTable' || dwhrStop('Presentation is not of type dataTable')
-        
-        assert_is_character(viewColumn)
-        presVc <- sapply(pl[[presNum]]$dataTableOpts$measures,function(x) x$viewColumn)
-        viewColumn %in% presVc || dwhrStop('viewColumn invalid')
-        measNum <- which(presVc %in% viewColumn)
-        
-        assert_is_a_bool(visible)
-    },
+    class(env) == 'star' || stop('env is not of class star')
     
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+    assert_is_a_string(dim)
+    dim %in% names(env$dims) || stop('Unknown dim')
+    dd <- env$dims[[dim]]
+    class(dd) == 'dimView' || stop('dim is not of class dimView')
     
+    assert_is_a_string(pres)
+    
+    pl <- dd$presList
+    presAs <- sapply(pl,function(x) x$as)
+    pres %in% presAs || stop('Prestentation does not exist')
+    presNum <- which(presAs == pres)
+    
+    pl[[presNum]]$type == 'dataTable' || stop('Presentation is not of type dataTable')
+    
+    assert_is_character(viewColumn)
+    presVc <- sapply(pl[[presNum]]$dataTableOpts$measures,function(x) x$viewColumn)
+    viewColumn %in% presVc || stop('viewColumn invalid')
+    measNum <- which(presVc %in% viewColumn)
+    
+    assert_is_a_bool(visible)
+
     for (x in measNum)
         pl[[presNum]]$dataTableOpts$measures[[x]]$visible <- visible
     

@@ -1,11 +1,4 @@
 
-dwhrStop <- function(mes) {
-    session <- shiny::getDefaultReactiveDomain()
-    if (!is.null(session)) {
-        shinyjs::logjs(mes)
-    }
-    stop(mes)
-}
 
 printDebug <- function(env, dim, dumpReactive = NULL, eventIn, eventOut = NULL, info = NULL){
 
@@ -72,12 +65,12 @@ domains <- list(
 
 domainCheck <- function(x,domain,minLength = 0, maxLength = 100000L) {
 
-    if(!length(x) %in% minLength:maxLength) dwhrStop('Invalid length')
+    if(!length(x) %in% minLength:maxLength) stop('Invalid length')
     if(length(x) == 0) return()
     if(domain == 'length') return()
-    if(is.null(domains[[domain]])) dwhrStop('Unknown domain')
+    if(is.null(domains[[domain]])) stop('Unknown domain')
     if(length(setdiff(x, domains[[domain]])) != 0) {
-        dwhrStop(paste0('Invalid ', domain))
+        stop(paste0('Invalid ', domain))
     } else {
         return()
     }
@@ -150,7 +143,7 @@ getSelectedIds <- function(env, dim, selected = NULL) {
     data <- dd$data
     keyColumn <- names(data)[1]
 
-    is.null(selected) || length(setdiff(c('level','parent','label'),names(selected))) == 0 || dwhrStop('Invalid selected parameter')
+    is.null(selected) || length(setdiff(c('level','parent','label'),names(selected))) == 0 || stop('Invalid selected parameter')
 
     s <- isNull(selected,dd$selected)
     ids <- NULL
@@ -805,7 +798,7 @@ getCache <- function(env) {
 
         if (is.na(file.info(cacheFile)$mtime)) {
 
-            dwhrStop(paste0('cacheFile: ',cacheFile,' not Found'))
+            stop(paste0('cacheFile: ',cacheFile,' not Found'))
 
         } else {
 
@@ -837,21 +830,21 @@ dwhrMerge <- function(cumDT,incDT,keyCols,noDeletes = TRUE) {
     mutCols <- setdiff(names(cumDT),keyCols)
 
     if (!'data.table' %in% class(cumDT)) {
-        dwhrStop('dwhMerge: cumDT must be of class data.table.')
+        stop('dwhMerge: cumDT must be of class data.table.')
     } 
     
     if (!'data.table' %in% class(incDT)) {
-        dwhrStop('dwhMerge: incDT must be of class data.table.')
+        stop('dwhMerge: incDT must be of class data.table.')
     } 
     
     if (!identical(sort(names(cumDT)), sort(names(incDT)))) {
-        dwhrStop('dwhMerge: column names differ')
+        stop('dwhMerge: column names differ')
     }
   
     incDT <- copy(incDT[,names(cumDT), with = FALSE])
 
     if (!identical(sapply(cumDT,class), sapply(incDT,class))) {
-        dwhrStop('dwhMerge: types differ')
+        stop('dwhMerge: types differ')
     }
 
     # update
@@ -882,6 +875,8 @@ latexEscape <- function(paragraph) {
     # This is made more complicated because the dollars will be escaped
     # by the subsequent replacement. Easiest to add \backslash
     # now and then add the dollars
+  
+    paragraph <- trimws(paragraph)
     
     paragraph <- gsub('\\\\','\\\\backslash',paragraph)
     #$paragraph =~ s/\\/\\backslash/g;
