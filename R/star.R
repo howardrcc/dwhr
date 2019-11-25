@@ -360,7 +360,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
                 }
                 
                 if (!fun %in% domains[['aggregateFun']]) {
-                    measFun <- paste0(measFun,"custom('",fun,"',",factColumn,")")
+                    measFun <- paste0(measFun,"custom('",fun,"',.SD)")
                 }
             }
 
@@ -368,10 +368,9 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
 
         measFun <- paste0(measFun,')')
         
-        custom <- function(fun,col) {
-            do.call(fun,list(col),envir = env$ce)
+        custom <- function(fun,sd) {
+            do.call(fun,list(env,dim,sd),envir = env$ce)
         }
-        
         
         if (lvl == 0) {
             
@@ -460,6 +459,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
             
             e$type <- 'body'
             e$df <- body
+            
             bdy <- do.call(what = fun, args = list(), envir = e)
             if (is.vector(bdy) && length(bdy) == nrow(body)) {
                 body[[vc]] <- bdy

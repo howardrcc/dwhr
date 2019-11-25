@@ -202,7 +202,7 @@ addDimView <- function(
     selectLabel = levelNames[1], selectParent = NULL, state = 'enabled', type = 'bidir', selectMode = 'single', useLevels = NULL,
     cntName = 'cnt', itemName = 'Naam', ignoreDims = NULL, leafOnly = FALSE, fixedMembers = FALSE, keepUnused = FALSE,
     na.rm = TRUE, orderBy = 'name', selectableLevels = NULL, footerLevels = NA_integer_ , presListType = 'dropdown',
-    returnPrepData = FALSE, selectedIds = NULL) {
+    returnPrepData = FALSE, selectedIds = NULL, ignoreParent = FALSE) {
 
     withCallingHandlers({
         class(env) == 'star' || stop('env is not of class star')
@@ -242,6 +242,7 @@ addDimView <- function(
         assert_is_a_string(presListType)
         assert_is_subset(presListType,domains[['presListType']])
         assert_is_subset(isNull(selectedIds,data[1,1]),data[[1]])
+        assert_is_a_bool(ignoreParent)
         
         if (!is.null(selectedIds) || selectMode == 'none') {
             selectLevel <- 0
@@ -665,6 +666,7 @@ addDimView <- function(
     l$pres <- 'stub'
     l$state <- state
     l$debounce <- TRUE
+    l$ignoreParent <- ignoreParent
     
     l$factsFilteredDim <- shiny::reactive({
         
@@ -1928,7 +1930,19 @@ setSelection <- function(env,dim,sel,source = 'setSelection',dimRefresh = TRUE) 
         class(dd) == 'dimView' || stop('dim is not of class dimView')
         
         assert_is_data.frame(sel)
-        length(intersect(names(sel),c('label','parent','level'))) == 3 || stop('Invalid format selection data.frame')
+    
+        length(intersect(names(sel),c('label','level'))) == 2 || stop(paste0(dim,': Invalid format selection data.frame'))
+        
+        if (!'parent' %in% names(sel)) {
+            if (any(sel$level > 1) && !dd$ignoreParent)
+                stop(paste0(dim,':missing parent column in selection data.frame'))
+            
+            if (dd$ignoreParent || all(sel$level == 0)) {
+                sel$parent <- ''
+            } else {
+                sel$parent[sel$level == 1] <- dd$levelNames[1]
+            }
+        }
     
         assert_is_a_string(source)
         assert_is_a_bool(dimRefresh)

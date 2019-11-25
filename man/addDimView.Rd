@@ -12,7 +12,7 @@ addDimView(env, dim, name, data, levelNames, initLevel = 0,
   fixedMembers = FALSE, keepUnused = FALSE, na.rm = TRUE,
   orderBy = "name", selectableLevels = NULL,
   footerLevels = NA_integer_, presListType = "dropdown",
-  returnPrepData = FALSE, selectedIds = NULL)
+  returnPrepData = FALSE, selectedIds = NULL, ignoreParent = FALSE)
 }
 \arguments{
 \item{env}{sterschema-object, gemaakt met \code{\link{new.star}}}
