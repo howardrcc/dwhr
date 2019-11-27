@@ -316,6 +316,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
             narm <- 'na.rm = FALSE'
         }
         
+        hasCustom <- FALSE
         measFun <- 'list(cnt = .N'
 
         for (q in meas$as[order(meas$sort)]) {
@@ -353,6 +354,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
                 }
                 
                 if (!fun %in% domains[['aggregateFun']]) {
+                    hasCustom <- TRUE
                     measFun <- paste0(measFun,"custom('",fun,"',.SD)")
                 }
             }
@@ -367,7 +369,10 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
         
         if (lvl == 0) {
             
-            body <- tmp[,eval(expr = parse(text = measFun)),by = level0Label]
+            if (hasCustom)
+                body <- tmp[,eval(expr = parse(text = measFun)),by = level0Label, .SDcols = names(env$facts)]
+            else 
+                body <- tmp[,eval(expr = parse(text = measFun)),by = level0Label]
             
             if(lvl %in% dd$footerLevels) {
                 footer <- body
@@ -380,18 +385,33 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
             } else {
                 parentFilter <- paste0('level', lvl - 1, 'Label == parent')
             }
+            
             byText <- paste0('level',lvl,'Label')
             
-            body <- tmp[eval(expr = parse(text = parentFilter)),
-                        eval(expr = parse(text = measFun)),
-                        by = eval(expr = parse(text = byText))]
+            if (hasCustom) {
+                body <- tmp[eval(expr = parse(text = parentFilter)),
+                            eval(expr = parse(text = measFun)),
+                            by = eval(expr = parse(text = byText)),
+                            .SDcols = names(env$facts)]
+            } else {
+                body <- tmp[eval(expr = parse(text = parentFilter)),
+                            eval(expr = parse(text = measFun)),
+                            by = eval(expr = parse(text = byText))]
+            }
             
             if(lvl %in% dd$footerLevels) {
                 byText <- paste0('level',lvl - 1,'Label')
                 
-                footer <- tmp[eval(expr = parse(text = parentFilter)),
-                              eval(expr = parse(text = measFun)),
-                              by = eval(expr = parse(text = byText))]
+                if (hasCustom) {
+                    footer <- tmp[eval(expr = parse(text = parentFilter)),
+                                  eval(expr = parse(text = measFun)),
+                                  by = eval(expr = parse(text = byText)),
+                                  .SDcols = names(env$facts)]
+                } else {
+                    footer <- tmp[eval(expr = parse(text = parentFilter)),
+                                  eval(expr = parse(text = measFun)),
+                                  by = eval(expr = parse(text = byText))]
+                }
                 
             }
         }
@@ -798,7 +818,7 @@ getCache <- function(env) {
 
         if (is.na(file.info(cacheFile)$mtime)) {
 
-            stop(paste0('cacheFile: ',cacheFile,' not Found'))
+            #stop(paste0('cacheFile: ',cacheFile,' not Found'))
 
         } else {
 
