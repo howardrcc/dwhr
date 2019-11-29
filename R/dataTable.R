@@ -1045,7 +1045,7 @@ print('cells_selected')
         }
 
         l <- dd$selected
-
+        
         if(!(dd$msState) && nrow(l) <= 1 && length(selected) > 0) {
 
             # single select
@@ -1062,7 +1062,10 @@ print('cells_selected')
             # multi select
 
             if(nrow(l) > 0) {
-                l <- l[!(l$level == level & l$parent == parent),]
+                if (isNull(dd$ignoreParent,FALSE))
+                    l <- l[!(l$level == level),]
+                else 
+                    l <- l[!(l$level == level & l$parent == parent),]
             }
 
             if(length(selected) > 0) {

@@ -1869,7 +1869,7 @@ setSelection <- function(env,dim,sel,source = 'setSelection',dimRefresh = TRUE) 
         }
     }
     
-    for (i in 0:sel$level) {
+    for (i in sel$level) {
         for (j in sel$label[sel$level == i]) {
             if (!any(j %in% dd$data[[paste0('level',i,'Label')]])) {
                 stop(paste0(dim,': selectLabel: ', j, ' selectLevel: ', i, ' not in data'))
@@ -1885,7 +1885,7 @@ setSelection <- function(env,dim,sel,source = 'setSelection',dimRefresh = TRUE) 
             
         }
     }
-    
+
     assert_is_a_string(source)
     assert_is_a_bool(dimRefresh)
     
@@ -1920,7 +1920,12 @@ setSelection2 <- function(env,dim,dimOrg,source = 'setSelection',dimRefresh = TR
         
         dd$debounce <- FALSE
  
-        dd$selected <- getSelected(dd$data,dd$maxLevel,dd$selectableLevels,selIds)
+        if (isNull(dd$ignoreParent,FALSE))
+            dd$selected <- sel
+        else 
+            dd$selected <- getSelected(dd$data,dd$maxLevel,dd$selectableLevels,selIds)
+        
+        
         dd$selectSource <- source
         
         if (isNull(dd$syncNav,FALSE)) {
