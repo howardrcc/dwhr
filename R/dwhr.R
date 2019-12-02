@@ -213,11 +213,11 @@ addDimView <- function(
     assert_is_character(selectLabel)
     assert_is_a_string(isNull(selectParent,''))
     assert_is_a_string(state)
-    state %in% c('enabled','disabled','hidden') || stop('invalid state parameter')
+    state %in% c('enabled','disabled','hidden') || stop(paste0(dim,': invalid state parameter'))
     assert_is_a_string(type)
-    type %in% c('bidir','input','output') || stop('invalid type parameter')
+    type %in% c('bidir','input','output') || stop(paste0(dim,': invalid type parameter'))
     assert_is_a_string(selectMode)
-    selectMode %in% c('none','single','multi') || stop('invalid selectMode parameter')
+    selectMode %in% c('none','single','multi') || stop(paste0(dim,': invalid selectMode parameter'))
     assert_is_numeric(isNull(useLevels,0))
     useLevels <- as.integer(useLevels)
     assert_is_numeric(isNull(selectableLevels,0))
@@ -260,12 +260,12 @@ addDimView <- function(
     lapply(c(1:maxLevel),function(x) {
         label <- paste0('level',x,'Label')
         code <- paste0('level',x,'Code')
-        label %in% names(data) || stop(paste0('level',x,'Label missing in data'))
+        label %in% names(data) || stop(paste0(dim, ': level',x,'Label missing in data'))
         if (!code %in% names(data)) {
             data[[code]] <<- data[[label]]
         }
         
-        length(unique(data[[code]])) >= length(unique(data[[label]])) || stop(paste0('level',x,'Code is no key for level',x,'Label'))
+        length(unique(data[[code]])) >= length(unique(data[[label]])) || stop(paste0(dim, ': level',x,'Code is no key for level',x,'Label'))
     })
     
     # filter dimension data 
@@ -277,7 +277,7 @@ addDimView <- function(
         keyColumn %in% names(env$facts) || stop(paste0('keyColumn ', dim, ' is not a foreign key in fact-table'))
         if (!keepUnused) {
             data <- data[data[[keyColumn]] %in% unique(env$facts[[keyColumn]]),]
-            nrow(data) > 0 || stop('dimension and facts are completely disjoint')
+            nrow(data) > 0 || stop(paste0(dim, ': dimension and facts are completely disjoint'))
         }
     }
     
@@ -526,6 +526,7 @@ addDimView <- function(
     l <- new.env(parent = emptyenv())
     class(l) <- 'dimView'
     
+    l$dim <- dim
     l$org <- org
     l$presListType <- presListType
     l$call <- match.call()
@@ -706,7 +707,7 @@ addDimView <- function(
     meas <- ml[ml$as %in% as,]
     if (nrow(meas) > 0)
         any(sapply(levels,function(x) { bitwAnd(2**x,meas$applyToLevels) %in% 2**x })) &&
-            stop('as already exists for these levels')
+            stop(paste0(dd$dim, ': as already exists for these levels'))
     as
 }
 
@@ -719,7 +720,7 @@ addDimView <- function(
         mx <- max(ml$sort[ml$sort < 999])
         sort <- c((mx + 1):(mx + len))
     } else {
-        length(sort) %in% c(1,len) || stop('Invalid length sort')
+        length(sort) %in% c(1,len) || stop(paste0(dd$dim, ': Invalid length sort'))
     }
 
     sort
@@ -734,9 +735,9 @@ addDimView <- function(
     meas <- ml[ml$viewColumn %in% viewColumn,]
     if (nrow(meas) > 0)
         any(sapply(levels,function(x) { bitwAnd(2**x,meas$applyToLevels) %in% 2**x })) &&
-            stop('viewColumn already exists for these levels')
+            stop(paste0(dd$dim, ': viewColumn already exists for these levels'))
     any(sapply(glob.env$reservedColumnPatterns,function(x) {length(grep(x,viewColumn)) > 0})) &&
-        stop('viewColumn contains reserved names')
+        stop(paste0(dd$dim, ': viewColumn contains reserved names'))
 
     viewColumn
 }
@@ -752,7 +753,7 @@ addDimView <- function(
 
     if (!is.null(formatColumn)) {
         assert_is_character(formatColumn)
-        formatColumn %in% names(dd$data) || stop('Invalid formatColumn')
+        formatColumn %in% names(dd$data) || stop(paste0(dd$dim, ': Invalid formatColumn'))
         length(formatColumn) %in% c(1,length(as)) || stop('Invalid length formatColumn')
         lapply(unique(formatColumn),function (x) assert_is_subset(dd$data[[x]],domains[['format']]))
     }
@@ -2391,7 +2392,7 @@ changeDtFgStyle <- function(env,dim,pres,viewColumn,fgStyle = NULL) {
     
     pl <- dd$presList
     presAs <- sapply(pl,function(x) x$as)
-    pres %in% presAs || stop('Prestentation does not exist')
+    pres %in% presAs || stop(paste0(dim, ': Prestentation does not exist'))
     presNum <- which(presAs == pres)
     
     pl[[presNum]]$type == 'dataTable' || stop('Presentation is not of type dataTable')
