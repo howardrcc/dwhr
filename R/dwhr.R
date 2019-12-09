@@ -7,6 +7,7 @@
 #' @param session een shiny sessie object.
 #' @param facts dataframe met aggregeerbare meetwaarden en foreign-keys naar dimView-dataframes
 #' @param caching boolean, controleert de caching van geaggreerde meetwaarden. Te gebruiken bij grote feiten-tabellen. default FALSE
+#' @param mtimeData POSIXct, modificatie tijd van data. Dit om te beoordelen of cache te gebruiken is. Verplicht als caching actief.
 #' @param foreignKeyCheck boolean, bepaalt of er een foreignkey-check wordt uitgevoerd. default TRUE
 #'
 #' @return resultaat een sterschema-object van klasse 'star'. Resultaat is een environment met velden:
@@ -16,7 +17,7 @@
 #'     }  .
 #'
 #' @export
-new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = TRUE) {
+new.star <- function(starId, session, facts, caching = FALSE, mtimeData = NULL, foreignKeyCheck = TRUE) {
 
     assert_is_a_string(starId)
     assert_is_data.frame(facts)
@@ -53,8 +54,12 @@ new.star <- function(starId, session, facts, caching = FALSE, foreignKeyCheck = 
     env$foreignKeyCheck <- foreignKeyCheck
     env$session <- session
 
-    if (env$caching)
-        getCache(env)
+    if (env$caching) {
+        !is.null(mtimeData) || stop('mtimeData nodig voor caching')
+        any(class(mtimeData) %in% c("POSIXct", "POSIXt")) || stop('mtimeData niet van juiste klasse') 
+        getCache(env,mtimeData)
+    }
+        
 
     # vars for datatable renderer
 
@@ -1868,6 +1873,8 @@ setSelection <- function(env,dim,sel,source = 'setSelection',dimRefresh = TRUE) 
         } else {
             sel$parent[sel$level == 1] <- dd$levelNames[1]
         }
+        
+        sel <- sel[c('level','parent','label')]
     }
     
     for (i in sel$level) {

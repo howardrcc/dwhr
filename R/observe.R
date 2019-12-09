@@ -188,12 +188,9 @@ startObserversData <- function(env,dim) {
                 
                 ids <- getSelectedIds(env,dim)
                 
-                if(length(ids) == 0) {
-                    browser()
-                }
-
+                
                 if (!(identical(ids,dd$selectedIds))) {
-                    
+                
                     dd$selectedIds <- ids
                     
                     if (dd$selectSource != 'observeEvent') {

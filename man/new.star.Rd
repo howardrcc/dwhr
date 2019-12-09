@@ -4,7 +4,7 @@
 \alias{new.star}
 \title{Creeer nieuw sterschema-object.}
 \usage{
-new.star(starId, session, facts, caching = FALSE,
+new.star(starId, session, facts, caching = FALSE, mtimeData = NULL,
   foreignKeyCheck = TRUE)
 }
 \arguments{
@@ -15,6 +15,8 @@ new.star(starId, session, facts, caching = FALSE,
 \item{facts}{dataframe met aggregeerbare meetwaarden en foreign-keys naar dimView-dataframes}
 
 \item{caching}{boolean, controleert de caching van geaggreerde meetwaarden. Te gebruiken bij grote feiten-tabellen. default FALSE}
+
+\item{mtimeData}{POSIXct, modificatie tijd van data. Dit om te beoordelen of cache te gebruiken is. Verplicht als caching actief.}
 
 \item{foreignKeyCheck}{boolean, bepaalt of er een foreignkey-check wordt uitgevoerd. default TRUE}
 }

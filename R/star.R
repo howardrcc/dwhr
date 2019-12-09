@@ -818,13 +818,15 @@ getCacheFile <- function() {
     paste0(getwd(), '/tmp/', glob.env$dashboardName, 'Cache.rds')
 }
 
-getCache <- function(env) {
+getCache <- function(env,mtimeData) {
 
     cacheFile <- getCacheFile()
 
     if (glob.env$sessionCount == 1) {
+      
+        mtimeCache <- file.info(cacheFile)$mtime
 
-        if (!is.na(file.info(cacheFile)$mtime)) {
+        if (!is.na(mtimeCache) && mtimeCache > mtimeData) {
             glob.env$globalCache <- readRDS(cacheFile)
         }
     }
