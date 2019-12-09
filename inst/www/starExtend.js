@@ -465,6 +465,12 @@ batchStateFinished = false;
 
 shinyjs.init = function() {
    
+  
+    $(document).on('shiny:idle', function(event) {
+        $("#app-content").unblock()
+        
+    });
+    
     $(window).resize(function(){
         if (typeof Shiny.onInputChange != 'undefined') {
             Shiny.onInputChange('windowHeight',{height: window.innerHeight});

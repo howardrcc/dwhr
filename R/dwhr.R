@@ -654,7 +654,6 @@ addDimView <- function(
     })
     l$pres <- 'stub'
     l$state <- state
-    l$debounce <- TRUE
     l$ignoreParent <- ignoreParent
     
     l$factsFilteredDim <- shiny::reactive({
@@ -1895,7 +1894,6 @@ setSelection <- function(env,dim,sel,source = 'setSelection',dimRefresh = TRUE) 
     sel$level <- as.numeric(sel$level)
 
     if (!identical(dd$selected, sel)) {
-        dd$debounce <- FALSE
         dd$selected <- sel
         dd$selectSource <- source
         dd$rowLastAccessed$value[dd$rowLastAccessed$level == sel$level[1]] <- sel$label[1]
@@ -1919,8 +1917,6 @@ setSelection2 <- function(env,dim,dimOrg,source = 'setSelection',dimRefresh = TR
     dd <- env$dims[[dim]]
 
     if (!identical(dd$selectedIds, selIds)) {
-        
-        dd$debounce <- FALSE
  
         if (isNull(dd$ignoreParent,FALSE))
             dd$selected <- sel
@@ -1948,7 +1944,7 @@ setSelection2 <- function(env,dim,dimOrg,source = 'setSelection',dimRefresh = TR
 
 getSelected <- function(data,maxLevel,selectableLevels,selectedIds) {
     
-    if (length(selectedIds) >= nrow(data)) {
+    if (length(selectedIds) >= nrow(data) && (0 %in% selectableLevels)) {
         return(data.frame(
             level = 0,
             parent = "",
@@ -1958,7 +1954,7 @@ getSelected <- function(data,maxLevel,selectableLevels,selectedIds) {
     
     keyCol <- names(data)[1]
     
-    if (maxLevel == 1) {
+    if (maxLevel == 1 && (1 %in% selectableLevels)) {
         return(data.frame(
             level = 1,
             parent = unique(data$level0Label)[1],
@@ -1971,26 +1967,29 @@ getSelected <- function(data,maxLevel,selectableLevels,selectedIds) {
     
     for (lvl in 1:(maxLevel - 1)) {
         
-        cols <- c(paste0('level',lvl - 1,'Label'),paste0('level',lvl,'Label'))
-        zz <- dt[dt[[keyCol]] %in% selectedIds,list(aantal = eval(parse(text = paste0('length(',keyCol,')')))),by = cols]
-        names(zz) <- c('parent','label','aantal')
-        
-        xx <- dt[,list(aantal = eval(parse(text = paste0('length(',keyCol,')')))),by = cols]
-        names(xx) <- c('parent','label','aantal')
-        
-        yy <- xx[zz,on = c('parent','label','aantal'),nomatch = 0]
-        
-        if (nrow(yy) > 0) {
-            sel <- rbind(
-                sel,
-                data.frame(
-                    level = as.integer(lvl),
-                    parent = yy$parent,
-                    label = yy$label,
-                    stringsAsFactors = FALSE))
+        if (lvl %in% selectableLevels) {
             
-            names(yy) <- c(cols,'aantal')
-            selectedIds <- setdiff(selectedIds,dt[yy,on = cols,nomatch = 0][[keyCol]])
+            cols <- c(paste0('level',lvl - 1,'Label'),paste0('level',lvl,'Label'))
+            zz <- dt[dt[[keyCol]] %in% selectedIds,list(aantal = eval(parse(text = paste0('length(',keyCol,')')))),by = cols]
+            names(zz) <- c('parent','label','aantal')
+            
+            xx <- dt[,list(aantal = eval(parse(text = paste0('length(',keyCol,')')))),by = cols]
+            names(xx) <- c('parent','label','aantal')
+            
+            yy <- xx[zz,on = c('parent','label','aantal'),nomatch = 0]
+            
+            if (nrow(yy) > 0) {
+                sel <- rbind(
+                    sel,
+                    data.frame(
+                        level = as.integer(lvl),
+                        parent = yy$parent,
+                        label = yy$label,
+                        stringsAsFactors = FALSE))
+                
+                names(yy) <- c(cols,'aantal')
+                selectedIds <- setdiff(selectedIds,dt[yy,on = cols,nomatch = 0][[keyCol]])
+            }
         }
     }
     
@@ -2247,7 +2246,6 @@ clone.star <- function(from, toId, facts = NULL, dimViews = NULL, checkUiId = FA
                 eval(mCall, envir = from$ce)
             }
          
-            
             if(isNull(dimViews[[dv]]$derrivedMeasures,TRUE)) {
                 
                 for(dmCall in from$dims[[dv]]$derrivedMeasureCalls) {

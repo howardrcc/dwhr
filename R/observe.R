@@ -210,14 +210,10 @@ startObserversData <- function(env,dim) {
                         }
                     }
                     
-                    if (dd$debounce) {
-                        shinyjs::js$blockUI(
-                            timeout = glob.env$debounceTimeout,
-                            backgroundColor = glob.env$debounceBackgroundColor,
-                            opacity = glob.env$debounceOpacity)
-                    } else {
-                        dd$debounce <- TRUE
-                    }
+                    shinyjs::js$blockUI(
+                        timeout = glob.env$debounceTimeout,
+                        backgroundColor = glob.env$debounceBackgroundColor,
+                        opacity = glob.env$debounceOpacity)
                     
                     if (is.null(dd$parentDim)) {
                         

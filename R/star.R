@@ -76,28 +76,31 @@ domainCheck <- function(x,domain,minLength = 0, maxLength = 100000L) {
     }
 }
 
+getMd5Selection <- function(env)  {
+    
+    ss <- NULL
+    for (d in sort(filteringDims(env))) {
+        if (any(env$dims[[d]]$selected$level > 0))
+            ss <- rbind(ss,env$dims[[d]]$selected)
+    }
+    
+   digest::digest(ss,algo = 'md5')
+}
+
 cacheDim <- function(env,dim,dfl) {
 
     if (!env$caching) {
         return()
     }
-
-    ss <- NULL
-    for (d in sort(filteringDims(env))) {
-
-        ss <- rbind(ss,env$dims[[d]]$selected)
-    }
-
+    
     lvl <- as.character(env$dims[[dim]]$level)
     parent <- env$dims[[dim]]$parent
-
+    
     if (parent == '') {
         parent <- 'x'
     }
-
-    md5 <- digest::digest(ss,algo = 'md5')
-
-    env$globalCache[[env$id]][[dim]][[parent]][[lvl]][[md5]] <- dfl
+    
+    glob.env$globalCache[[getMd5Selection(env)]][[dim]][[parent]][[lvl]] <- dfl
 
 }
 
@@ -107,24 +110,16 @@ cacheFind <- function(env, dim) {
         return()
     }
     
-    gdim <- env$dims[[dim]]$gdim
-
-    ss <- NULL
-    for (d in sort(filteringDims(env))) {
-
-        ss <- rbind(ss,env$dims[[d]]$selected)
-    }
-
     lvl <- as.character(env$dims[[dim]]$level)
     parent <- env$dims[[dim]]$parent
-
+    
     if (parent == '') {
         parent <- 'x'
     }
+    
+    gdim <- env$dims[[dim]]$gdim
 
-    md5 <- digest::digest(ss,algo = 'md5')
-
-    dfl <- env$globalCache[[env$id]][[dim]][[parent]][[lvl]][[md5]]
+    dfl <- glob.env$globalCache[[getMd5Selection(env)]][[dim]][[parent]][[lvl]]
 
     if(!is.null(dfl)) {
         print(paste0(gdim, ': cacheHit!'))
@@ -132,6 +127,19 @@ cacheFind <- function(env, dim) {
 
     dfl
 
+}
+
+#'
+#' @export
+#' 
+invalidateCache <- function(env) {
+    
+    if (!env$caching) {
+        return()
+    }
+    
+    glob.env$globalCache[[getMd5Selection(env)]] <- NULL   
+    
 }
 
 #'
@@ -806,23 +814,18 @@ isNa <- function(x,y) {
     if(is.na(x)) y else x
 }
 
-getCacheFile <- function(id) {
-    paste0(getwd(), '/tmp/', glob.env$dashboardName, '_', id, '_cache.rds')
+getCacheFile <- function() {
+    paste0(getwd(), '/tmp/', glob.env$dashboardName, 'Cache.rds')
 }
 
 getCache <- function(env) {
 
-    cacheFile <- getCacheFile(env$id)
+    cacheFile <- getCacheFile()
 
     if (glob.env$sessionCount == 1) {
 
-        if (is.na(file.info(cacheFile)$mtime)) {
-
-            #stop(paste0('cacheFile: ',cacheFile,' not Found'))
-
-        } else {
-
-            glob.env$globalCache[[env$id]] <- readRDS(cacheFile)
+        if (!is.na(file.info(cacheFile)$mtime)) {
+            glob.env$globalCache <- readRDS(cacheFile)
         }
     }
 
@@ -831,15 +834,6 @@ getCache <- function(env) {
 
 getGlobalId <- function(starId,dim) {
     paste0(starId,toupper(substr(dim,1,1)),substr(dim,2,100))   
-}
-
-getZoom <- function(env,dim) {
-    
-    dd <- env$dims[[dim]]
-    members <- dd$membersFiltered$member
-    if (dd$level == dd$maxLevel) 
-        return (' ')
-    
 }
 
 #'

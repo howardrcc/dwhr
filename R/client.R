@@ -273,16 +273,14 @@ authenticate <- function(session) {
         if(exists(paste0('sessionEndHook'),envir = ce)) {
             do.call(paste0('sessionEndHook'),list(session = session),envir = ce)
         }
-        
+
         if (glob.env$sessionCount == 0) {
             
             print('Closing ODBC connections')
             RODBC::odbcCloseAll()
             
             if (exists('globalCache', env = glob.env)) {
-                for (id in names(glob.env$globalCache)) {
-                    saveRDS(glob.env$globalCache[[id]],getCacheFile(id))
-                }
+                saveRDS(glob.env$globalCache, getCacheFile())
             }
             
             rm(glob.env, envir = .GlobalEnv)
