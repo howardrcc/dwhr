@@ -2266,6 +2266,7 @@ clone.star <- function(from, toId, facts = NULL, dimViews = NULL, checkUiId = FA
                     if (!is.null(dimViews[[dv]]$presentations)) {
                         
                         if (is.character(dimViews[[dv]]$presentations)) {
+                            dimViews[[dv]]$presentations %in% pres || stop('Invalid presentation-names in clone')
                             pres <- dimViews[[dv]]$presentations
                         } else {
                             if (is.logical(dimViews[[dv]]$presentations) && !dimViews[[dv]]$presentations) 
