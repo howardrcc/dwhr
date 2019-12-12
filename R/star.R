@@ -455,7 +455,10 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
 
             vc <- meas$viewColumn[meas$processingOrder == ordr]
             fun <- meas$fun[meas$processingOrder == ordr]
-
+            
+            if (glob.env$debug)
+                print(paste0(dd$gdim,' derrivedMeasure: ',fun))
+                
             e <- new.env(parent = env$ce)
             assign(fun,get(fun,envir = env$ce), envir = e)
 

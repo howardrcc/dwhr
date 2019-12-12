@@ -177,6 +177,7 @@ startObserversData <- function(env,dim) {
             if(dd$reactive$selectChange > 0 && !dd$wait) {
 
                 if(exists(paste0(dim,'SelectChangeHook'),envir = env$ce)) {
+                    print(paste0(gdim,'SelectChangeHook'))
                     do.call(paste0(dim,'SelectChangeHook'),list(env = env),envir = env$ce)
                 }
 

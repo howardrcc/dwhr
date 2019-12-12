@@ -246,6 +246,7 @@ addDimView <- function(
         selectLevel <- 0
         selectLabel <- levelNames[1]
         selectParent <- NULL
+        selectableLevels <- NULL
     }
     
     maxLevel <- length(levelNames) - 1
@@ -1830,7 +1831,8 @@ setOrdering <- function(env, dim, as,sort, as2 = NULL) {
     if (change && isNull(dd$syncNav,FALSE) && (as.character(sys.call(-3)) != 'setOrdering')) {
         lapply(union(dd$parentDim,dd$childDims), function(x) setOrdering(env = env, dim = x, as = as, sort = ord, as2 = as2))
     }
-    change
+    
+    env
 }
 
 #'
@@ -1868,10 +1870,10 @@ setSelection <- function(env,dim,sel,source = 'setSelection',dimRefresh = TRUE) 
         if (any(sel$level > 1) && !dd$ignoreParent)
             stop(paste0(dim,': missing parent column in selection data.frame'))
         
-        if (dd$ignoreParent || all(sel$level == 0)) {
+        if (all(sel$level == 0)) {
             sel$parent <- ''
         } else {
-            sel$parent[sel$level == 1] <- dd$levelNames[1]
+            sel$parent <- dd$levelNames[1]
         }
         
         sel <- sel[c('level','parent','label')]
@@ -2224,6 +2226,8 @@ setDebug <- function(debug,debugDims = NULL) {
 #'
 clone.star <- function(from, toId, facts = NULL, dimViews = NULL, checkUiId = FALSE, print = FALSE) {
     
+    dimViewPars <- c('state','initLevel','initParent','selectLevel','selectParent','selectLabel','selectMode')
+    
     call <- from$call
     call$starId <- toId
     
@@ -2233,13 +2237,17 @@ clone.star <- function(from, toId, facts = NULL, dimViews = NULL, checkUiId = FA
     
     to <- eval(call, envir = from$ce)
     
+    names(dimViews) %in% names(from$dims) || stop('dimView(s) bestaan niet in from')
+        
     for (dv in names(dimViews)) {
         
         call <- from$dims[[dv]]$call
         call$env <- to
-        
-        if (!is.null(dimViews[[dv]]$state)) {
-            call$state <- dimViews[[dv]]$state
+
+        for (par in dimViewPars) {
+            if (!is.null(dimViews[[dv]][[par]])) {
+                call[[par]] <- dimViews[[dv]][[par]]
+            }
         }
         
         eval(call, envir = from$ce)
