@@ -4,7 +4,8 @@
 \alias{setSelection}
 \title{Zet programmatisch de selectie van een dimView.}
 \usage{
-setSelection(env, dim, sel, source = "setSelection", dimRefresh = TRUE)
+setSelection(env, dim, sel, source = "setSelection", dimRefresh = TRUE,
+  selectChange = TRUE)
 }
 \arguments{
 \item{env}{sterschema object, gecreeerd met \code{\link{new.star}}.}

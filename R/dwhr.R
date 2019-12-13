@@ -1854,7 +1854,7 @@ setOrdering <- function(env, dim, as,sort, as2 = NULL) {
 #' 
 #'@export
 #'
-setSelection <- function(env,dim,sel,source = 'setSelection',dimRefresh = TRUE) {
+setSelection <- function(env,dim,sel,source = 'setSelection',dimRefresh = TRUE,selectChange = TRUE) {
     
     class(env) == 'star' || stop(paste0(dim,': env is not of class star'))
     assert_is_a_string(dim)
@@ -1907,13 +1907,17 @@ setSelection <- function(env,dim,sel,source = 'setSelection',dimRefresh = TRUE) 
         dd$selectSource <- source
         dd$rowLastAccessed$value[dd$rowLastAccessed$level == sel$level[1]] <- sel$label[1]
         
-        dd$reactive$selectChange <- dd$reactive$selectChange + 1
-        printDebug(env = env, dim, eventIn = 'setSelection', eventOut = 'selectChange', info = paste0('selected: (',sel$level,',',sel$label,')'))
+        if (selectChange) {
+            dd$reactive$selectChange <- dd$reactive$selectChange + 1
+            printDebug(env = env, dim, eventIn = 'setSelection', eventOut = 'selectChange', info = paste0('selected: (',sel$level,',',sel$label,')'))
+        }
         if (dimRefresh) {
             dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
             printDebug(env = env, dim, eventIn = 'setSelection', eventOut = 'dimRefresh')
         }
     }
+    
+    env
 
 }
 
@@ -2191,7 +2195,7 @@ setColumnName <- function(env,dim,colFrom, viewColFrom = NULL,colTo) {
     }
     
     if (colTo %in% ml$as)
-        return()
+        return(env)
     
     ml$as[ml$as == colFrom] <- colTo
     
@@ -2316,9 +2320,10 @@ getDimViewPrepData <- function(env,dv) {
 #'
 #' @export
 #'
-navigate <- function(env, dim, level, parent, gparent = NULL) {
+navigate <- function(env, dim, level, parent, gparent = NULL,levelChange = TRUE) {
     
     dd <- env$dims[[dim]]
+    env$navigateOK <- TRUE
     
     if (dd$level != level || dd$parent != parent) {
 
@@ -2329,8 +2334,10 @@ navigate <- function(env, dim, level, parent, gparent = NULL) {
                 p <- ancestors[1]
                 p0 <- unique(dd$pc$parentLabel[dd$pc$level == i - 1 & dd$pc$label == p])
                 
-                if (length(p0) == 0) 
-                    return(FALSE)
+                if (length(p0) == 0) {
+                    env$navigateOK <- FALSE
+                    return(env)
+                }
                 
                 if (length(p0) > 1) {
                     if (i == level && !is.null(gparent)) {
@@ -2347,11 +2354,13 @@ navigate <- function(env, dim, level, parent, gparent = NULL) {
         dd$level <- level
         dd$parent <- parent
         dd$ancestors <- ancestors
-        dd$reactive$levelChange <- dd$reactive$levelChange + 1
+        
+        if (levelChange)
+            dd$reactive$levelChange <- dd$reactive$levelChange + 1
         
     }
     
-    TRUE
+    env
 }
 
 #'
