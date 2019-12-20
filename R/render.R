@@ -443,19 +443,20 @@ renderDims <- function(env,input,output) {
 
                 })
 
-                # init dims
-                
-                if (dim %in% visibleDims(env)) {
-                 
-                    lst <- getMembers(env,dim)
-                    
-                    if (!is.null(lst)) {
-                        dd$membersFiltered <- lst$body
-                        dd$footer <- lst$footer
-                    }
-                }
-
             })
+            
+        }
+        
+        # init dims
+        
+        if (ddim %in% visibleDims(env)) {
+            
+            lst <- getMembers(env,ddim)
+            
+            if (!is.null(lst)) {
+                env$dims[[ddim]]$membersFiltered <- lst$body
+                env$dims[[ddim]]$footer <- lst$footer
+            }
         }
 
         if (glob.env$debug) {
