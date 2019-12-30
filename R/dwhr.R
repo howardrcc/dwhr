@@ -1910,6 +1910,8 @@ setSelection <- function(env,dim,sel,source = 'setSelection',dimRefresh = TRUE,s
         if (selectChange) {
             dd$reactive$selectChange <- dd$reactive$selectChange + 1
             printDebug(env = env, dim, eventIn = 'setSelection', eventOut = 'selectChange', info = paste0('selected: (',sel$level,',',sel$label,')'))
+        } else {
+            dd$selectedIds <- getSelectedIds(env,dim)
         }
         if (dimRefresh) {
             dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1

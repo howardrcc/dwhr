@@ -9,20 +9,37 @@
 \alias{addRowGroupColumn}
 \title{Toevoegen van meetwaarden of ander kolom-type aan dimView-object.}
 \usage{
-addMeasure(env, dim, factColumn, fun, as = factColumn,
-  viewColumn = NULL, sort = NULL, format = "standard",
-  formatColumn = NULL, levels = NULL)
+addMeasure(
+  env,
+  dim,
+  factColumn,
+  fun,
+  as = factColumn,
+  viewColumn = NULL,
+  sort = NULL,
+  format = "standard",
+  formatColumn = NULL,
+  levels = NULL
+)
 
-addMeasureDerrived(env, dim, userFunc, as, viewColumn = NULL,
-  sort = NULL, processingOrder = NULL, format = "standard",
-  formatColumn = NULL, levels = NULL)
+addMeasureDerrived(
+  env,
+  dim,
+  userFunc,
+  as,
+  viewColumn = NULL,
+  sort = NULL,
+  processingOrder = NULL,
+  format = "standard",
+  formatColumn = NULL,
+  levels = NULL
+)
 
 addSortColumn(env, dim, sortColumn, levels = NULL)
 
 addTooltipColumn(env, dim, tooltipColumn, levels = NULL)
 
-addTextColumn(env, dim, textColumn, as, viewColumn, sort = NULL,
-  levels = NULL)
+addTextColumn(env, dim, textColumn, as, viewColumn, sort = NULL, levels = NULL)
 
 addRowGroupColumn(env, dim, rowGroupColumn, levels = NULL)
 }

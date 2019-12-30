@@ -4,8 +4,14 @@
 \alias{new.star}
 \title{Creeer nieuw sterschema-object.}
 \usage{
-new.star(starId, session, facts, caching = FALSE, mtimeData = NULL,
-  foreignKeyCheck = TRUE)
+new.star(
+  starId,
+  session,
+  facts,
+  caching = FALSE,
+  mtimeData = NULL,
+  foreignKeyCheck = TRUE
+)
 }
 \arguments{
 \item{starId}{string, Id voor dit sterschema-object.}

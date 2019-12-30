@@ -4,11 +4,27 @@
 \alias{addPresentation}
 \title{Toevoegen van een presentatie aan een dimView object.}
 \usage{
-addPresentation(env, dim, uiId = dim, type, as, name = "",
-  isDefault = FALSE, height = NULL, width = NULL, useLevels = NULL,
-  navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL,
-  highChartsOpts = NULL, rangeOpts = NULL, checkUiId = TRUE,
-  state = NULL, selectMode = NULL, selectableLevels = NULL)
+addPresentation(
+  env,
+  dim,
+  uiId = dim,
+  type,
+  as,
+  name = "",
+  isDefault = FALSE,
+  height = NULL,
+  width = NULL,
+  useLevels = NULL,
+  navOpts = NULL,
+  simpleOpts = NULL,
+  dataTableOpts = NULL,
+  highChartsOpts = NULL,
+  rangeOpts = NULL,
+  checkUiId = TRUE,
+  state = NULL,
+  selectMode = NULL,
+  selectableLevels = NULL
+)
 }
 \arguments{
 \item{env}{sterschema object, gecreeerd met \code{\link{new.star}}.}

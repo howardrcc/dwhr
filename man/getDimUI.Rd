@@ -4,9 +4,18 @@
 \alias{getDimUI}
 \title{Creeer dimView object in the UI}
 \usage{
-getDimUI(starId, dim, skipTopRow = FALSE, maxHeight = NULL,
-  overflowX = "hidden", accordion = FALSE, checkDups = TRUE,
-  resize = FALSE, resizeOptions = list(), bodyStyle = NULL)
+getDimUI(
+  starId,
+  dim,
+  skipTopRow = FALSE,
+  maxHeight = NULL,
+  overflowX = "hidden",
+  accordion = FALSE,
+  checkDups = TRUE,
+  resize = FALSE,
+  resizeOptions = list(),
+  bodyStyle = NULL
+)
 }
 \arguments{
 \item{starId, }{uniek id van het sterschema. Dit id moet overeenkomen met de parameter \code{starId} in \code{\link{new.star}}}
