@@ -1,7 +1,7 @@
 Package: dwhr
 Type: Package
 Title: dashboard library for datawarehouse data
-Version: 1.4.0
+Version: 1.5.0
 Author: Pieter Timmerman
 Maintainer: Pieter Timmerman <pieter.timmerman@radboudumc.nl>
 Description: dashboard library for datawarehouse data

@@ -1,3 +1,16 @@
+dwhr 1.5.0
+==========
+
+* clone.star met meerdere opties
+* setSelection: extra checks en in pipe te gebruiken
+* setOrdering: in pipe te gebruiken
+* addDimView: nieuwe optie ignoreParent. De levels van de dimensie zijn nu niet hierarchisch geordend maar zijn onafhankelijk. Parentlevel is altijd het topknooppunt en beinvloedt dan ook niet meer de drill-actie
+* custom aggregates krijgen nu 3 parameters mee: env, dim en sd. De sd parameter is de subset-data van de group by.
+* eerste aanpassing voor caching
+* errorhandling vereenvoudigd
+* busy indicator verbeterd
+
+
 dwhr 1.4.0
 ==========
 
