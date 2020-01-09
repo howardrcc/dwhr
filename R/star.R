@@ -202,7 +202,7 @@ appendZeroRow <- function(member,dim,df) {
 #'
 #' @export
 #' 
-getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, altData = NULL) {
+getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
     dd <- env$dims[[dim]]
 
     f <- NULL
@@ -212,19 +212,14 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
 
     tmp <- NULL
 
-    s <- NA
     footer <- NA
     adhoc <- FALSE
 
-    if (!is.null(level) || !is.null(parent) || !is.null(selected)) {
+    if (!is.null(level) || !is.null(parent)) {
         adhoc <- TRUE
         gcache <- NULL
     } else {
         gcache <- cacheFind(env, dim)
-    }
-
-    if (dim %in% selectableDims(env)) {
-        s <- dd$selected
     }
 
     lvl <- isNull(level,dd$level)
@@ -240,7 +235,6 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
         gparent <- NULL
     }
     
-
     maxLvl <- dd$maxLevel
 
     ignoreDims <- union(dimProxySelect(env),dd$ignoreDims)
@@ -786,9 +780,9 @@ getFirstRow <- function(env,dim,tab) {
 }
 
 
-getMeasList <- function(env,dim) {
+getMeasList <- function(env,dim,level = NULL) {
     dd <- env$dims[[dim]]
-    lvl <- dd$levelMap$from[dd$levelMap$to == dd$level]
+    lvl <- dd$levelMap$from[dd$levelMap$to == isNull(level,dd$level)]
     meas <- dd$measList
     meas[which(bitwAnd(2**lvl,meas$applyToLevels) %in% 2**lvl),]
 }

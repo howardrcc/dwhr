@@ -24,7 +24,7 @@ addDimView(
   ignoreDims = NULL,
   leafOnly = FALSE,
   fixedMembers = FALSE,
-  keepUnused = FALSE,
+  keepUnused = TRUE,
   na.rm = TRUE,
   orderBy = "name",
   selectableLevels = NULL,
@@ -105,7 +105,7 @@ niet aggregeerbaar zijn. De footer wordt dan in de UI niet getoond.}
 \item{fixedMembers}{boolean, als TRUE worden alle dimensie-members getoont in de UI ongeachtof feiten bestaan voor de members of niet. Correspondeert met een left-
 outer join tussen dimensie en feiten-tabel.}
 
-\item{keepUnused}{boolean, als TRUE: niet gebruikte records in data (geen facts) worden niet opgeschoond, default FALSE.}
+\item{keepUnused}{boolean, als TRUE: niet gebruikte records in data (geen facts) worden niet opgeschoond, default TRUE.}
 
 \item{na.rm}{boolean, als TRUE worden NA values verwijderd voor het uitvoeren van de aggregatie-functie.}
 

@@ -182,7 +182,7 @@ new.star <- function(starId, session, facts, caching = FALSE, mtimeData = NULL, 
 #'niet aggregeerbaar zijn. De footer wordt dan in de UI niet getoond.
 #'@param fixedMembers boolean, als TRUE worden alle dimensie-members getoont in de UI ongeachtof feiten bestaan voor de members of niet. Correspondeert met een left-
 #'outer join tussen dimensie en feiten-tabel.
-#'@param keepUnused boolean, als TRUE: niet gebruikte records in data (geen facts) worden niet opgeschoond, default FALSE. 
+#'@param keepUnused boolean, als TRUE: niet gebruikte records in data (geen facts) worden niet opgeschoond, default TRUE. 
 #'@param na.rm boolean, als TRUE worden NA values verwijderd voor het uitvoeren van de aggregatie-functie.
 #'@param selectableLevels integer, bepaalt welke nivo's van de dimView selecteerbaar zijn, staat standaard op alle nivo's.
 #'@param footerLevels integer, bepaalt welke nivo's een footer krijgen, staat standaard op alle nivo's.
@@ -199,7 +199,7 @@ new.star <- function(starId, session, facts, caching = FALSE, mtimeData = NULL, 
 addDimView <- function(
     env, dim, name, data, levelNames, initLevel = 0, initParent = "", selectLevel = 0,
     selectLabel = levelNames[1], selectParent = NULL, state = 'enabled', type = 'bidir', selectMode = 'single', useLevels = NULL,
-    cntName = 'cnt', itemName = 'Naam', ignoreDims = NULL, leafOnly = FALSE, fixedMembers = FALSE, keepUnused = FALSE,
+    cntName = 'cnt', itemName = 'Naam', ignoreDims = NULL, leafOnly = FALSE, fixedMembers = FALSE, keepUnused = TRUE,
     na.rm = TRUE, orderBy = 'name', selectableLevels = NULL, footerLevels = NA_integer_ , presListType = 'dropdown',
     returnPrepData = FALSE, selectedIds = NULL, ignoreParent = FALSE) {
 
@@ -293,15 +293,17 @@ addDimView <- function(
         if (length(missing) > 0) {
             stop(c(paste0(dim, ': Foreign key error. first 10:'), paste0('    ',head(missing,10))))
         }
-    } else {
-        nr1 <- nrow(env$facts)
-        env$facts <- env$facts[env$facts[[keyColumn]] %in% data[[keyColumn]],] 
-        nr2 <- nrow(env$facts)
-        if (nr2 < nr1) {
-            warning(paste0(dim,': removing ',nr1 - nr2, ' records from facts'))
-        }
-    }
+    } 
     
+    # else {
+    #     nr1 <- nrow(env$facts)
+    #     env$facts <- env$facts[env$facts[[keyColumn]] %in% data[[keyColumn]],] 
+    #     nr2 <- nrow(env$facts)
+    #     if (nr2 < nr1) {
+    #         warning(paste0(dim,': removing ',nr1 - nr2, ' records from facts'))
+    #     }
+    # }
+    # 
     # setting/checking selectLevel selectLabel, selectMode, initLevel and useLevels
     
     if (leafOnly) {
