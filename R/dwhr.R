@@ -246,7 +246,6 @@ addDimView <- function(
         selectLevel <- 0
         selectLabel <- levelNames[1]
         selectParent <- NULL
-        selectableLevels <- NULL
     }
     
     maxLevel <- length(levelNames) - 1
@@ -1601,7 +1600,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
             
             
             eval(call, envir = env$ce)
-            
+ 
             env$dims[[uiId]]$measList <- dd$measList
             env$dims[[uiId]]$parentDim <- dim
             
