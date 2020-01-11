@@ -259,6 +259,7 @@ addDimView <- function(
     
     # add level0Label
     data$level0Label <- rootLabel
+    dataOrg <- data
     
     # check column names
     
@@ -545,6 +546,7 @@ addDimView <- function(
     l$master <- TRUE
     l$views <- list()
     l$data <- data
+    l$dataOrg <- dataOrg
     l$type <- type
     l$selectMode <- selectMode
     l$useLevels <- useLevels
