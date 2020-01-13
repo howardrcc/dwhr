@@ -1262,11 +1262,9 @@ addRowGroupColumn <- function(env, dim, rowGroupColumn, levels = NULL) {
 #'    \item selectInput: detail opties in simpleOpts
 #'}
 #' @param as string, naam van deze presentatie zoals getoond in de UI
-#' @param name string, titel van presentatie in het geval deze op aparte positie op het scherm getoond wordt, dus als uiId <> dim 
 #' @param isDefault boolean, relevant als er op 1 positie op het scherm meerdere presentaties zijn. Als TRUE wordt deze presentatie dan als eerste getoond. 
 #' @param height integer, hoogte in pixels van presentatie
 #' @param width integer, breedte in pixels van presentatie
-#' @param useLevels, alleen relevant als uiId <> dim, bepaalt welke nivo's uit levelNames daadwerkelijk gebruikt worden in deze presentatie. 
 #' @param navOpts list, met de volgende mogelijke items:
 #' \itemize{
 #'     \item syncNav: boolean, als TRUE, synchroniseer navigatie tussen presentaties. Alleen relevant als uiId <> dim, dus als presentaties tegelijk op het scherm staan. default TRUE
@@ -1317,8 +1315,8 @@ addRowGroupColumn <- function(env, dim, rowGroupColumn, levels = NULL) {
 #'
 #'@export
 #'
-addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault = FALSE, height = NULL, width = NULL,
-                            useLevels = NULL, navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL, rangeOpts = NULL, checkUiId = TRUE, state = NULL, selectMode = NULL, selectableLevels = NULL) {
+addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, height = NULL, width = NULL,
+                            navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL, rangeOpts = NULL, checkUiId = TRUE, ...) {
     
     class(env) == 'star' || stop('env is not of class star')
     
@@ -1326,14 +1324,11 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
     assert_is_a_string(uiId)
     assert_is_a_string(type)
     assert_is_a_string(as)
-    assert_is_a_string(name)
     assert_is_a_bool(isDefault)
     assert_is_a_number(isNull(height,0))
     height <- as.integer(height)
     assert_is_a_number(isNull(width,0))
     width <- as.integer(width)
-    assert_is_numeric(isNull(useLevels,0))
-    useLevels <- as.integer(useLevels)
     
     assert_is_list(isNull(navOpts,list()))
     assert_is_list(isNull(simpleOpts,list()))
@@ -1341,13 +1336,19 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
     assert_is_list(isNull(highChartsOpts,list()))
     assert_is_list(isNull(rangeOpts,list()))
     
+    varArgs = list(...)
+    
+    length(varArgs) == 0 || dim != uiId || stop(paste0(dim, ': dim parameters in ... only valid for dim != uiId'))
+
+    assert_is_numeric(isNull(varArgs$useLevels,0))
+    useLevels <- as.integer(varArgs$useLevels)
+    
     dd <- env$dims[[dim]]
     class(dd) == 'dimView' || stop(paste0(dim, ': dim is not of class dimView'))
     
     gdim <- getGlobalId(env$id,uiId)
     
     !checkUiId || gdim %in% glob.env$dimUiIds || stop(paste0(dim, ': uiId not in UI'))
-    length(useLevels) == 0 || dim != uiId || stop(paste0(dim, ': useLevels not valid for dim == uiId'))
     length(useLevels) == 0 || !isNull(dd$ignoreParent,FALSE) || stop(paste0(dim, ': useLevels not valid for ignoreParent dims'))
     
     assert_is_subset(type,domains[['presType']])
@@ -1565,7 +1566,6 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
 
             call$dim <- uiId
             call$ignoreDims <- c(eval(call$ignoreDims),dim,dd$childDims)
-            call$name <- name
             call$env <- env
             
             if (length(useLevels) != 0) {
@@ -1578,20 +1578,16 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 }
             }
             
-            if (!is.null(selectableLevels)) 
-                call$selectableLevels <- selectableLevels
-            
-            if (!is.null(state)) 
-                call$state <- state
+            for (nm in names(varArgs)) {
+                call[[nm]] <- varArgs[[nm]]
+            }
             
             is.null(dd$syncNav) || dd$syncNav == navOpts$syncNav || stop(paste0(dim, ': Incompatible syncNav'))
             
-            if (!is.null(highChartsOpts) && isNull(selectMode,dd$selectMode) %in% c('multi')) {
+            if (!is.null(highChartsOpts) && isNull(varArgs$selectMode,dd$selectMode) %in% c('multi')) {
                 warning('multi-select not implemented for highCharts: dimView set to single-select')
                 call$selectMode <- 'single' 
-            } else {
-                call$selectMode <- isNull(selectMode,dd$selectMode) 
-            }
+            } 
             
             if (!is.null(rangeOpts)) {
                 call$initLevel <- max(dd$useLevels)
@@ -1599,7 +1595,6 @@ addPresentation <- function(env, dim, uiId = dim, type, as, name = '', isDefault
                 call$selectMode <- 'multi'
                 call$type <- 'input'
             }
-            
             
             eval(call, envir = env$ce)
  
