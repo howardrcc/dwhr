@@ -740,13 +740,13 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     rightAlign <- setdiff(setdiff(union(which(names(tab) %in% meas$as[meas$align == 'right']) - 1,formattedColNrs),centerAlign),leftAlign)
 
     columnDefs <-  list(
-        list(visible=FALSE, targets=hideCols),
-        list(searchable=FALSE, targets=hideCols),
-        list(orderable=FALSE, targets=notOrderable),
-        list(width = '6px', targets=c(0)),
-        list(targets=rightAlign, class="dt-right"),
-        list(targets=centerAlign, class="dt-center"),
-        list(targets=leftAlign, class="dt-left"))
+        list(visible = FALSE, targets = hideCols),
+        list(searchable = FALSE, targets = which(names(tab) != dd$itemName) - 1),
+        list(orderable = FALSE, targets = notOrderable),
+        list(width = '6px', targets = c(0)),
+        list(targets = rightAlign, class = "dt-right"),
+        list(targets = centerAlign, class = "dt-center"),
+        list(targets = leftAlign, class = "dt-left"))
 
     # width columns
 
@@ -829,7 +829,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     options <- list( dom = dom
                      , lengthChange = TRUE
                      , searching = searching
-                     , search = list(regex = FALSE, caseInsensitive = TRUE, search = search)
+                     , search = list(regex = FALSE, caseInsensitive = TRUE, smart = FALSE, search = search)
                      , searchDelay = 800
                      , paging = paging
                      , rowGroup = rowGroup

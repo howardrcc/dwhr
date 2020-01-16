@@ -330,6 +330,26 @@ a <- a %>%
     
 }
 
+roundIt <- function(value,format) {
+    
+    if (format %in% c('euro','euro2','perc','perc1','perc2','integer','decimal1','decimal2','decimal3'))
+        switch(
+            format,
+            euro = round(value,0),
+            euro2 = round(value,2),
+            perc = round(value,0),
+            perc1 = round(value,1),
+            perc2 = round(value,2),
+            integer = round(value,0),
+            decimal1 = round(value,1),
+            decimal2 = round(value,2),
+            decimal3 = round(value,3),
+            standard = value)
+    else 
+        value
+    
+}
+
 prepHc <- function(env, dim, pres, print = NULL) {
 
     dd <- env$dims[[dim]]
@@ -469,7 +489,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
             
             fmtLabel <- getFormat(format)
             
-            dt <- tab[pageStart:pageEnd,c(presCol)]
+            dt <- roundIt(tab[pageStart:pageEnd,c(presCol)],format)
             
             labelsPage <- as.character(labels[pageStart:pageEnd])
             labelsPage[is.na(labelsPage)] <- ' '
@@ -768,8 +788,6 @@ prepHc <- function(env, dim, pres, print = NULL) {
         rangeSelectorOpts = rangeSelectorOpts,
         exportingOpts = exportingOpts,
         print = print)
-    
-    #if (chartType== 'stock') browser()
     
     ret$widget <- makeHcWidget(env,dim,ret)
     
