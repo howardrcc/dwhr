@@ -10,20 +10,16 @@ addPresentation(
   uiId = dim,
   type,
   as,
-  name = "",
   isDefault = FALSE,
   height = NULL,
   width = NULL,
-  useLevels = NULL,
   navOpts = NULL,
   simpleOpts = NULL,
   dataTableOpts = NULL,
   highChartsOpts = NULL,
   rangeOpts = NULL,
   checkUiId = TRUE,
-  state = NULL,
-  selectMode = NULL,
-  selectableLevels = NULL
+  ...
 )
 }
 \arguments{
@@ -45,15 +41,11 @@ getoond worden op het scherm. Hoe de navigatie in dat geval moet verlopen kan vi
 
 \item{as}{string, naam van deze presentatie zoals getoond in de UI}
 
-\item{name}{string, titel van presentatie in het geval deze op aparte positie op het scherm getoond wordt, dus als uiId <> dim}
-
 \item{isDefault}{boolean, relevant als er op 1 positie op het scherm meerdere presentaties zijn. Als TRUE wordt deze presentatie dan als eerste getoond.}
 
 \item{height}{integer, hoogte in pixels van presentatie}
 
 \item{width}{integer, breedte in pixels van presentatie}
-
-\item{useLevels, }{alleen relevant als uiId <> dim, bepaalt welke nivo's uit levelNames daadwerkelijk gebruikt worden in deze presentatie.}
 
 \item{navOpts}{list, met de volgende mogelijke items:
 \itemize{
