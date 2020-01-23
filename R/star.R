@@ -251,14 +251,16 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
 
         condition <- ''
 
-        for (d in setdiff(setdiff(filteringDims(env),dim),ignoreDims)) {
+        for (d in sort(setdiff(setdiff(filteringDims(env),dim),ignoreDims))) {
             dkey <- env$dims[[d]]$keyColumn
 
             if (any(env$dims[[d]]$selected$level > 0)) {
+                env[[paste0(d,'Ids')]] <- env$dims[[d]]$selectedIds
+                
                 if (condition != '') {
                     condition <- paste0(condition,' & ')
                 }
-                condition <- paste0(condition,'env$facts[[\'',dkey,'\']] %in% env$dims[[\'',d,'\']]$selectedIds')
+                condition <- paste0(condition,' ',dkey,' %in% env$',d,'Ids')
             }
         }
         
@@ -266,7 +268,14 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
             condition <- TRUE
         }
         
-        tmp <- data.table::data.table(env$facts[eval(parse(text = condition)),])
+        condHash <- digest::digest(condition,'md5')
+        
+        if (condHash %in% names(env$factCache)) {
+            tmp <- env$factCache[[condHash]]
+        } else {
+            tmp <- data.table::data.table(env$facts[eval(parse(text = condition)),])
+            env$factCache[[condHash]] <- tmp
+        }
         
         cnt1 <- nrow(tmp)
         

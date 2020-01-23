@@ -59,8 +59,9 @@ new.star <- function(starId, session, facts, caching = FALSE, mtimeData = NULL, 
         any(class(mtimeData) %in% c("POSIXct", "POSIXt")) || stop('mtimeData niet van juiste klasse') 
         getCache(env,mtimeData)
     }
+    
+    env$factCache <- list()
         
-
     # vars for datatable renderer
 
     env$dtRenderers <- list()

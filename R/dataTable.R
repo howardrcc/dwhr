@@ -94,12 +94,34 @@ sparkDrawCallbackJS <- function(env,dim,sparkOpts) {
     DT::JS(txt)
 }
 
+renderTooltipJS <- function(i) {
+  
+  txt <- paste0("function(data, type, row, meta) {
+    if (type === 'display') {
+        txt = '<div style=\"display: inline-block\" data-toggle=\"tooltip\" data-container=\"body\" data-placement=\"right\" title=\"' + row[",i,"] + '\">' + data + '</div>';
+    } else {
+        txt = data;
+    }
+    return txt;
+}
+")
+  DT::JS(txt)
+}
 
-renderJS <- function(i) {
-
+renderJS <- function(i,underline) {
+    
+    ul <- ''
+    
+    if (underline)
+        ul <- 'class="underline-on-hover";'
+    
+    style <-''
+    if (!is.null(i))
+        style <- paste0("style=\"display: inline-block\" data-toggle=\"tooltip\" data-container=\"body\" data-placement=\"right\" title=\"' + row[",i,"] + '\"")
+    
     txt <- paste0("function(data, type, row, meta) {
     if (type === 'display') {
-        txt = '<div style=\"display: inline-block\" data-toggle=\\\"tooltip\\\" data-container=\\\"body\\\" data-placement=\\\"right\\\" title=\\\"' + row[",i,"] + '\\\">' + data + '</div>';
+        txt = '<div ",ul,style,">' + data + '</div>';
     } else {
         txt = data;
     }
@@ -795,9 +817,20 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     columnDefs[[length(columnDefs) + 1]] <- list(type = 'string', targets = 1)
 
+    ttcnr <- NULL
+    
     if ('member_tooltip' %in% names(tab)) {
         ttcnr <- which(names(tab) %in% 'member_tooltip') - 1
-        columnDefs[[length(columnDefs) + 1]] <- list(targets = 1, render = renderJS(ttcnr))
+    }
+
+    underline <- FALSE
+    
+    if (!print && dd$type != 'output' && dd$selectMode != 'none' && dd$level %in% dd$selectableLevels && nrow(tab) > 0) {
+        underline <- TRUE
+    }
+    
+    if (underline || !is.null(ttcnr)) {
+        columnDefs[[length(columnDefs) + 1]] <- list(targets = 1, render = renderJS(ttcnr,underline))
     }
     
     if ('tooltip' %in% names(meas)) {
@@ -808,7 +841,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
                 sourceCol <- meas$as[meas$viewColumn == tt$tooltip[i]]
                 sourceColnr <- which(names(tab) %in% sourceCol) - 1
                 targetColnr <- which(names(tab) %in% tt$as[i]) - 1
-                columnDefs[[length(columnDefs) + 1]] <- list(targets = targetColnr, render = renderJS(sourceColnr))
+                columnDefs[[length(columnDefs) + 1]] <- list(targets = targetColnr, render = renderTooltipJS(sourceColnr))
             }
         }
     }
@@ -859,10 +892,10 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     }
 
     
-    if (!print && dd$type != 'output' && dd$selectMode != 'none' && dd$level %in% dd$selectableLevels && nrow(tab) > 0) {
-        tab[,2] <- paste0('<span class = "underline-on-hover">',tab[,2],'</span>')
-    }
-    
+    # if (!print && dd$type != 'output' && dd$selectMode != 'none' && dd$level %in% dd$selectableLevels && nrow(tab) > 0) {
+    #     tab[,2] <- paste0('<span class = "underline-on-hover">',tab[,2],'</span>')
+    # }
+    # 
    
     ret <- list(
         tab = tab,
