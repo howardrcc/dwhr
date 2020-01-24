@@ -273,7 +273,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
         if (condHash %in% names(env$factCache)) {
             tmp <- env$factCache[[condHash]]
         } else {
-            tmp <- data.table::data.table(env$facts[eval(parse(text = condition)),])
+            tmp <- env$facts[eval(parse(text = condition)),]
             env$factCache[[condHash]] <- tmp
         }
         
