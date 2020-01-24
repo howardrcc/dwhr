@@ -401,8 +401,8 @@ prepHc <- function(env, dim, pres, print = NULL) {
     pageLength <- dd$pageLength
     goToPage <- dd$goToPage
     
+    clickable[!presCols %in% meas$viewColumn] <- FALSE
     presCols <- intersect(presCols,meas$viewColumn)
-    clickable[!names(clickable) %in% presCols] <- FALSE
     
     tab <- data.frame(dd$membersFiltered)
     

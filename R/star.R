@@ -366,7 +366,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
                 
                 if (!fun %in% domains[['aggregateFun']]) {
                     hasCustom <- TRUE
-                    measFun <- paste0(measFun,"custom('",fun,"',.SD)")
+                    measFun <- paste0(measFun,"custom('",fun,"','",factColumn,"',.SD)")
                 }
             }
 
@@ -374,7 +374,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
 
         measFun <- paste0(measFun,')')
         
-        custom <- function(fun,sd) {
+        custom <- function(fun,col,sd) {
             do.call(fun,list(env,dim,sd),envir = env$ce)
         }
         
