@@ -128,7 +128,7 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
 initGlob <- function() {
     
     options(warnPartialMatchDollar = TRUE)
-    options(datatable.auto.index = FALSE)
+    #options(datatable.auto.index = FALSE)
     
     if (!exists('glob.env', envir = .GlobalEnv, inherit = FALSE)) {
         

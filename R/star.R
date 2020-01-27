@@ -251,29 +251,48 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
 
         condition <- ''
 
+        # for (d in sort(setdiff(setdiff(filteringDims(env),dim),ignoreDims))) {
+        #     dkey <- env$dims[[d]]$keyColumn
+        # 
+        #     if (any(env$dims[[d]]$selected$level > 0)) {
+        #         env[[paste0(d,'Ids')]] <- env$dims[[d]]$selectedIds
+        # 
+        #         if (condition != '') {
+        #             condition <- paste0(condition,' & ')
+        #         }
+        #         condition <- paste0(condition,' ',dkey,' %in% env$',d,'Ids')
+        #     }
+        # }
+        
+        stmt <- 'env$facts'
+       
         for (d in sort(setdiff(setdiff(filteringDims(env),dim),ignoreDims))) {
             dkey <- env$dims[[d]]$keyColumn
-
+            
             if (any(env$dims[[d]]$selected$level > 0)) {
-                env[[paste0(d,'Ids')]] <- env$dims[[d]]$selectedIds
                 
                 if (condition != '') {
                     condition <- paste0(condition,' & ')
                 }
+                
                 condition <- paste0(condition,' ',dkey,' %in% env$',d,'Ids')
+                
+                env[[paste0(d,'Ids')]] <- env$dims[[d]]$selectedIds
+                stmt <- paste0(stmt, '[', dkey,' %in% env$',d,'Ids]')
             }
         }
         
-        if (condition == '') {
-            condition <- TRUE
-        }
-        
+        # if (condition == '') {
+        #     condition <- TRUE
+        # }
+
         condHash <- digest::digest(condition,'md5')
         
         if (condHash %in% names(env$factCache)) {
             tmp <- env$factCache[[condHash]]
         } else {
-            tmp <- env$facts[eval(parse(text = condition)),]
+            #tmp <- env$facts[eval(parse(text = condition)),]
+            tmp <- eval(parse(text = stmt))
             env$factCache[[condHash]] <- tmp
         }
         
