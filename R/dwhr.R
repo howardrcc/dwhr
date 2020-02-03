@@ -440,17 +440,18 @@ addDimView <- function(
         code = 'root',
         stringsAsFactors = FALSE)
     
+    l1 <- unique(data[c('level1Label','level1Code')])
+    names(l1) <- c('label','code')
+    
+    l1$level <- 1
+    l1$gparentLabel <- ''
+    l1$gparentCode <- ''
+    l1$parentLabel <- rootLabel
+    l1$parentCode <- 'root'
+    
     pc <- rbind(
         pc,
-        data.frame(
-            level = 1,
-            gparentLabel = '',
-            gparentCode = '',
-            parentLabel = rootLabel,
-            parentCode = 'root',
-            label = unique(data$level1Label),
-            code = unique(data$level1Code),
-            stringsAsFactors = FALSE))
+        l1)
     
     if (maxLevel >= 2) {
         for (lvl in 2:maxLevel) {
