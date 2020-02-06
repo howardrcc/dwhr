@@ -477,6 +477,8 @@ shinyjs.init = function() {
             Shiny.onInputChange('windowWidth',{width: window.innerWidth});
         }
     });
+    
+    $.blockUI.defaults.onUnblock = resetUnblock;
 }
 
 shinyjs.hcSetHeight = function(params) {
@@ -492,3 +494,9 @@ shinyjs.hcSetHeight = function(params) {
     }
     
 }
+
+resetUnblock = function(e,opts) {
+    // ivm conflict tussen blockui en introjs
+    $(e).css("position","")  
+}
+

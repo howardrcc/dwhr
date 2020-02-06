@@ -449,9 +449,7 @@ addDimView <- function(
     l1$parentLabel <- rootLabel
     l1$parentCode <- 'root'
     
-    pc <- rbind(
-        pc,
-        l1)
+    pc <- rbind(pc,l1)
     
     if (maxLevel >= 2) {
         for (lvl in 2:maxLevel) {
