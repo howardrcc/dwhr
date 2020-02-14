@@ -396,14 +396,14 @@ shinyjs.blockUI = function(params) {
 shinyjs.tooltip = function(params) {
     
     var trigger;
-    
+    debugger
     if (params === null) {
         trigger = 'hover';
     } else {
         trigger = params.trigger;
     }
-    $('.tooltip').tooltip('destroy');
-    $('[data-toggle="tooltip"]').tooltip({trigger: trigger, delay: {show: 0}});
+    $('.tooltip').uitooltip('destroy');
+    $('[data-toggle="tooltip"]').uitooltip({trigger: trigger, delay: {show: 0}});
 };
 
 shinyjs.popover = function(params) {
@@ -479,6 +479,8 @@ shinyjs.init = function() {
     });
     
     $.blockUI.defaults.onUnblock = resetUnblock;
+    
+    $.widget.bridge('uitooltip', $.ui.tooltip);
 }
 
 shinyjs.hcSetHeight = function(params) {
