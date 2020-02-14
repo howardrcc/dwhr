@@ -1269,6 +1269,8 @@ print('cells_selected')
 
             dd$reactive$pageLengthChange <- dd$reactive$pageLengthChange + 1
             printDebug(env = env, dim, eventIn = 'dataTablePageLength', eventOut = 'pageLengthChange', info = paste0('pageLength: ', input[[pageLengthEvent]]$data))
+            
+            shinyjs::js$tooltip()
         }
 
     })
