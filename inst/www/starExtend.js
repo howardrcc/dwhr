@@ -393,7 +393,7 @@ shinyjs.blockUI = function(params) {
 };
 
 shinyjs.tooltip = function(params) {
-    $('[data-toggle="tooltip"]').uitooltip({track: true});
+    $('[data-toggle="tooltip"]').uitooltip({track: true, show: false, hide: false});
 };
 
 shinyjs.popover = function(params) {
