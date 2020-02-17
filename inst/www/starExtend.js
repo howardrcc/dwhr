@@ -390,20 +390,10 @@ shinyjs.redraw = function(params) {
 
 shinyjs.blockUI = function(params) {
     $("#app-content").block({ message: null, overlayCSS: { backgroundColor: params.backgroundColor, opacity:params.opacity }, timeout:params.timeout});
-    $('.tooltip').tooltip('destroy');
 };
 
 shinyjs.tooltip = function(params) {
-    
-    var trigger;
-    debugger
-    if (params === null) {
-        trigger = 'hover';
-    } else {
-        trigger = params.trigger;
-    }
-    $('.tooltip').uitooltip('destroy');
-    $('[data-toggle="tooltip"]').uitooltip({trigger: trigger, delay: {show: 0}});
+    $('[data-toggle="tooltip"]').uitooltip({track: true});
 };
 
 shinyjs.popover = function(params) {
@@ -457,9 +447,7 @@ shinyjs.updateDT = function(params) {
     }
     datatable.columns.adjust().draw();
     datatable.page(params.page).draw(false);
-    $('.tooltip').tooltip('destroy');
-    $('[data-toggle="tooltip"]').tooltip({trigger : 'hover'});
-};
+ };
 
 batchStateFinished = false; 
 
