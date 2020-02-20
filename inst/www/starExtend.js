@@ -21,8 +21,8 @@ addSpark = function(selector, sparkOpts, xaxisValue) {
     for (i = 0; i < e.length; i++) {
         
         var arr = JSON.parse("[" + e[i].textContent + "]");
-        
-        if ((typeof sparkOpts.addXaxis !== 'undefined') && sparkOpts.addXaxis) {
+        debugger
+        if ((typeof sparkOpts.addXaxis[0] !== 'undefined') && sparkOpts.addXaxis[0]) {
             var minVal = Math.min.apply(null,arr);
         
             if (minVal > 0) {
