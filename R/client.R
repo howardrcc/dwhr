@@ -10,6 +10,7 @@ dwhrInit <- function() {
     shiny::addResourcePath('dwhRs',system.file('www', package = 'dwhr'))
     glob.env$dimUiIds <- c()
     shiny::tagList(
+        shinyjqui::includeJqueryUI(),
         shinyjs::useShinyjs(),
         shinyjs::extendShinyjs(script = system.file('www/starExtend.js', package = 'dwhr')),
         
