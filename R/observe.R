@@ -193,7 +193,6 @@ startObserversData <- function(env,dim) {
                 if (!(identical(ids,dd$selectedIds))) {
                     
                     env$factCache <- list()
-                    #data.table::setindex(env$facts,NULL)
                     
                     dd$selectedIds <- ids
                     

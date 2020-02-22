@@ -282,18 +282,17 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
             }
         }
         
-        # if (condition == '') {
-        #     condition <- TRUE
-        # }
-
-        condHash <- digest::digest(condition,'md5')
-        
-        if (condHash %in% names(env$factCache)) {
-            tmp <- env$factCache[[condHash]]
+        if (env$factCaching) {
+            condHash <- digest::digest(condition,'md5')
+            
+            if (condHash %in% names(env$factCache)) {
+                tmp <- env$factCache[[condHash]]
+            } else {
+                tmp <- eval(parse(text = stmt))
+                env$factCache[[condHash]] <- tmp
+            }
         } else {
-            #tmp <- env$facts[eval(parse(text = condition)),]
             tmp <- eval(parse(text = stmt))
-            env$factCache[[condHash]] <- tmp
         }
         
         cnt1 <- nrow(tmp)

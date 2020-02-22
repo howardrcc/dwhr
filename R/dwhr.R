@@ -9,6 +9,7 @@
 #' @param caching boolean, controleert de caching van geaggreerde meetwaarden. Te gebruiken bij grote feiten-tabellen. default FALSE
 #' @param mtimeData POSIXct, modificatie tijd van data. Dit om te beoordelen of cache te gebruiken is. Verplicht als caching actief.
 #' @param foreignKeyCheck boolean, bepaalt of er een foreignkey-check wordt uitgevoerd. default TRUE
+#' @param factCaching boolean, bepaalt of gefilterde feiten gecached worden als selecties niet veranderen. default TRUE
 #'
 #' @return resultaat een sterschema-object van klasse 'star'. Resultaat is een environment met velden:
 #' \itemize{
@@ -17,7 +18,7 @@
 #'     }  .
 #'
 #' @export
-new.star <- function(starId, session, facts, caching = FALSE, mtimeData = NULL, foreignKeyCheck = TRUE) {
+new.star <- function(starId, session, facts, caching = FALSE, mtimeData = NULL, foreignKeyCheck = TRUE, factCaching = TRUE) {
 
     assert_is_a_string(starId)
     assert_is_data.frame(facts)
@@ -61,6 +62,7 @@ new.star <- function(starId, session, facts, caching = FALSE, mtimeData = NULL, 
     }
     
     env$factCache <- list()
+    env$factCaching <- factCaching
         
     # vars for datatable renderer
 
