@@ -10,7 +10,8 @@ new.star(
   facts,
   caching = FALSE,
   mtimeData = NULL,
-  foreignKeyCheck = TRUE
+  foreignKeyCheck = TRUE,
+  factCaching = TRUE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ new.star(
 \item{mtimeData}{POSIXct, modificatie tijd van data. Dit om te beoordelen of cache te gebruiken is. Verplicht als caching actief.}
 
 \item{foreignKeyCheck}{boolean, bepaalt of er een foreignkey-check wordt uitgevoerd. default TRUE}
+
+\item{factCaching}{boolean, bepaalt of gefilterde feiten gecached worden als selecties niet veranderen. default TRUE}
 }
 \value{
 resultaat een sterschema-object van klasse 'star'. Resultaat is een environment met velden:
