@@ -852,7 +852,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
         if (!is.null(opts$filterRowGroup)) {
             tab <- tab[tab$rowGroupColumn == opts$filterRowGroup,]
         } else {
-            if (any(tab[['Naam']] != tab[['rowGroupColumn']])) {
+            if (any(tab[['Naam']] != tab[['rowGroupColumn']]) || nrow(tab) == 1) {
                 rgcnr <- which(names(tab) %in% 'rowGroupColumn') - 1
                 rowGroup <- list(dataSrc = rgcnr)
             }

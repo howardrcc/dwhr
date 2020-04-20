@@ -241,6 +241,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
 
     ml <- getMeasList(env,dim)
     ignoreParent <- isNull(dd$ignoreParent,FALSE)
+    filterXtra <- isNull(dd$filterXtra,'')
     
     meas <- ml[ml$type == 'direct',]
     measCols <- meas$viewColumn[order(meas$sort)]
@@ -321,6 +322,11 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
             }
         }
         
+        
+        if (filterXtra != '') {
+            tmp <- tmp[eval(parse(text = filterXtra))]
+        }
+        
         cnt2 <- nrow(tmp)
 
         if(cnt1 != 0 && cnt2 == 0 && !(adhoc)) {
@@ -375,11 +381,11 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
                 }
 
                 if (fun == 'min') {
-                    measFun <- paste0(measFun,"min(",factColumn,",",narm,")")
+                    measFun <- paste0(measFun,"suppressWarnings(min(",factColumn,",",narm,"))")
                 }
 
                 if (fun == 'max') {
-                    measFun <- paste0(measFun,"max(",factColumn,",",narm,")")
+                    measFun <- paste0(measFun,"suppressWarnings(max(",factColumn,",",narm,"))")
                 }
                 
                 if (!fun %in% domains[['aggregateFun']]) {

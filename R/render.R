@@ -140,11 +140,14 @@ renderDims <- function(env,input,output) {
                     
                     elems <- list()
                     
+                    totWidth <- 0
+                    
                     for (ll in links) {
                         
-                        eleObject <- list(width = isNull(ll$width,12))
-                        
                         if(ifelse(!is.null(ll$visFun),do.call(ll$visFun,list(env = env),envir = env$ce),TRUE)) {
+                            
+                            eleObject <- list(width = isNull(ll$width,12))
+                            totWidth <- totWidth + isNull(ll$width,12)
                             
                             if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink') {
                                 ele <- shiny::actionLink(inputId = ll$id, label = ll$label)
@@ -185,19 +188,22 @@ renderDims <- function(env,input,output) {
                             if (ll$type == 'dim') {
                                 ele <- getDimUI(starId = env$id, dim = ll$dim, skipTopRow = TRUE, checkDups = FALSE)
                             }
-                            
-                        } else {
-                            ele <- ''
-                        }
                         
-                        eleObject$ele <- ele
-                        elems[[length(elems) + 1]] <- eleObject
+                            eleObject$ele <- ele
+                            elems[[length(elems) + 1]] <- eleObject
+                            
+                        } 
                         
                     }
+                    
+                    if (totWidth < 12) 
+                        preElm <- shiny::column(width = 12 - totWidth)
+                    else 
+                        preElm <- NULL
           
-                    shiny::div(shiny::fluidRow(lapply(elems,function(x) {
-                        shiny::column(width = x$width, x$ele)
-                    }), style = 'float:right;'), class = paste0(gdim,'Links'))
+                    shiny::div(shiny::fluidRow(if(!is.null(preElm)) {preElm}, lapply(elems,function(x) {
+                        shiny::column(width = x$width, div(style = 'float:right;padding-right:20px',x$ele))
+                    })), class = paste0(gdim,'Links'))
                     
                 })
                 

@@ -364,17 +364,20 @@ addDimView <- function(
     }
     
     if (!selectLevel %in% selectableLevels) {
-        warning(paste0(dim,': selectLevel out of range. selectLevel set to selectableLevels[1]'))
+        if (is.null(selectedIds)) 
+            warning(paste0(dim,': selectLevel out of range. selectLevel set to selectableLevels[1]'))
         selectLevel <- selectableLevels[1]
     }
     
     if (!selectLevel %in% useLevels) {
-        warning(paste0(dim,': selectLevel out of range. selectLevel set to 0'))
+        if (is.null(selectedIds))
+            warning(paste0(dim,': selectLevel out of range. selectLevel set to 0'))
         selectLevel <- 0
     }
     
     if (!any(selectLabel %in% data[[paste0('level',selectLevel,'Label')]])) {
-        warning(paste0(dim,': selectLabel not in data, label set to first label in selectLevel'))
+        if (is.null(selectedIds))
+            warning(paste0(dim,': selectLabel not in data, label set to first label in selectLevel'))
         selectLabel <- data[[paste0('level',selectLevel,'Label')]][1]
     }
     
@@ -1587,7 +1590,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
             is.null(dd$syncNav) || dd$syncNav == navOpts$syncNav || stop(paste0(dim, ': Incompatible syncNav'))
             
             if (!is.null(highChartsOpts) && isNull(varArgs$selectMode,dd$selectMode) %in% c('multi')) {
-                warning('multi-select not implemented for highCharts: dimView set to single-select')
+                #warning('multi-select not implemented for highCharts: dimView set to single-select')
                 call$selectMode <- 'single' 
             } 
             
@@ -1601,6 +1604,24 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
             eval(call, envir = env$ce)
  
             env$dims[[uiId]]$measList <- dd$measList
+            
+            env$dims[[uiId]]$measureCalls <- lapply(dd$measureCalls,function(x) {
+                x$dim <- uiId 
+                x
+            })
+            
+            env$dims[[uiId]]$derrivedMeasureCalls <- lapply(dd$derrivedMeasureCalls,function(x) {
+                x$dim <- uiId 
+                x
+            })
+            
+            zz <- match.call()
+            zz$dim <- uiId
+            for (arg in names(list(...))) {
+                zz[[arg]] <- NULL
+            }
+            
+            env$dims[[uiId]]$presentationCalls[[length(env$dims[[uiId]]$presentationCalls) + 1]] <- zz
             env$dims[[uiId]]$parentDim <- dim
             
             for (x in dd$childDims) {
@@ -2240,7 +2261,7 @@ clone.star <- function(from, toId, facts = NULL, dimViews = NULL, checkUiId = FA
     if (!is.null(facts)) {
         call$facts <- facts
     }
-    
+
     to <- eval(call, envir = from$ce)
     
     names(dimViews) %in% names(from$dims) || stop('dimView(s) bestaan niet in from')
