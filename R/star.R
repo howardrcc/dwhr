@@ -322,15 +322,16 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
             }
         }
         
+        cnt2 <- nrow(tmp)
         
         if (filterXtra != '') {
             tmp <- tmp[eval(parse(text = filterXtra))]
+            if (nrow(tmp) == 0 && cnt1 != 0)
+                warning('FilterXtra: no results')
         }
         
-        cnt2 <- nrow(tmp)
-
         if(cnt1 != 0 && cnt2 == 0 && !(adhoc)) {
-
+    
             parent = dd$rootLabel
             lvl = 1
 
