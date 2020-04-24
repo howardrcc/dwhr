@@ -141,90 +141,90 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
     gdim <- env$dims[[dim]]$gdim
 
     if (!is.null(nrow(df))) {
-
+        
         for (fc in meas$as) {
-
+            
             formatRef <- meas$formatRef[meas$as == fc]
             vc <- meas$viewColumn[meas$as == fc]
             
             fmt <- measures$format[measures$viewColumn == vc]
-
-            if (is.numeric(df[[vc]])) {
-
-                if(!is.na(formatRef)) {
-                    
-                    for (rw in row.names(df)) {
-
-                        if ('format' %in% names(measures) && !is.na(fmt)) {  # overrule format
-                            format <- fmt
-                        } else {
-                            format <- df[rw,formatRef]
-                        }
-                        
-                        if (format == '')
-                            format <- 'standard'
-
-                        value <- as.numeric(df[rw,vc])
-
-                        df[rw,paste0(vc,'_fc')] <- switch(
-                            format,
-                            hidden = '',
-                            paperclip = ifelse(isFooter,'',as.character(shiny::icon('paperclip', lib = 'glyphicon'))),
-                            euro = paste0('\U20AC ', formatC(digits = 0, format = 'f', value, big.mark='.',decimal.mark = ',')),
-                            euro2 = paste0('\U20AC ', formatC(digits = 2, format = 'f', value, big.mark='.',decimal.mark = ',')),
-                            perc = paste0(formatC(digits = 0, format = 'f', value * 100, big.mark='.',decimal.mark = ','),' %'),
-                            perc1 = paste0(formatC(digits = 1, format = 'f', value * 100, big.mark='.',decimal.mark = ','),' %'),
-                            perc2 = paste0(formatC(digits = 2, format = 'f', value * 100, big.mark='.',decimal.mark = ','),' %'),
-                            integer = formatC(digits = 0, format = 'f', value, big.mark='.',decimal.mark = ','),
-                            decimal1 = formatC(digits = 1, format = 'f', value, big.mark='.',decimal.mark = ','),
-                            decimal2 = formatC(digits = 2, format = 'f', value, big.mark='.',decimal.mark = ','),
-                            decimal3 = formatC(digits = 3, format = 'f', value, big.mark='.',decimal.mark = ','),
-                            standard = as.character(value))
-                    }
-
-                } else {
-
-                    if ('format' %in% names(measures) && !is.na(fmt)) {  # overrule format
-                        format <- fmt
-                    } else {
-                        format <- meas$format[meas$viewColumn == vc]
-                    }
-
-                    if (format == '')
-                        format <- 'standard'
-
-                    df[,paste0(vc,'_fc')] <- switch(
-                        format,
-                        hidden = '',
-                        paperclip = ifelse(isFooter,'',as.character(shiny::icon('paperclip', lib = 'glyphicon'))),
-                        euro = paste0('\U20AC ', formatC(digits = 0, format = 'f', df[[vc]], big.mark='.',decimal.mark = ',')),
-                        euro2 = paste0('\U20AC ', formatC(digits = 2, format = 'f', df[[vc]], big.mark='.',decimal.mark = ',')),
-                        perc = paste0(formatC(digits = 0, format = 'f', df[[vc]] * 100, big.mark='.',decimal.mark = ','),' %'),
-                        perc1 = paste0(formatC(digits = 1, format = 'f', df[[vc]] * 100, big.mark='.',decimal.mark = ','),' %'),
-                        perc2 = paste0(formatC(digits = 2, format = 'f', df[[vc]] * 100, big.mark='.',decimal.mark = ','),' %'),
-                        integer = formatC(digits = 0, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
-                        decimal1 = formatC(digits = 1, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
-                        decimal2 = formatC(digits = 2, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
-                        decimal3 = formatC(digits = 3, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
-                        standard = as.character(df[[vc]]))
-                }
-
-            }
             
             if ('format' %in% names(measures) && !is.na(fmt) && fmt == 'sparkline') {
+                
                 if (isFooter)
                     df[,paste0(vc,'_fc')] <- ''
                 else {
                     df[,paste0(vc,'_fc')] <- paste0('<span class = "', gdim, '_', vc, 'Sparkline">',df[[vc]],'</span>')
                     df[[vc]] <- sparkRelativeChange(df[[vc]])
+                }
+            } else {
+                
+                if (is.numeric(df[[vc]])) {
                     
+                    if(!is.na(formatRef)) {
+                        
+                        for (rw in row.names(df)) {
+                            
+                            if ('format' %in% names(measures) && !is.na(fmt)) {  # overrule format
+                                format <- fmt
+                            } else {
+                                format <- df[rw,formatRef]
+                            }
+                            
+                            if (format == '')
+                                format <- 'standard'
+                            
+                            value <- as.numeric(df[rw,vc])
+                            
+                            df[rw,paste0(vc,'_fc')] <- switch(
+                                format,
+                                hidden = '',
+                                paperclip = ifelse(isFooter,'',as.character(shiny::icon('paperclip', lib = 'glyphicon'))),
+                                euro = paste0('\U20AC ', formatC(digits = 0, format = 'f', value, big.mark='.',decimal.mark = ',')),
+                                euro2 = paste0('\U20AC ', formatC(digits = 2, format = 'f', value, big.mark='.',decimal.mark = ',')),
+                                perc = paste0(formatC(digits = 0, format = 'f', value * 100, big.mark='.',decimal.mark = ','),' %'),
+                                perc1 = paste0(formatC(digits = 1, format = 'f', value * 100, big.mark='.',decimal.mark = ','),' %'),
+                                perc2 = paste0(formatC(digits = 2, format = 'f', value * 100, big.mark='.',decimal.mark = ','),' %'),
+                                integer = formatC(digits = 0, format = 'f', value, big.mark='.',decimal.mark = ','),
+                                decimal1 = formatC(digits = 1, format = 'f', value, big.mark='.',decimal.mark = ','),
+                                decimal2 = formatC(digits = 2, format = 'f', value, big.mark='.',decimal.mark = ','),
+                                decimal3 = formatC(digits = 3, format = 'f', value, big.mark='.',decimal.mark = ','),
+                                standard = as.character(value))
+                        }
+                        
+                    } else {
+                        
+                        if ('format' %in% names(measures) && !is.na(fmt)) {  # overrule format
+                            format <- fmt
+                        } else {
+                            format <- meas$format[meas$viewColumn == vc]
+                        }
+                        
+                        if (format == '')
+                            format <- 'standard'
+                        
+                        df[,paste0(vc,'_fc')] <- switch(
+                            format,
+                            hidden = '',
+                            paperclip = ifelse(isFooter,'',as.character(shiny::icon('paperclip', lib = 'glyphicon'))),
+                            euro = paste0('\U20AC ', formatC(digits = 0, format = 'f', df[[vc]], big.mark='.',decimal.mark = ',')),
+                            euro2 = paste0('\U20AC ', formatC(digits = 2, format = 'f', df[[vc]], big.mark='.',decimal.mark = ',')),
+                            perc = paste0(formatC(digits = 0, format = 'f', df[[vc]] * 100, big.mark='.',decimal.mark = ','),' %'),
+                            perc1 = paste0(formatC(digits = 1, format = 'f', df[[vc]] * 100, big.mark='.',decimal.mark = ','),' %'),
+                            perc2 = paste0(formatC(digits = 2, format = 'f', df[[vc]] * 100, big.mark='.',decimal.mark = ','),' %'),
+                            integer = formatC(digits = 0, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
+                            decimal1 = formatC(digits = 1, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
+                            decimal2 = formatC(digits = 2, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
+                            decimal3 = formatC(digits = 3, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
+                            standard = as.character(df[[vc]]))
+                    }
                 }
             }
         }
     }
-
+    
     return (df)
-
+    
 }
 
 

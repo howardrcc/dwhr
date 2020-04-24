@@ -143,7 +143,7 @@ renderDims <- function(env,input,output) {
                     totWidth <- 0
                     
                     for (ll in links) {
-                        
+                   
                         if(ifelse(!is.null(ll$visFun),do.call(ll$visFun,list(env = env),envir = env$ce),TRUE)) {
                             
                             eleObject <- list(width = isNull(ll$width,12))

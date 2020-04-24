@@ -1908,12 +1908,20 @@ setSelection <- function(env,dim,sel,source = 'setSelection',dimRefresh = TRUE,s
         
             if (!dd$ignoreParent && i > 0) {
                 p <- sel$parent[sel$level == i & sel$label == j]
-                
                 if (!any(p %in% dd$data[[paste0('level',i - 1,'Label')]])) {
                     stop(paste0(dim,': parent: ', p, ' selectLevel: ', i, ' not in data'))
                 }
             }
-            
+        }
+    }
+    
+    dd$setSelectionOK <- TRUE
+    
+    if (is.data.frame(dd$membersFiltered)) {
+        if (sel$level == dd$level && !sel$label %in% dd$membersFiltered$member) {
+            warning(paste0(dim, ': selection out of range'))
+            dd$setSelectionOK <- FALSE
+            return(env)
         }
     }
 
