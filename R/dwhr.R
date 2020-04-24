@@ -1921,7 +1921,6 @@ setSelection <- function(env,dim,sel,source = 'setSelection',dimRefresh = TRUE,s
         if (sel$level == dd$level && !sel$label %in% dd$membersFiltered$member) {
             warning(paste0(dim, ': selection out of range'))
             dd$setSelectionOK <- FALSE
-            return(env)
         }
     }
 
