@@ -133,7 +133,6 @@ new.star <- function(starId, session, facts, caching = FALSE, mtimeData = NULL, 
 #'    \item clickMeasureEvent 
 #'}
 #'    
-#'
 #' @param env sterschema-object, gemaakt met \code{\link{new.star}}
 #' @param dim string, uniek id van deze dimView. Dit id moet corresponderen met de parameter \code{dim} in
 #' \code{\link{getDimUI}}
@@ -195,6 +194,7 @@ new.star <- function(starId, session, facts, caching = FALSE, mtimeData = NULL, 
 #'  \item links: lijst wordt getoond via meerdere links 
 #'}
 #'@param ignoreParent boolean, als TRUE: members worden niet gefilterd naargelang het bovenliggende parent-level maar worden onafhankelijk van elkaar getoond.
+#'@param headerSize integer, bepaalt de grootte van de dimensie-header. bereik 1..6, waarbij 1 overeenkomt met html-tag <h6> en 6 met html-tag <h1>. default is 2 (<h5>).
 #'
 #'@return gewijzigd sterschema-object.
 #'
@@ -204,7 +204,7 @@ addDimView <- function(
     selectLabel = levelNames[1], selectParent = NULL, state = 'enabled', type = 'bidir', selectMode = 'single', useLevels = NULL,
     cntName = 'cnt', itemName = 'Naam', ignoreDims = NULL, leafOnly = FALSE, fixedMembers = FALSE, keepUnused = TRUE,
     na.rm = TRUE, orderBy = 'name', selectableLevels = NULL, footerLevels = NA_integer_ , presListType = 'dropdown',
-    returnPrepData = FALSE, selectedIds = NULL, ignoreParent = FALSE) {
+    returnPrepData = FALSE, selectedIds = NULL, ignoreParent = FALSE, headerSize = 2) {
 
     class(env) == 'star' || stop('env is not of class star')
     
@@ -244,6 +244,7 @@ addDimView <- function(
     assert_is_subset(presListType,domains[['presListType']])
     assert_is_subset(isNull(selectedIds,data[1,1]),data[[1]])
     assert_is_a_bool(ignoreParent)
+    assert_is_a_number(headerSize)
     
     if (!is.null(selectedIds) || selectMode == 'none') {
         selectLevel <- 0
@@ -536,6 +537,12 @@ addDimView <- function(
         selectParent <- sel$parent
     }
     
+    if (!headerSize %in% c(1:6)) {
+        stop(paste0(dim, ': Invalid headerSize'))        
+    } else {
+        headerSize <- 7 - headerSize 
+    }
+    
     l <- new.env(parent = emptyenv())
     class(l) <- 'dimView'
     
@@ -669,6 +676,7 @@ addDimView <- function(
     l$pres <- 'stub'
     l$state <- state
     l$ignoreParent <- ignoreParent
+    l$headerSize <- headerSize
     
     l$factsFilteredDim <- shiny::reactive({
         

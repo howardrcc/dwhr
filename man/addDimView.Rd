@@ -32,7 +32,8 @@ addDimView(
   presListType = "dropdown",
   returnPrepData = FALSE,
   selectedIds = NULL,
-  ignoreParent = FALSE
+  ignoreParent = FALSE,
+  headerSize = 2
 )
 }
 \arguments{
@@ -120,6 +121,8 @@ outer join tussen dimensie en feiten-tabel.}
 }}
 
 \item{ignoreParent}{boolean, als TRUE: members worden niet gefilterd naargelang het bovenliggende parent-level maar worden onafhankelijk van elkaar getoond.}
+
+\item{headerSize}{integer, bepaalt de grootte van de dimensie-header. bereik 1..6, waarbij 1 overeenkomt met html-tag <h6> en 6 met html-tag <h1>. default is 2 (<h5>).}
 }
 \value{
 gewijzigd sterschema-object.

@@ -117,7 +117,14 @@ renderDims <- function(env,input,output) {
                     if (presType %in% c('selectInput','radioButton') || length(dd$name) == 0) {
                         name <- ''
                     } else {
-                        name <- h5(dd$name, style = 'margin-top: 0;margin-bottom: 0;')
+                        name <- switch(
+                            as.character(dd$headerSize),
+                            '1' = h1(dd$name, style = 'margin-top: 0;margin-bottom: 0;'),
+                            '2' = h2(dd$name, style = 'margin-top: 0;margin-bottom: 0;'),
+                            '3' = h3(dd$name, style = 'margin-top: 0;margin-bottom: 0;'),
+                            '4' = h4(dd$name, style = 'margin-top: 0;margin-bottom: 0;'),
+                            '5' = h5(dd$name, style = 'margin-top: 0;margin-bottom: 0;'),
+                            '6' = h6(dd$name, style = 'margin-top: 0;margin-bottom: 0;'))
                     }
                     
                     name
