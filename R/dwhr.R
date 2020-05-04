@@ -644,7 +644,7 @@ addDimView <- function(
     l$presVec <- NULL
     l$defPres <- NULL
     l$observers <- NULL
-    l$msState <- FALSE
+    l$msState <- length(selectLabel) > 1
     l$wait <- FALSE
     l$ignoreDims <- ignoreDims
     l$currentPage <- 1

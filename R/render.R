@@ -412,7 +412,11 @@ renderDims <- function(env,input,output) {
                     printDebug(env = env, dim, eventIn = 'renderFooter')
                     
                     dd$reactive$presChange
-                    val <- input[[paste0(gdim,'DimMs')]]
+                    
+                    if (is.null(input[[paste0(gdim,'DimMs')]]))
+                        val <- dd$msState
+                    else 
+                        val <- input[[paste0(gdim,'DimMs')]]
 
                     presList <- dd$presList
                     presType <- presList[[dd$pres]]$type
