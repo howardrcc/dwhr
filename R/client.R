@@ -71,7 +71,7 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
         style <- paste0("overflow-x:", overflowX, "; overflow-y:hidden;")
     }
     
-    acc <- paste0('<td id="', gdim, 'AccordionId" class="db-header" style="width: 16px; cursor: pointer;" onclick="toggleAccordion(this,\'', gdim, 'DwhrPanel\');">', 
+    acc <- paste0('<td id="', gdim, 'AccordionId" class="db-header2" style="width: 16px; cursor: pointer;" onclick="toggleAccordion(this,\'', gdim, 'DwhrPanel\');">', 
                   shiny::icon('chevron-down',lib = 'glyphicon'), 
                   '</td>')
     
@@ -93,10 +93,9 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
                     , '<tbody>'
                     , '<tr>'
                     , ifelse(accordion,acc,'')
-                    , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimName")), '</td>'
-                    , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimLinks")), '</td>'
-                    , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimPresList")), '</td>'
-              #      , '<td class="db-header" style="padding-top: 24px"></td>'
+                    , '<td class="db-header2">', shiny::uiOutput(paste0(gdim,"DimName")), '</td>'
+                    , '<td class="db-header2">', shiny::uiOutput(paste0(gdim,"DimLinks")), '</td>'
+                    , '<td class="db-header2">', shiny::uiOutput(paste0(gdim,"DimPresList")), '</td>'
                     , '</tr></tbody></table>')
                 ),
                 shiny::uiOutput(paste0(gdim,"DimHeader"))),

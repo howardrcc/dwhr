@@ -49,6 +49,12 @@ text-align:left;
 overflow: hidden;
 }
 
+td.db-header2 {
+vertical-align: top;
+text-align:left;
+overflow: hidden;
+}
+
 .hide-db {
 position: absolute !important;
 top: -9999px;
