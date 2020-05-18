@@ -549,6 +549,10 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     }
     
+    if (length(setdiff(measViewColNames,names(tab))) > 0) {
+        stop('missende kolomnamen: ',paste0(setdiff(measViewColNames,names(tab)),collapse = ','))
+    }
+    
     tab <- tab[,c('zoom','member','memberKey',measViewColNames)]
     visCols <- c(0,1,which(names(tab) %in% union(formattedColumns,textColumns)) - 1)
 

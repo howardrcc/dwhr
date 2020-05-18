@@ -551,7 +551,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
                     memberValue <- sel$label
                 }
                 
-                y <- getMemberValue(env = evn, dim = dim, memberLevel = memberLevel, memberValue = memberValue, viewColumn = presCol)
+                y <- getMemberValue(env = env, dim = dim, memberLevel = memberLevel, memberValue = memberValue, viewColumn = presCol)
                 print(length(y$value) > 0)
                 if (length(y$value) > 0) {
                     

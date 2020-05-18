@@ -2565,7 +2565,8 @@ setDtVisible <- function(env,dim,pres,viewColumn,visible) {
     viewColumn %in% presVc || stop(paste0(dim, ': viewColumn invalid'))
     measNum <- which(presVc %in% viewColumn)
     
-    assert_is_a_bool(visible)
+    if(!is_a_bool(visible) && !is_function(visible) && !(class(visible) == 'call'))
+        assert_is_a_bool(visible)
 
     for (x in measNum)
         pl[[presNum]]$dataTableOpts$measures[[x]]$visible <- visible
