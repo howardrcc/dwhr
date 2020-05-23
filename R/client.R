@@ -160,6 +160,7 @@ initGlob <- function() {
         glob.env$reservedColumnPatterns <- c('*_fc','*_org','*_tooltip','*_text','*_sort')
         
         glob.env$securityModel %in% c('none','proxy') || stop('Invalid securityModel')
+        glob.env$restart <- FALSE
         
         # account data
         
@@ -274,19 +275,21 @@ authenticate <- function(session) {
         if(exists(paste0('sessionEndHook'),envir = ce)) {
             do.call(paste0('sessionEndHook'),list(session = session),envir = ce)
         }
+        
+        if (glob.env$sessionCount == 0 && !glob.env$restart) {
 
-        if (glob.env$sessionCount == 0) {
-            
             print('Closing ODBC connections')
             RODBC::odbcCloseAll()
-            
+
             if (exists('globalCache', env = glob.env)) {
                 saveRDS(glob.env$globalCache, getCacheFile())
             }
-            
+
             rm(glob.env, envir = .GlobalEnv)
             stopApp()
         }
+        
+        glob.env$restart <- FALSE
         
     })
     

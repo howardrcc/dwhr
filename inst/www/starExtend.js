@@ -273,7 +273,7 @@ plotBandSingleSelect = function(dim,plotBand,event,selectable,unSelectable,drill
     var chart = $(container).highcharts();
     //var id = chart.series[0].data[plotBand.options.id].id;
     //var id = chart.xAxis[0].series[0].data[plotBand.options.id].id;
-    id = plotBand.options.id
+    id = plotBand.options.id;
     var drill = false;
     var select = false;
     var unSelect = false;
@@ -331,8 +331,6 @@ shinyjs.updateSeriesData = function(params) {
     for (i = 0; i < params.seriesData.length; i++) {
         chart.series[i].setData(params.seriesData[i],params.redraw,false,false);
     }
-
-
 };
 
 shinyjs.updateSeriesOpts = function(params) {
