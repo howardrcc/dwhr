@@ -472,13 +472,8 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     orderColumnDir <- dd$orderColumnDir
 
     measList <- getMeasList(env,dim)
-  
-    if ('sort' %in% measList$category) {
-        orderable <- TRUE
-    } else {
-        orderable <- TRUE
-    }
-
+    orderable <- TRUE
+   
     meas <- rbind(
         merge(measList, measures,by.x = 'viewColumn', by.y = 'viewColumn'),
         merge(measList[measList$category %in% c('group','tooltip','sort'),], measures,by.x = 'viewColumn', by.y = 'viewColumn', all.x = TRUE))
@@ -754,9 +749,20 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     container = htmltools::withTags(table(DT::tableHeader(tab),ft))
 
     visCols <- setdiff(0:(length(names(tab))-1),hideCols)
-
+    
     if (!(orderViewColumn %in% c(measures$viewColumn,textColumns,'member','memberKey')) || !orderable) {
-        notOrderable <- visCols
+        
+        if (!orderable) {
+            notOrderable <- visCols
+        } else {
+            setOrdering(env = env, dim = dim, as = dd$itemName, sort = 'asc')
+            orderColumn <- dd$orderColumn 
+            orderViewColumn <- dd$orderViewColumn 
+            orderColumnDir <- dd$orderColumnDir
+            orderColumn2 <- dd$orderColumn2 
+            orderViewColumn2 <- dd$orderViewColumn2 
+            notOrderable <- c(0,which(names(tab) %in% meas$as[!meas$orderable]) - 1)
+        }
     } else {
         notOrderable <- c(0,which(names(tab) %in% meas$as[!meas$orderable]) - 1)
     }
@@ -788,7 +794,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     orderOpt <- NULL
 
     if(orderable) {
-        
+     
         if ('sort_sort' %in% names(tab)) {
             defaultOrderCol <- which(names(tab) == 'sort_sort') - 1
         } else {
