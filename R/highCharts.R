@@ -974,10 +974,12 @@ renderHighchartDim <- function(env, dim, input,output) {
             presList <- dd$presList
             
             seriesOpts <- presList[[pres]]$highChartsOpts$series
-            seriesOpts[[e]]$visible <- FALSE
+            if (!is.function(seriesOpts[[e]]$visible))
+                seriesOpts[[e]]$visible <- FALSE
             
             if (e < length(seriesOpts) && !is.null(seriesOpts[[e + 1]]$linkedTo) && seriesOpts[[e + 1]]$linkedTo == ':previous') {
-                seriesOpts[[e + 1]]$visible <- FALSE
+                if (!is.function(seriesOpts[[e + 1]]$visible))
+                    seriesOpts[[e + 1]]$visible <- FALSE
             }
             
             dd$presList[[pres]]$highChartsOpts$series <- seriesOpts
@@ -1008,10 +1010,13 @@ renderHighchartDim <- function(env, dim, input,output) {
             presList <- dd$presList
             
             seriesOpts <- presList[[pres]]$highChartsOpts$series
-            seriesOpts[[e]]$visible <- TRUE
+            
+            if (!is.function(seriesOpts[[e]]$visible))
+                seriesOpts[[e]]$visible <- TRUE
             
             if (e < length(seriesOpts) && !is.null(seriesOpts[[e + 1]]$linkedTo) && seriesOpts[[e + 1]]$linkedTo == ':previous') {
-                seriesOpts[[e + 1]]$visible <- TRUE
+                if (!is.function(seriesOpts[[e + 1]]$visible))
+                    seriesOpts[[e + 1]]$visible <- TRUE
             }
             
             dd$presList[[pres]]$highChartsOpts$series <- seriesOpts
