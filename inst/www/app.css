@@ -49,6 +49,12 @@ text-align:left;
 overflow: hidden;
 }
 
+td.db-header2 {
+vertical-align: top;
+text-align:left;
+overflow: hidden;
+}
+
 .hide-db {
 position: absolute !important;
 top: -9999px;
@@ -89,4 +95,13 @@ width: 97%;
 
 .dwhrPanel {
     overflow: hidden;
+}
+
+.zoom {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  z-index: 1001;
 }

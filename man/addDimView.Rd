@@ -4,15 +4,37 @@
 \alias{addDimView}
 \title{Voeg dimensie view (dimView) toe aan sterschema-object}
 \usage{
-addDimView(env, dim, name, data, levelNames, initLevel = 0,
-  initParent = "", selectLevel = 0, selectLabel = levelNames[1],
-  selectParent = NULL, state = "enabled", type = "bidir",
-  selectMode = "single", useLevels = NULL, cntName = "cnt",
-  itemName = "Naam", ignoreDims = NULL, leafOnly = FALSE,
-  fixedMembers = FALSE, keepUnused = FALSE, na.rm = TRUE,
-  orderBy = "name", selectableLevels = NULL,
-  footerLevels = NA_integer_, presListType = "dropdown",
-  returnPrepData = FALSE, selectedIds = NULL)
+addDimView(
+  env,
+  dim,
+  name,
+  data,
+  levelNames,
+  initLevel = 0,
+  initParent = "",
+  selectLevel = 0,
+  selectLabel = levelNames[1],
+  selectParent = NULL,
+  state = "enabled",
+  type = "bidir",
+  selectMode = "single",
+  useLevels = NULL,
+  cntName = "cnt",
+  itemName = "Naam",
+  ignoreDims = NULL,
+  leafOnly = FALSE,
+  fixedMembers = FALSE,
+  keepUnused = TRUE,
+  na.rm = TRUE,
+  orderBy = "name",
+  selectableLevels = NULL,
+  footerLevels = NA_integer_,
+  presListType = "dropdown",
+  returnPrepData = FALSE,
+  selectedIds = NULL,
+  ignoreParent = FALSE,
+  headerSize = 2
+)
 }
 \arguments{
 \item{env}{sterschema-object, gemaakt met \code{\link{new.star}}}
@@ -84,7 +106,7 @@ niet aggregeerbaar zijn. De footer wordt dan in de UI niet getoond.}
 \item{fixedMembers}{boolean, als TRUE worden alle dimensie-members getoont in de UI ongeachtof feiten bestaan voor de members of niet. Correspondeert met een left-
 outer join tussen dimensie en feiten-tabel.}
 
-\item{keepUnused}{boolean, als TRUE: niet gebruikte records in data (geen facts) worden niet opgeschoond, default FALSE.}
+\item{keepUnused}{boolean, als TRUE: niet gebruikte records in data (geen facts) worden niet opgeschoond, default TRUE.}
 
 \item{na.rm}{boolean, als TRUE worden NA values verwijderd voor het uitvoeren van de aggregatie-functie.}
 
@@ -97,6 +119,10 @@ outer join tussen dimensie en feiten-tabel.}
  \item dropdown: lijst wordt getoond via een dropdown box
  \item links: lijst wordt getoond via meerdere links 
 }}
+
+\item{ignoreParent}{boolean, als TRUE: members worden niet gefilterd naargelang het bovenliggende parent-level maar worden onafhankelijk van elkaar getoond.}
+
+\item{headerSize}{integer, bepaalt de grootte van de dimensie-header. bereik 1..6, waarbij 1 overeenkomt met html-tag <h6> en 6 met html-tag <h1>. default is 2 (<h5>).}
 }
 \value{
 gewijzigd sterschema-object.

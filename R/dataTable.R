@@ -94,12 +94,34 @@ sparkDrawCallbackJS <- function(env,dim,sparkOpts) {
     DT::JS(txt)
 }
 
+renderTooltipJS <- function(i) {
+  
+  txt <- paste0("function(data, type, row, meta) {
+    if (type === 'display') {
+        txt = '<div style=\"display: inline-block\" data-toggle=\"tooltip\" data-container=\"body\" data-placement=\"right\" title=\"' + row[",i,"] + '\">' + data + '</div>';
+    } else {
+        txt = data;
+    }
+    return txt;
+}
+")
+  DT::JS(txt)
+}
 
-renderJS <- function(i) {
-
+renderJS <- function(i,underline) {
+    
+    ul <- ''
+    
+    if (underline)
+        ul <- 'class="underline-on-hover";'
+    
+    style <-''
+    if (!is.null(i))
+        style <- paste0("style=\"display: inline-block\" data-toggle=\"tooltip\" data-container=\"body\" data-placement=\"right\" title=\"' + row[",i,"] + '\"")
+    
     txt <- paste0("function(data, type, row, meta) {
     if (type === 'display') {
-        txt = '<div style=\"display: inline-block\" data-toggle=\\\"tooltip\\\" data-container=\\\"body\\\" data-placement=\\\"right\\\" title=\\\"' + row[",i,"] + '\\\">' + data + '</div>';
+        txt = '<div ",ul,style,">' + data + '</div>';
     } else {
         txt = data;
     }
@@ -119,90 +141,90 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
     gdim <- env$dims[[dim]]$gdim
 
     if (!is.null(nrow(df))) {
-
+        
         for (fc in meas$as) {
-
+            
             formatRef <- meas$formatRef[meas$as == fc]
             vc <- meas$viewColumn[meas$as == fc]
             
             fmt <- measures$format[measures$viewColumn == vc]
-
-            if (is.numeric(df[[vc]])) {
-
-                if(!is.na(formatRef)) {
-                    
-                    for (rw in row.names(df)) {
-
-                        if ('format' %in% names(measures) && !is.na(fmt)) {  # overrule format
-                            format <- fmt
-                        } else {
-                            format <- df[rw,formatRef]
-                        }
-                        
-                        if (format == '')
-                            format <- 'standard'
-
-                        value <- as.numeric(df[rw,vc])
-
-                        df[rw,paste0(vc,'_fc')] <- switch(
-                            format,
-                            hidden = '',
-                            paperclip = ifelse(isFooter,'',as.character(shiny::icon('paperclip', lib = 'glyphicon'))),
-                            euro = paste0('\U20AC ', formatC(digits = 0, format = 'f', value, big.mark='.',decimal.mark = ',')),
-                            euro2 = paste0('\U20AC ', formatC(digits = 2, format = 'f', value, big.mark='.',decimal.mark = ',')),
-                            perc = paste0(formatC(digits = 0, format = 'f', value * 100, big.mark='.',decimal.mark = ','),' %'),
-                            perc1 = paste0(formatC(digits = 1, format = 'f', value * 100, big.mark='.',decimal.mark = ','),' %'),
-                            perc2 = paste0(formatC(digits = 2, format = 'f', value * 100, big.mark='.',decimal.mark = ','),' %'),
-                            integer = formatC(digits = 0, format = 'f', value, big.mark='.',decimal.mark = ','),
-                            decimal1 = formatC(digits = 1, format = 'f', value, big.mark='.',decimal.mark = ','),
-                            decimal2 = formatC(digits = 2, format = 'f', value, big.mark='.',decimal.mark = ','),
-                            decimal3 = formatC(digits = 3, format = 'f', value, big.mark='.',decimal.mark = ','),
-                            standard = as.character(value))
-                    }
-
-                } else {
-
-                    if ('format' %in% names(measures) && !is.na(fmt)) {  # overrule format
-                        format <- fmt
-                    } else {
-                        format <- meas$format[meas$viewColumn == vc]
-                    }
-
-                    if (format == '')
-                        format <- 'standard'
-
-                    df[,paste0(vc,'_fc')] <- switch(
-                        format,
-                        hidden = '',
-                        paperclip = ifelse(isFooter,'',as.character(shiny::icon('paperclip', lib = 'glyphicon'))),
-                        euro = paste0('\U20AC ', formatC(digits = 0, format = 'f', df[[vc]], big.mark='.',decimal.mark = ',')),
-                        euro2 = paste0('\U20AC ', formatC(digits = 2, format = 'f', df[[vc]], big.mark='.',decimal.mark = ',')),
-                        perc = paste0(formatC(digits = 0, format = 'f', df[[vc]] * 100, big.mark='.',decimal.mark = ','),' %'),
-                        perc1 = paste0(formatC(digits = 1, format = 'f', df[[vc]] * 100, big.mark='.',decimal.mark = ','),' %'),
-                        perc2 = paste0(formatC(digits = 2, format = 'f', df[[vc]] * 100, big.mark='.',decimal.mark = ','),' %'),
-                        integer = formatC(digits = 0, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
-                        decimal1 = formatC(digits = 1, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
-                        decimal2 = formatC(digits = 2, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
-                        decimal3 = formatC(digits = 3, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
-                        standard = as.character(df[[vc]]))
-                }
-
-            }
             
             if ('format' %in% names(measures) && !is.na(fmt) && fmt == 'sparkline') {
+                
                 if (isFooter)
                     df[,paste0(vc,'_fc')] <- ''
                 else {
                     df[,paste0(vc,'_fc')] <- paste0('<span class = "', gdim, '_', vc, 'Sparkline">',df[[vc]],'</span>')
                     df[[vc]] <- sparkRelativeChange(df[[vc]])
+                }
+            } else {
+                
+                if (is.numeric(df[[vc]])) {
                     
+                    if(!is.na(formatRef)) {
+                        
+                        for (rw in row.names(df)) {
+                            
+                            if ('format' %in% names(measures) && !is.na(fmt)) {  # overrule format
+                                format <- fmt
+                            } else {
+                                format <- df[rw,formatRef]
+                            }
+                            
+                            if (format == '')
+                                format <- 'standard'
+                            
+                            value <- as.numeric(df[rw,vc])
+                            
+                            df[rw,paste0(vc,'_fc')] <- switch(
+                                format,
+                                hidden = '',
+                                paperclip = ifelse(isFooter,'',as.character(shiny::icon('paperclip', lib = 'glyphicon'))),
+                                euro = paste0('\U20AC ', formatC(digits = 0, format = 'f', value, big.mark='.',decimal.mark = ',')),
+                                euro2 = paste0('\U20AC ', formatC(digits = 2, format = 'f', value, big.mark='.',decimal.mark = ',')),
+                                perc = paste0(formatC(digits = 0, format = 'f', value * 100, big.mark='.',decimal.mark = ','),' %'),
+                                perc1 = paste0(formatC(digits = 1, format = 'f', value * 100, big.mark='.',decimal.mark = ','),' %'),
+                                perc2 = paste0(formatC(digits = 2, format = 'f', value * 100, big.mark='.',decimal.mark = ','),' %'),
+                                integer = formatC(digits = 0, format = 'f', value, big.mark='.',decimal.mark = ','),
+                                decimal1 = formatC(digits = 1, format = 'f', value, big.mark='.',decimal.mark = ','),
+                                decimal2 = formatC(digits = 2, format = 'f', value, big.mark='.',decimal.mark = ','),
+                                decimal3 = formatC(digits = 3, format = 'f', value, big.mark='.',decimal.mark = ','),
+                                standard = as.character(value))
+                        }
+                        
+                    } else {
+                        
+                        if ('format' %in% names(measures) && !is.na(fmt)) {  # overrule format
+                            format <- fmt
+                        } else {
+                            format <- meas$format[meas$viewColumn == vc]
+                        }
+                        
+                        if (format == '')
+                            format <- 'standard'
+                        
+                        df[,paste0(vc,'_fc')] <- switch(
+                            format,
+                            hidden = '',
+                            paperclip = ifelse(isFooter,'',as.character(shiny::icon('paperclip', lib = 'glyphicon'))),
+                            euro = paste0('\U20AC ', formatC(digits = 0, format = 'f', df[[vc]], big.mark='.',decimal.mark = ',')),
+                            euro2 = paste0('\U20AC ', formatC(digits = 2, format = 'f', df[[vc]], big.mark='.',decimal.mark = ',')),
+                            perc = paste0(formatC(digits = 0, format = 'f', df[[vc]] * 100, big.mark='.',decimal.mark = ','),' %'),
+                            perc1 = paste0(formatC(digits = 1, format = 'f', df[[vc]] * 100, big.mark='.',decimal.mark = ','),' %'),
+                            perc2 = paste0(formatC(digits = 2, format = 'f', df[[vc]] * 100, big.mark='.',decimal.mark = ','),' %'),
+                            integer = formatC(digits = 0, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
+                            decimal1 = formatC(digits = 1, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
+                            decimal2 = formatC(digits = 2, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
+                            decimal3 = formatC(digits = 3, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
+                            standard = as.character(df[[vc]]))
+                    }
                 }
             }
         }
     }
-
+    
     return (df)
-
+    
 }
 
 
@@ -215,7 +237,11 @@ getSelectedItems <- function(env,dim){
     
     s <- dd$selected
 
-    s <- s[(s$level == level & s$parent == parent),]
+    if (isNull(dd$ignoreParent,FALSE)) {
+        s <- s[(s$level == level),]
+    } else {
+        s <- s[(s$level == level & s$parent == parent),]
+    }
 
     m <- NA
 
@@ -430,8 +456,9 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     print <- isNull(print,isNull(dd$print,FALSE))
     presList <- dd$presList
     opts <- presList[[pres]]$dataTableOpts
+    noDrill <- presList[[pres]]$navOpts$noDrill
 
-    measures <- rlist::list.stack(isNull(opts$measures,list(viewColumn = 'cnt')),fill = TRUE)
+    measures <- rlist::list.stack(isNull(expandList(env,opts$measures),list(viewColumn = 'cnt')),fill = TRUE)
 
     pageLength <- opts$pageLength
     pageLengthList <- opts$pageLengthList
@@ -445,13 +472,8 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     orderColumnDir <- dd$orderColumnDir
 
     measList <- getMeasList(env,dim)
-  
-    if ('sort' %in% measList$category) {
-        orderable <- TRUE
-    } else {
-        orderable <- TRUE
-    }
-
+    orderable <- TRUE
+   
     meas <- rbind(
         merge(measList, measures,by.x = 'viewColumn', by.y = 'viewColumn'),
         merge(measList[measList$category %in% c('group','tooltip','sort'),], measures,by.x = 'viewColumn', by.y = 'viewColumn', all.x = TRUE))
@@ -522,6 +544,10 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     }
     
+    if (length(setdiff(measViewColNames,names(tab))) > 0) {
+        stop('missende kolomnamen: ',paste0(setdiff(measViewColNames,names(tab)),collapse = ','))
+    }
+    
     tab <- tab[,c('zoom','member','memberKey',measViewColNames)]
     visCols <- c(0,1,which(names(tab) %in% union(formattedColumns,textColumns)) - 1)
 
@@ -532,7 +558,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     # fix zoom
     #
 
-    if(lvl == length(dd$levelNames) - 1) {
+    if(lvl == length(dd$levelNames) - 1 || noDrill) {
         tab$zoom = ''
     }
 
@@ -723,9 +749,20 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     container = htmltools::withTags(table(DT::tableHeader(tab),ft))
 
     visCols <- setdiff(0:(length(names(tab))-1),hideCols)
-
+    
     if (!(orderViewColumn %in% c(measures$viewColumn,textColumns,'member','memberKey')) || !orderable) {
-        notOrderable <- visCols
+        
+        if (!orderable) {
+            notOrderable <- visCols
+        } else {
+            setOrdering(env = env, dim = dim, as = dd$itemName, sort = 'asc')
+            orderColumn <- dd$orderColumn 
+            orderViewColumn <- dd$orderViewColumn 
+            orderColumnDir <- dd$orderColumnDir
+            orderColumn2 <- dd$orderColumn2 
+            orderViewColumn2 <- dd$orderViewColumn2 
+            notOrderable <- c(0,which(names(tab) %in% meas$as[!meas$orderable]) - 1)
+        }
     } else {
         notOrderable <- c(0,which(names(tab) %in% meas$as[!meas$orderable]) - 1)
     }
@@ -735,13 +772,13 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     rightAlign <- setdiff(setdiff(union(which(names(tab) %in% meas$as[meas$align == 'right']) - 1,formattedColNrs),centerAlign),leftAlign)
 
     columnDefs <-  list(
-        list(visible=FALSE, targets=hideCols),
-        list(searchable=FALSE, targets=hideCols),
-        list(orderable=FALSE, targets=notOrderable),
-        list(width = '6px', targets=c(0)),
-        list(targets=rightAlign, class="dt-right"),
-        list(targets=centerAlign, class="dt-center"),
-        list(targets=leftAlign, class="dt-left"))
+        list(visible = FALSE, targets = hideCols),
+        list(searchable = FALSE, targets = which(names(tab) != dd$itemName) - 1),
+        list(orderable = FALSE, targets = notOrderable),
+        list(width = '6px', targets = c(0)),
+        list(targets = rightAlign, class = "dt-right"),
+        list(targets = centerAlign, class = "dt-center"),
+        list(targets = leftAlign, class = "dt-left"))
 
     # width columns
 
@@ -757,7 +794,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     orderOpt <- NULL
 
     if(orderable) {
-        
+     
         if ('sort_sort' %in% names(tab)) {
             defaultOrderCol <- which(names(tab) == 'sort_sort') - 1
         } else {
@@ -790,9 +827,20 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     columnDefs[[length(columnDefs) + 1]] <- list(type = 'string', targets = 1)
 
+    ttcnr <- NULL
+    
     if ('member_tooltip' %in% names(tab)) {
         ttcnr <- which(names(tab) %in% 'member_tooltip') - 1
-        columnDefs[[length(columnDefs) + 1]] <- list(targets = 1, render = renderJS(ttcnr))
+    }
+
+    underline <- FALSE
+    
+    if (!print && dd$type != 'output' && dd$selectMode != 'none' && dd$level %in% dd$selectableLevels && nrow(tab) > 0) {
+        underline <- TRUE
+    }
+    
+    if (underline || !is.null(ttcnr)) {
+        columnDefs[[length(columnDefs) + 1]] <- list(targets = 1, render = renderJS(ttcnr,underline))
     }
     
     if ('tooltip' %in% names(meas)) {
@@ -803,7 +851,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
                 sourceCol <- meas$as[meas$viewColumn == tt$tooltip[i]]
                 sourceColnr <- which(names(tab) %in% sourceCol) - 1
                 targetColnr <- which(names(tab) %in% tt$as[i]) - 1
-                columnDefs[[length(columnDefs) + 1]] <- list(targets = targetColnr, render = renderJS(sourceColnr))
+                columnDefs[[length(columnDefs) + 1]] <- list(targets = targetColnr, render = renderTooltipJS(sourceColnr))
             }
         }
     }
@@ -811,16 +859,20 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     rowGroup <- FALSE
     
     if ('rowGroupColumn' %in% names(tab)) {
-        if (any(tab[['Naam']] != tab[['rowGroupColumn']])) {
-            rgcnr <- which(names(tab) %in% 'rowGroupColumn') - 1
-            rowGroup <- list(dataSrc = rgcnr)
+        if (!is.null(opts$filterRowGroup)) {
+            tab <- tab[tab$rowGroupColumn == opts$filterRowGroup,]
+        } else {
+            if (any(tab[['Naam']] != tab[['rowGroupColumn']]) || nrow(tab) == 1) {
+                rgcnr <- which(names(tab) %in% 'rowGroupColumn') - 1
+                rowGroup <- list(dataSrc = rgcnr)
+            }
         }
     }
     
     options <- list( dom = dom
                      , lengthChange = TRUE
                      , searching = searching
-                     , search = list(regex = FALSE, caseInsensitive = TRUE, search = search)
+                     , search = list(regex = FALSE, caseInsensitive = TRUE, smart = FALSE, search = search)
                      , searchDelay = 800
                      , paging = paging
                      , rowGroup = rowGroup
@@ -850,10 +902,10 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     }
 
     
-    if (!print && dd$type != 'output' && dd$selectMode != 'none' && dd$level %in% dd$selectableLevels) {
-        tab[,2] <- paste0('<span class = "underline-on-hover">',tab[,2],'</span>')
-    }
-    
+    # if (!print && dd$type != 'output' && dd$selectMode != 'none' && dd$level %in% dd$selectableLevels && nrow(tab) > 0) {
+    #     tab[,2] <- paste0('<span class = "underline-on-hover">',tab[,2],'</span>')
+    # }
+    # 
    
     ret <- list(
         tab = tab,
@@ -931,6 +983,7 @@ renderDataTableDim <- function(env,dim,input,output) {
                 } else {
                     dd$parent <- dd$membersFiltered$member[info$row]
                     dd$ancestors <- c(dd$ancestors,dd$parent)
+                    dd$prevLevel <- dd$level
                     dd$level <- dd$level + 1
                     dd$reactive$levelChange <- dd$reactive$levelChange + 1
                     printDebug(env = env, dim, eventIn = 'dataTableCellClicked', eventOut = 'levelChange')
@@ -1035,7 +1088,7 @@ print('cells_selected')
         }
 
         l <- dd$selected
-
+        
         if(!(dd$msState) && nrow(l) <= 1 && length(selected) > 0) {
 
             # single select
@@ -1052,7 +1105,10 @@ print('cells_selected')
             # multi select
 
             if(nrow(l) > 0) {
-                l <- l[!(l$level == level & l$parent == parent),]
+                if (isNull(dd$ignoreParent,FALSE))
+                    l <- l[!(l$level == level),]
+                else 
+                    l <- l[!(l$level == level & l$parent == parent),]
             }
 
             if(length(selected) > 0) {
@@ -1159,6 +1215,9 @@ print('cells_selected')
             printDebug(env = env, dim, eventIn = 'dataTableOrderChange', eventOut = 'orderChange', info = paste0('column:',name,',dir:',srt))
 
         }
+        
+        dd$currentPage <- 1
+    
     })
 
     readyEvent <- paste0(gdim,'_dt_ready')
@@ -1220,6 +1279,8 @@ print('cells_selected')
 
             dd$reactive$pageLengthChange <- dd$reactive$pageLengthChange + 1
             printDebug(env = env, dim, eventIn = 'dataTablePageLength', eventOut = 'pageLengthChange', info = paste0('pageLength: ', input[[pageLengthEvent]]$data))
+            
+            shinyjs::js$tooltip()
         }
 
     })

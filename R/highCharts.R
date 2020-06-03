@@ -2,6 +2,10 @@ plotBandSingleSelectJS <- function(env,dim,label,color,serieType) {
     
     dd <- env$dims[[dim]]
     gdim <- dd$gdim
+    presList <- dd$presList
+    
+    pres <- dd$pres
+    noDrill <- presList[[pres]]$navOpts$noDrill
     
     selectable <- 'true'
     unSelectable <- 'true'
@@ -35,7 +39,7 @@ plotBandSingleSelectJS <- function(env,dim,label,color,serieType) {
         unSelectable <- 'false'
     }
 
-    if (dd$level == dd$maxLevel) {
+    if (dd$level == dd$maxLevel || noDrill) {
         drillable <- 'false'
     }
 
@@ -54,6 +58,10 @@ pointSingleSelectJS <- function(env,dim,color,serieType) {
     
     dd <- env$dims[[dim]]
     gdim <- dd$gdim
+    presList <- dd$presList
+    
+    pres <- dd$pres
+    noDrill <- presList[[pres]]$navOpts$noDrill
     
     selectable <- 'true'
     unSelectable <- 'true'
@@ -87,7 +95,7 @@ pointSingleSelectJS <- function(env,dim,color,serieType) {
         unSelectable = 'false'
     }
 
-    if (dd$level == dd$maxLevel) {
+    if (dd$level == dd$maxLevel || noDrill) {
         drillable <- 'false'
     }
     
@@ -179,42 +187,7 @@ getMemberValue <- function(env, dim, memberLevel, memberValue, viewColumn) {
     
     pc <- dd$pc
     memberParent <- pc$parentLabel[pc$level == memberLevel & pc$label == memberValue]
-    length(memberParent) > 0 || dwhrStop('member not found')
-
-    meas <- getMeasList(env,dim)
-    if (dd$level != memberLevel || dd$parent != memberParent) {
-        df <- getMembers(env = env, dim = dim,level = memberLevel, parent = memberParent)$body
-    } else {
-        df <- data.frame(dd$membersFiltered)
-    }
-
-    format <- meas$format[meas$viewColumn == viewColumn]
-    formatRef <- meas$formatRef[meas$viewColumn == viewColumn]
-
-    if(!is.na(formatRef)) {
-        format <- df[df$member == memberValue,c(formatRef)]
-    }
-
-    y <- df[df$member == memberValue,c(viewColumn)]
-
-    if (length(format) > 0 && format %in% c('perc','perc1','perc2')) {
-        y <- y * 100
-    }
-
-    return(list(value = y, format = format))
-
-}
-
-getAdhocSlice <- function(env, dim,level,parent,selected) {
-
-    dd <- env$dims[[dim]]
-    
-    is.null(selected) || length(setdiff(c('dim', 'level','parent','label'),names(selected))) == 0 || dwhrStop('Invalid selected parameter')
-    is.null(selected) || 'data.frame' %in% class(selected) || dwhrStop('Invalid selected parameter')
-
-    pc <- dd$pc
-    memberParent <- pc$parentLabel[pc$level == memberLevel & pc$label == memberValue]
-    length(memberParent) > 0 || dwhrStop('member not found')
+    length(memberParent) > 0 || stop('member not found')
 
     meas <- getMeasList(env,dim)
     if (dd$level != memberLevel || dd$parent != memberParent) {
@@ -330,6 +303,11 @@ makeHcWidget <- function(env,dim,prep){
         a <- do.call(eval(parse(text = 'highcharter::hc_rangeSelector')), prep$rangeSelectorOpts)
     }
     
+    if (!is.null(prep$exportingOpts)) {
+        prep$exportingOpts$hc <- a
+        a <- do.call(eval(parse(text = 'highcharter::hc_exporting')), prep$exportingOpts)
+    }
+    
     a <- a %>%
             highcharter::hc_add_series_list(prep$seriesOpts) 
     
@@ -352,6 +330,26 @@ a <- a %>%
     
 }
 
+roundIt <- function(value,format) {
+    
+    if (format %in% c('euro','euro2','perc','perc1','perc2','integer','decimal1','decimal2','decimal3'))
+        switch(
+            format,
+            euro = round(value,0),
+            euro2 = round(value,2),
+            perc = round(value,0),
+            perc1 = round(value,1),
+            perc2 = round(value,2),
+            integer = round(value,0),
+            decimal1 = round(value,1),
+            decimal2 = round(value,2),
+            decimal3 = round(value,3),
+            standard = value)
+    else 
+        value
+    
+}
+
 prepHc <- function(env, dim, pres, print = NULL) {
 
     dd <- env$dims[[dim]]
@@ -364,12 +362,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
     mode <- dd$selectMode
     followPager <- isNull(dd$syncNav,FALSE) && isNull(dd$pageLength,FALSE)
 
-    expandList <- function(l){
-        lapply(l, function(x) if(class(x) == 'function') do.call(x,list(env = env)) else if(is.list(x)) expandList(x) else x)
-        #lapply(l, function(x) if(class(x) == 'function') do.call(x,list()) else if(is.list(x)) expandList(x) else x)
-    }
-
-    highChartsOpts <- expandList(presList[[pres]]$highChartsOpts)
+    highChartsOpts <- expandList(env,presList[[pres]]$highChartsOpts)
 
     chartType <- isNull(highChartsOpts$type,'chart')   
     chartOpts <- highChartsOpts$chart
@@ -384,10 +377,14 @@ prepHc <- function(env, dim, pres, print = NULL) {
     paneOpts <- highChartsOpts$pane
     navigatorOpts <- highChartsOpts$navigator
     rangeSelectorOpts <-  highChartsOpts$rangeSelector
-
+    exportingOpts <- highChartsOpts$exporting
 
     if (is.null(plotBandColor)) {
         plotBandColor <- 'lightGrey'
+    }
+    
+    if (print) {
+        plotBandColor <- 'rgba(0,0,0,0)'
     }
 
     presCols <- sapply(seriesOpts,function(x) {return(x$viewColumn)})
@@ -404,8 +401,8 @@ prepHc <- function(env, dim, pres, print = NULL) {
     pageLength <- dd$pageLength
     goToPage <- dd$goToPage
     
+    clickable[!presCols %in% meas$viewColumn] <- FALSE
     presCols <- intersect(presCols,meas$viewColumn)
-
     
     tab <- data.frame(dd$membersFiltered)
     
@@ -450,7 +447,11 @@ prepHc <- function(env, dim, pres, print = NULL) {
     sel <- NULL
 
     if (mode == 'single') {
-        sel <- selected$label[selected$level == level & selected$parent == parent]
+        if (isNull(dd$ignoreParent,FALSE)) {
+            sel <- selected$label[selected$level == level]
+        } else {
+            sel <- selected$label[selected$level == level & selected$parent == parent]
+        }
     }
 
     if (is.null(sel) || length(sel) == 0) {
@@ -488,7 +489,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
             
             fmtLabel <- getFormat(format)
             
-            dt <- tab[pageStart:pageEnd,c(presCol)]
+            dt <- roundIt(tab[pageStart:pageEnd,c(presCol)],format)
             
             labelsPage <- as.character(labels[pageStart:pageEnd])
             labelsPage[is.na(labelsPage)] <- ' '
@@ -543,14 +544,14 @@ prepHc <- function(env, dim, pres, print = NULL) {
                 
                 if (!is.null(memberValue)) {
                     memberLevel <- isNull(seriesOpts[[serieNum]]$memberLevel,dd$maxLevel)
-                    memberLevel %in% dd$useLevels || dwhrStop('Invalid memberLevel')
+                    memberLevel %in% dd$useLevels || stop('Invalid memberLevel')
                 } else {
                     sel <- dd$selected
                     memberLevel <- sel$level
                     memberValue <- sel$label
                 }
                 
-                y <- getMemberValue(env = evn, dim = dim, memberLevel = memberLevel, memberValue = memberValue, viewColumn = presCol)
+                y <- getMemberValue(env = env, dim = dim, memberLevel = memberLevel, memberValue = memberValue, viewColumn = presCol)
                 print(length(y$value) > 0)
                 if (length(y$value) > 0) {
                     
@@ -656,13 +657,13 @@ prepHc <- function(env, dim, pres, print = NULL) {
                                 if (isNull(ttXtraData$includeSelf,TRUE)) {
                                     point$ttXtraData <- paste0(colName,': ',fmt,'<br/>')
                                 }
-                                
+
                                 q <- 1
                                 for (ttX in ttXtraData$viewColumns) {
                                     ttXName <-measColNames[which(measCols == ttX)]
                                     ttXFormat <- meas$format[meas$as == ttXName]
                                     ttXName <- isNull(ttXtraData$name[q],ttXName)
-                                    ttXFmt <- getFormat2(ttXFormat,tab[[ttX]][rec])
+                                    ttXFmt <- getFormat2(ttXFormat,tab[pageStart:pageEnd,c(ttX)][rec])
                                     point$ttXtraData <- paste0(point$ttXtraData,ttXName,': ',ttXFmt,'<br/>')
                                     q <- q + 1
                                 }
@@ -694,8 +695,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
             }
             
             series[[length(series)+1]] <- seriesList
-            
-            
+
             if(length(plotBands) == 0 &&
                !(serieType %in% c('pie','treemap','gauge','solidgauge')) &&
                !(chartType == 'stock')) {
@@ -786,9 +786,8 @@ prepHc <- function(env, dim, pres, print = NULL) {
         plotBands = plotBands,
         navigatorOpts = navigatorOpts,
         rangeSelectorOpts = rangeSelectorOpts,
+        exportingOpts = exportingOpts,
         print = print)
-    
-    #if (chartType== 'stock') browser()
     
     ret$widget <- makeHcWidget(env,dim,ret)
     
@@ -816,7 +815,10 @@ sanitizeLabel <- function(x, m) {
         
         ret <- c(ret,trimws(ss,'right'))
     }
-    ret
+    if (length(ret) == 1)
+        list(ret)
+    else
+        ret
     
 }
 
@@ -920,6 +922,7 @@ renderHighchartDim <- function(env, dim, input,output) {
                     if (dd$level < dd$maxLevel) {
                         dd$parent <- dd$membersFiltered$member[e]
                         dd$ancestors <- c(dd$ancestors,dd$parent)
+                        dd$prevLevel <- dd$level
                         dd$level <- dd$level + 1
                         dd$reactive$levelChange <- dd$reactive$levelChange + 1
                         printDebug(env, dim, eventIn = 'highchartsClick', eventOut = 'levelChange', info = 'drill')
@@ -971,10 +974,12 @@ renderHighchartDim <- function(env, dim, input,output) {
             presList <- dd$presList
             
             seriesOpts <- presList[[pres]]$highChartsOpts$series
-            seriesOpts[[e]]$visible <- FALSE
+            if (!is.function(seriesOpts[[e]]$visible))
+                seriesOpts[[e]]$visible <- FALSE
             
             if (e < length(seriesOpts) && !is.null(seriesOpts[[e + 1]]$linkedTo) && seriesOpts[[e + 1]]$linkedTo == ':previous') {
-                seriesOpts[[e + 1]]$visible <- FALSE
+                if (!is.function(seriesOpts[[e + 1]]$visible))
+                    seriesOpts[[e + 1]]$visible <- FALSE
             }
             
             dd$presList[[pres]]$highChartsOpts$series <- seriesOpts
@@ -1005,10 +1010,13 @@ renderHighchartDim <- function(env, dim, input,output) {
             presList <- dd$presList
             
             seriesOpts <- presList[[pres]]$highChartsOpts$series
-            seriesOpts[[e]]$visible <- TRUE
+            
+            if (!is.function(seriesOpts[[e]]$visible))
+                seriesOpts[[e]]$visible <- TRUE
             
             if (e < length(seriesOpts) && !is.null(seriesOpts[[e + 1]]$linkedTo) && seriesOpts[[e + 1]]$linkedTo == ':previous') {
-                seriesOpts[[e + 1]]$visible <- TRUE
+                if (!is.function(seriesOpts[[e + 1]]$visible))
+                    seriesOpts[[e + 1]]$visible <- TRUE
             }
             
             dd$presList[[pres]]$highChartsOpts$series <- seriesOpts
@@ -1101,6 +1109,7 @@ renderHighchartDim <- function(env, dim, input,output) {
                     if (dd$level < dd$maxLevel) {
                         dd$parent <- dd$membersFiltered$member[e]
                         dd$ancestors <- c(dd$ancestors,dd$parent)
+                        dd$prevLevel <- dd$level
                         dd$level <- dd$level + 1
                         dd$reactive$levelChange <- dd$reactive$levelChange + 1
                         printDebug(env, dim, eventIn = 'highchartsPbClick', eventOut = 'levelChange', info = 'drill')
@@ -1188,6 +1197,9 @@ processHighCharts <- function(env,dim,pres){
         useUpdate <- FALSE
     }
     
+    if (!identical(env$hcPrev[[dim]]$exportingOpts,chart$exportingOpts))
+        useUpdate <- FALSE
+        
     if((is.null(useUpdate) || useUpdate) && length(setdiff(newLength,prevLength)) == 0 && !chart$print) {
         
         change <- FALSE
@@ -1297,7 +1309,6 @@ processHighCharts <- function(env,dim,pres){
     } else {
         
         # trigger render
-        
         env$hcRenderers[[dim]]$count <- env$hcRenderers[[dim]]$count + 1
     }
 }

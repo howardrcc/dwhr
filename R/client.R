@@ -10,6 +10,7 @@ dwhrInit <- function() {
     shiny::addResourcePath('dwhRs',system.file('www', package = 'dwhr'))
     glob.env$dimUiIds <- c()
     shiny::tagList(
+        shinyjqui::includeJqueryUI(),
         shinyjs::useShinyjs(),
         shinyjs::extendShinyjs(script = system.file('www/starExtend.js', package = 'dwhr')),
         
@@ -44,26 +45,23 @@ dwhrInit <- function() {
 #' @param checkDups boolean, Als TRUE: controleer of dimensie als in ui is opgenomen.
 #'
 #' @export
-getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflowX = 'hidden', accordion = FALSE, checkDups = TRUE) {
+getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflowX = 'hidden', accordion = FALSE, checkDups = TRUE, resize = FALSE, resizeOptions = list(), bodyStyle = NULL ) {
     
-    withCallingHandlers({
-        assert_is_a_string(starId)
-        assert_is_a_string(dim)
-        assert_is_a_bool(skipTopRow)
-        assert_is_a_number(isNull(maxHeight,0))
-        maxHeight <- as.integer(maxHeight)
-        assert_is_a_string(overflowX)
-        assert_is_subset(overflowX,domains[['cssOverflow']])
-        assert_is_a_bool(accordion)
-        assert_is_a_bool(checkDups)
-        
-        gdim <- getGlobalId(starId,dim)
-        gdim %in% glob.env$dimUiIds && checkDups && stop('duplicate dims')    
-    },
+    assert_is_a_string(starId)
+    assert_is_a_string(dim)
+    assert_is_a_bool(skipTopRow)
+    assert_is_a_number(isNull(maxHeight,0))
+    maxHeight <- as.integer(maxHeight)
+    assert_is_a_string(overflowX)
+    assert_is_subset(overflowX,domains[['cssOverflow']])
+    assert_is_a_bool(accordion)
+    assert_is_a_bool(checkDups)
+    assert_is_a_bool(resize)
+    assert_is_list(resizeOptions)
+    assert_is_a_string(isNull(bodyStyle,''))
     
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+    gdim <- getGlobalId(starId,dim)
+    gdim %in% glob.env$dimUiIds && checkDups && stop('duplicate dims')    
     
     glob.env$dimUiIds <- c(glob.env$dimUiIds,gdim)
     
@@ -73,9 +71,17 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
         style <- paste0("overflow-x:", overflowX, "; overflow-y:hidden;")
     }
     
-    acc <- paste0('<td id="', gdim, 'AccordionId" class="db-header" style="width: 16px; cursor: pointer;" onclick="toggleAccordion(this,\'', gdim, 'DwhrPanel\');">', 
+    acc <- paste0('<td id="', gdim, 'AccordionId" class="db-header2" style="width: 16px; cursor: pointer;" onclick="toggleAccordion(this,\'', gdim, 'DwhrPanel\');">', 
                   shiny::icon('chevron-down',lib = 'glyphicon'), 
                   '</td>')
+    
+    if (resize && length(resizeOptions) == 0) {
+        
+        resizeOptions <- list(
+            handles = 's'
+        )
+        
+    }
     
     if (!skipTopRow) 
         
@@ -87,22 +93,33 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
                     , '<tbody>'
                     , '<tr>'
                     , ifelse(accordion,acc,'')
-                    , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimName")), '</td>'
-                    , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimLinks")), '</td>'
-                    , '<td class="db-header">', shiny::uiOutput(paste0(gdim,"DimPresList")), '</td>'
-                    , '<td class="db-header" style="padding-top: 42px"></td>'
+                    , '<td class="db-header2">', shiny::uiOutput(paste0(gdim,"DimName")), '</td>'
+                    , '<td class="db-header2">', shiny::uiOutput(paste0(gdim,"DimLinks")), '</td>'
+                    , '<td class="db-header2">', shiny::uiOutput(paste0(gdim,"DimPresList")), '</td>'
                     , '</tr></tbody></table>')
                 ),
                 shiny::uiOutput(paste0(gdim,"DimHeader"))),
             div(class = 'dwhrPanel', id = paste0(gdim,'DwhrPanel'),
-                shiny::uiOutput(paste0(gdim,"DimBody")),
+                if (resize) {
+                    shinyjqui::jqui_resizable(
+                        options = resizeOptions,
+                        shiny::uiOutput(paste0(gdim,"DimBody"), style = bodyStyle))
+                } else {
+                    shiny::uiOutput(paste0(gdim,"DimBody"), style = bodyStyle)
+                },
                 shiny::uiOutput(paste0(gdim,'DimFooter'))),
             style = style)
     else
         shiny::div(
             id = paste0(gdim,'Dimensie'),
             shiny::uiOutput(paste0(gdim,"DimHeader")),
-            shiny::uiOutput(paste0(gdim,"DimBody")),
+            if (resize) {
+                shinyjqui::jqui_resizable(
+                    options = resizeOptions,
+                    shiny::uiOutput(paste0(gdim,"DimBody"), style = bodyStyle))
+            } else {
+                shiny::uiOutput(paste0(gdim,"DimBody"), style = bodyStyle)
+            },
             shiny::uiOutput(paste0(gdim,'DimFooter')),
             style = style)
 
@@ -111,6 +128,7 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
 initGlob <- function() {
     
     options(warnPartialMatchDollar = TRUE)
+    #options(datatable.auto.index = FALSE)
     
     if (!exists('glob.env', envir = .GlobalEnv, inherit = FALSE)) {
         
@@ -141,7 +159,8 @@ initGlob <- function() {
         glob.env$globalCache <- list()
         glob.env$reservedColumnPatterns <- c('*_fc','*_org','*_tooltip','*_text','*_sort')
         
-        glob.env$securityModel %in% c('none','proxy') || dwhrStop('Invalid securityModel')
+        glob.env$securityModel %in% c('none','proxy') || stop('Invalid securityModel')
+        glob.env$restart <- FALSE
         
         # account data
         
@@ -151,7 +170,7 @@ initGlob <- function() {
             
             if (is.na(file.info(credFile)$mtime)) {
                 
-                dwhrStop(paste0('credentials file: ', credFile, ' not found'))
+                stop(paste0('credentials file: ', credFile, ' not found'))
             }
             
             dbCred <- readRDS(credFile)
@@ -218,17 +237,12 @@ initGlob <- function() {
 #' @export
 getDbHandle <- function(omg) {
     
-    withCallingHandlers({
-        assert_is_a_string(omg)
-    },
-    error = function(c) {
-        dwhrStop(conditionMessage(c))
-    })
+    assert_is_a_string(omg)
     
     if (is.null(glob.env$dbCred))
         return()
     
-    omg %in% names(glob.env$dbCred) || dwhrStop(paste0('No credentials for omg:', omg))
+    omg %in% names(glob.env$dbCred) || stop(paste0('No credentials for omg:', omg))
     
     if (is.null(glob.env$dbCred[[omg]]$handle)) {
         
@@ -262,20 +276,20 @@ authenticate <- function(session) {
             do.call(paste0('sessionEndHook'),list(session = session),envir = ce)
         }
         
-        if (glob.env$sessionCount == 0) {
-            
+        if (glob.env$sessionCount == 0 && !glob.env$restart) {
+
             print('Closing ODBC connections')
             RODBC::odbcCloseAll()
-            
+
             if (exists('globalCache', env = glob.env)) {
-                for (id in names(glob.env$globalCache)) {
-                    saveRDS(glob.env$globalCache[[id]],getCacheFile(id))
-                }
+                saveRDS(glob.env$globalCache, getCacheFile())
             }
-            
+
             rm(glob.env, envir = .GlobalEnv)
             stopApp()
         }
+        
+        glob.env$restart <- FALSE
         
     })
     

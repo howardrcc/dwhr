@@ -35,6 +35,7 @@ startObserversData <- function(env,dim) {
 
                     if (env$dims[[d]]$level != dd$level) {
 
+                        env$dims[[d]]$prevLevel <- env$dims[[d]]$level
                         env$dims[[d]]$level <- dd$level
                         env$dims[[d]]$parent <- dd$parent
                         env$dims[[d]]$ancestors <- dd$ancestors
@@ -176,6 +177,7 @@ startObserversData <- function(env,dim) {
             if(dd$reactive$selectChange > 0 && !dd$wait) {
 
                 if(exists(paste0(dim,'SelectChangeHook'),envir = env$ce)) {
+                    print(paste0(gdim,'SelectChangeHook'))
                     do.call(paste0(dim,'SelectChangeHook'),list(env = env),envir = env$ce)
                 }
 
@@ -184,10 +186,13 @@ startObserversData <- function(env,dim) {
                 } else {
                     dd$reactive$isFiltered <- TRUE
                 }
-
+                
                 ids <- getSelectedIds(env,dim)
-
+                
+                
                 if (!(identical(ids,dd$selectedIds))) {
+                    
+                    env$factCache <- list()
                     
                     dd$selectedIds <- ids
                     
@@ -205,16 +210,12 @@ startObserversData <- function(env,dim) {
                         }
                     }
                     
+                    shinyjs::js$blockUI(
+                        timeout = glob.env$debounceTimeout,
+                        backgroundColor = glob.env$debounceBackgroundColor,
+                        opacity = glob.env$debounceOpacity)
+                    
                     if (is.null(dd$parentDim)) {
-                        
-                        if (dd$debounce) {
-                            shinyjs::js$blockUI(
-                                timeout = glob.env$debounceTimeout,
-                                backgroundColor = glob.env$debounceBackgroundColor,
-                                opacity = glob.env$debounceOpacity)
-                        } else {
-                            dd$debounce <- TRUE
-                        }
                         
                         dd$reactive$selectedIdsChange <- dd$reactive$selectedIdsChange + 1
                         
@@ -279,7 +280,7 @@ startObserversData <- function(env,dim) {
                     }
                 } else {
 
-                    dwhrStop('Lege dataset')
+                    stop('Lege dataset')
 
                 }
 
@@ -348,7 +349,7 @@ startObserversPres <- function(env,dim,pres) {
                     shinyjs::runjs(paste0('$("#',g,'Dimensie").block({ message: null, overlayCSS: { backgroundColor: "#f2f2f2"} })'))
                 }
             }
-
+            
             if(!inp[[dimWait]]) {
                 if (dd$wait) {
                     dd$wait <- FALSE
@@ -386,6 +387,7 @@ startObserversPres <- function(env,dim,pres) {
     if (!(dimLink0 %in% obs) && !hideBreadCrumb && !hideAll) {
 
         shiny::observeEvent(inp[[dimLink0]], {
+            dd$prevLevel <- dd$level
             dd$level <- 0
             dd$parent <- ''
             dd$ancestors <- c('')
@@ -401,6 +403,7 @@ startObserversPres <- function(env,dim,pres) {
     if (!(dimLink1 %in% obs) && !hideBreadCrumb) {
 
         shiny::observeEvent(inp[[dimLink1]] , {
+            dd$prevLevel <- dd$level
             dd$level <- 1
             dd$parent <- dd$rootLabel
             dd$ancestors <- dd$ancestors[1:2]
@@ -416,6 +419,7 @@ startObserversPres <- function(env,dim,pres) {
     if (!(dimLink2 %in% obs) && !hideBreadCrumb && maxLevel >= 2) {
 
         shiny::observeEvent(inp[[dimLink2]] , {
+            dd$prevLevel <- dd$level
             dd$level <- 2
             dd$parent <- dd$ancestors[3]
             dd$ancestors <- dd$ancestors[1:3]
@@ -431,6 +435,7 @@ startObserversPres <- function(env,dim,pres) {
     if (!(dimLink3 %in% obs) && !hideBreadCrumb && maxLevel >= 3) {
 
         shiny::observeEvent(inp[[dimLink3]] , {
+            dd$prevLevel <- dd$level
             dd$level <- 3
             dd$parent <- dd$ancestors[4]
             dd$ancestors <- dd$ancestors[1:4]
@@ -446,6 +451,7 @@ startObserversPres <- function(env,dim,pres) {
     if (!(dimLink4 %in% obs) && !hideBreadCrumb && maxLevel >= 4) {
         
         shiny::observeEvent(inp[[dimLink4]] , {
+            dd$prevLevel <- dd$level
             dd$level <- 4
             dd$parent <- dd$ancestors[5]
             dd$ancestors <- dd$ancestors[1:5]
@@ -464,6 +470,7 @@ startObserversPres <- function(env,dim,pres) {
             dd$selected <- dd$rootSelected
             dimSetHasSubselect(env,dim)
             dd$selectSource <- 'NoFilter'
+            dd$searchTxt <- ''
             dd$reactive$selectChange <- dd$reactive$selectChange + 1
             printDebug(env = env, dim, eventIn = 'NoFilter', eventOut = 'selectChange')
             dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1

@@ -4,8 +4,15 @@
 \alias{new.star}
 \title{Creeer nieuw sterschema-object.}
 \usage{
-new.star(starId, session, facts, caching = FALSE,
-  foreignKeyCheck = TRUE)
+new.star(
+  starId,
+  session,
+  facts,
+  caching = FALSE,
+  mtimeData = NULL,
+  foreignKeyCheck = TRUE,
+  factCaching = TRUE
+)
 }
 \arguments{
 \item{starId}{string, Id voor dit sterschema-object.}
@@ -16,7 +23,11 @@ new.star(starId, session, facts, caching = FALSE,
 
 \item{caching}{boolean, controleert de caching van geaggreerde meetwaarden. Te gebruiken bij grote feiten-tabellen. default FALSE}
 
+\item{mtimeData}{POSIXct, modificatie tijd van data. Dit om te beoordelen of cache te gebruiken is. Verplicht als caching actief.}
+
 \item{foreignKeyCheck}{boolean, bepaalt of er een foreignkey-check wordt uitgevoerd. default TRUE}
+
+\item{factCaching}{boolean, bepaalt of gefilterde feiten gecached worden als selecties niet veranderen. default TRUE}
 }
 \value{
 resultaat een sterschema-object van klasse 'star'. Resultaat is een environment met velden:

@@ -21,8 +21,8 @@ addSpark = function(selector, sparkOpts, xaxisValue) {
     for (i = 0; i < e.length; i++) {
         
         var arr = JSON.parse("[" + e[i].textContent + "]");
-        
-        if ((typeof sparkOpts.addXaxis !== 'undefined') && sparkOpts.addXaxis) {
+
+        if ((typeof sparkOpts.addXaxis[0] !== 'undefined') && sparkOpts.addXaxis[0]) {
             var minVal = Math.min.apply(null,arr);
         
             if (minVal > 0) {
@@ -92,11 +92,13 @@ toggleAccordion = function(e,id,accordionId) {
             if (panel.style.maxHeight === "0px"){
                 $(e).find('.glyphicon').removeClass('glyphicon-chevron-right');
                 $(e).find('.glyphicon').addClass('glyphicon-chevron-down');
-                panel.style.maxHeight = null;
+                panel.style.maxHeight = '9999px';
+                Shiny.onInputChange(id,{toggleState: 1});
             } else {
                 $(e).find('.glyphicon').removeClass('glyphicon-chevron-down');
                 $(e).find('.glyphicon').addClass('glyphicon-chevron-right');
                 panel.style.maxHeight = "0px";
+                Shiny.onInputChange(id,{toggleState: 0});
             }     
         }
     }
@@ -271,7 +273,7 @@ plotBandSingleSelect = function(dim,plotBand,event,selectable,unSelectable,drill
     var chart = $(container).highcharts();
     //var id = chart.series[0].data[plotBand.options.id].id;
     //var id = chart.xAxis[0].series[0].data[plotBand.options.id].id;
-    id = plotBand.options.id
+    id = plotBand.options.id;
     var drill = false;
     var select = false;
     var unSelect = false;
@@ -329,8 +331,6 @@ shinyjs.updateSeriesData = function(params) {
     for (i = 0; i < params.seriesData.length; i++) {
         chart.series[i].setData(params.seriesData[i],params.redraw,false,false);
     }
-
-
 };
 
 shinyjs.updateSeriesOpts = function(params) {
@@ -388,20 +388,10 @@ shinyjs.redraw = function(params) {
 
 shinyjs.blockUI = function(params) {
     $("#app-content").block({ message: null, overlayCSS: { backgroundColor: params.backgroundColor, opacity:params.opacity }, timeout:params.timeout});
-    $('.tooltip').tooltip('destroy');
 };
 
 shinyjs.tooltip = function(params) {
-    
-    var trigger;
-    
-    if (params === null) {
-        trigger = 'hover';
-    } else {
-        trigger = params.trigger;
-    }
-    $('.tooltip').tooltip('destroy');
-    $('[data-toggle="tooltip"]').tooltip({trigger: trigger, delay: {show: 0}});
+    $('[data-toggle="tooltip"]').uitooltip({track: true, show: false, hide: false});
 };
 
 shinyjs.popover = function(params) {
@@ -423,7 +413,7 @@ shinyjs.hideDim = function(params) {
 shinyjs.showDim = function(params) {
     var container = '#'.concat(params.dim,'Dimensie');
     $(container).removeClass("hide-db");
-    $(container).fadeTo(500,1);
+    $(container).fadeTo(100,1);
 };
 
 
@@ -455,8 +445,46 @@ shinyjs.updateDT = function(params) {
     }
     datatable.columns.adjust().draw();
     datatable.page(params.page).draw(false);
-    $('.tooltip').tooltip('destroy');
-    $('[data-toggle="tooltip"]').tooltip({trigger : 'hover'});
-};
+ };
 
 batchStateFinished = false; 
+
+shinyjs.init = function() {
+   
+  
+    $(document).on('shiny:idle', function(event) {
+        $("#app-content").unblock()
+        
+    });
+    
+    $(window).resize(function(){
+        if (typeof Shiny.onInputChange != 'undefined') {
+            Shiny.onInputChange('windowHeight',{height: window.innerHeight});
+            Shiny.onInputChange('windowWidth',{width: window.innerWidth});
+        }
+    });
+    
+    $.blockUI.defaults.onUnblock = resetUnblock;
+    
+    $.widget.bridge('uitooltip', $.ui.tooltip);
+}
+
+shinyjs.hcSetHeight = function(params) {
+    container = '#'.concat(params.gdim,'DimChart');
+    body = '#'.concat(params.gdim,'DimBody');
+    chart = $(container).highcharts();
+    
+    $(body).css("height",params.height);
+    $(container).css("height","100%");
+    
+    if (typeof chart != 'undefined' && params.source != 'chartChange') {
+        chart.setSize(null,params.height,false);
+    }
+    
+}
+
+resetUnblock = function(e,opts) {
+    // ivm conflict tussen blockui en introjs
+    $(e).css("position","")  
+}
+

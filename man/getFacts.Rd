@@ -5,8 +5,16 @@
 \alias{getCSV}
 \title{Inlezen csv bestand in een data.table of data.frame.}
 \usage{
-getFacts(file, key = NULL, useRDS = TRUE, sep = ";",
-  fileEncoding = "UTF-8-BOM", as.df = FALSE, header = FALSE, ...)
+getFacts(
+  file,
+  key = NULL,
+  useRDS = TRUE,
+  sep = ";",
+  fileEncoding = "UTF-8-BOM",
+  as.df = FALSE,
+  header = FALSE,
+  ...
+)
 
 getCSV(...)
 }

@@ -1,11 +1,4 @@
 
-dwhrStop <- function(mes) {
-    session <- shiny::getDefaultReactiveDomain()
-    if (!is.null(session)) {
-        shinyjs::logjs(mes)
-    }
-    stop(mes)
-}
 
 printDebug <- function(env, dim, dumpReactive = NULL, eventIn, eventOut = NULL, info = NULL){
 
@@ -55,16 +48,16 @@ domains <- list(
     presType = c('dataTable','highCharts','radioButton','selectInput','dateRangeInput','rangeSliderInput'),
     selectMode = c('single','multi','none'),
     rangeOpts = c('label','throttle','debounce'),
-    dataTableOpts =  c('measures', 'pageLength', 'pageLengthList','serverSideTable'),
+    dataTableOpts =  c('measures', 'pageLength', 'pageLengthList','serverSideTable','filterRowGroup'),
     dataTableMeasures = c('colorBarColor1','colorBarColor2','viewColumn','format', 'orderable',
                           'bgStyle','fgStyle','width','fontWeight','align','cursor','visible','print','tooltip','sparkOpts'),
     dataTableStyle = c('cuts','levels','values','valueColumn'),
     dataTableFormats = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3','hidden','paperclip','sparkline'),
     fontWeight = c('bold','normal'),
-    highChartsOpts = c('type', 'rangeSelector','chart','tooltip','xAxis', 'yAxis', 'legend', 'series', 'plotOptions', 'title','dashboard','pane','navigator'),
+    highChartsOpts = c('type', 'rangeSelector','chart','tooltip','xAxis', 'yAxis', 'legend', 'series', 'plotOptions', 'title','dashboard','pane','navigator','exporting'),
     simpleOpts = c('inline'),
-    navOpts = c('syncNav', 'hideNoFilter', 'hideAll', 'hideBreadCrumb', 'links','selLinks','minBreadCrumbLevel'),
-    navOptsLinkTypes = c('actionLink','downloadLink','downloadButton','dropDown','dim'),
+    navOpts = c('syncNav', 'hideNoFilter', 'hideAll', 'hideBreadCrumb', 'links','selLinks','minBreadCrumbLevel','noDrill'),
+    navOptsLinkTypes = c('actionLink','downloadLink','downloadButton','dropDown','dim','uiOutput'),
     orderBy = c('key','name'),
     cssOverflow = c('hidden','visible','scroll','auto'),
     presListType = c('dropdown','links')
@@ -72,15 +65,26 @@ domains <- list(
 
 domainCheck <- function(x,domain,minLength = 0, maxLength = 100000L) {
 
-    if(!length(x) %in% minLength:maxLength) dwhrStop('Invalid length')
+    if(!length(x) %in% minLength:maxLength) stop('Invalid length')
     if(length(x) == 0) return()
     if(domain == 'length') return()
-    if(is.null(domains[[domain]])) dwhrStop('Unknown domain')
+    if(is.null(domains[[domain]])) stop('Unknown domain')
     if(length(setdiff(x, domains[[domain]])) != 0) {
-        dwhrStop(paste0('Invalid ', domain))
+        stop(paste0('Invalid ', domain))
     } else {
         return()
     }
+}
+
+getMd5Selection <- function(env)  {
+    
+    ss <- NULL
+    for (d in sort(filteringDims(env))) {
+        if (any(env$dims[[d]]$selected$level > 0))
+            ss <- rbind(ss,env$dims[[d]]$selected)
+    }
+    
+   digest::digest(ss,algo = 'md5')
 }
 
 cacheDim <- function(env,dim,dfl) {
@@ -88,23 +92,15 @@ cacheDim <- function(env,dim,dfl) {
     if (!env$caching) {
         return()
     }
-
-    ss <- NULL
-    for (d in sort(filteringDims(env))) {
-
-        ss <- rbind(ss,env$dims[[d]]$selected)
-    }
-
+    
     lvl <- as.character(env$dims[[dim]]$level)
     parent <- env$dims[[dim]]$parent
-
+    
     if (parent == '') {
         parent <- 'x'
     }
-
-    md5 <- digest::digest(ss,algo = 'md5')
-
-    env$globalCache[[env$id]][[dim]][[parent]][[lvl]][[md5]] <- dfl
+    
+    glob.env$globalCache[[getMd5Selection(env)]][[dim]][[parent]][[lvl]] <- dfl
 
 }
 
@@ -114,24 +110,16 @@ cacheFind <- function(env, dim) {
         return()
     }
     
-    gdim <- env$dims[[dim]]$gdim
-
-    ss <- NULL
-    for (d in sort(filteringDims(env))) {
-
-        ss <- rbind(ss,env$dims[[d]]$selected)
-    }
-
     lvl <- as.character(env$dims[[dim]]$level)
     parent <- env$dims[[dim]]$parent
-
+    
     if (parent == '') {
         parent <- 'x'
     }
+    
+    gdim <- env$dims[[dim]]$gdim
 
-    md5 <- digest::digest(ss,algo = 'md5')
-
-    dfl <- env$globalCache[[env$id]][[dim]][[parent]][[lvl]][[md5]]
+    dfl <- glob.env$globalCache[[getMd5Selection(env)]][[dim]][[parent]][[lvl]]
 
     if(!is.null(dfl)) {
         print(paste0(gdim, ': cacheHit!'))
@@ -144,14 +132,28 @@ cacheFind <- function(env, dim) {
 #'
 #' @export
 #' 
+invalidateCache <- function(env) {
+    
+    if (!env$caching) {
+        return()
+    }
+    
+    glob.env$globalCache[[getMd5Selection(env)]] <- NULL   
+    
+}
+
+#'
+#' @export
+#' 
 getSelectedIds <- function(env, dim, selected = NULL) {
 
-    data <- env$dims[[dim]]$data
+    dd <- env$dims[[dim]]
+    data <- dd$data
     keyColumn <- names(data)[1]
 
-    is.null(selected) || length(setdiff(c('level','parent','label'),names(selected))) == 0 || dwhrStop('Invalid selected parameter')
+    is.null(selected) || length(setdiff(c('level','parent','label'),names(selected))) == 0 || stop('Invalid selected parameter')
 
-    s <- isNull(selected,env$dims[[dim]]$selected)
+    s <- isNull(selected,dd$selected)
     ids <- NULL
 
     if (any(s$level == 0)) {
@@ -160,11 +162,15 @@ getSelectedIds <- function(env, dim, selected = NULL) {
 
         for (lvl in 1:max(s$level)) {
 
-            colsX <- c(paste0('level',lvl - 1,'Label'),paste0('level',lvl,'Label'))
-            colsY <- c('parent','label')
+            if (isNull(dd$ignoreParent,FALSE)) {
+                colsX <- c(paste0('level',lvl,'Label'))
+                colsY <- c('label')
+            } else {
+                colsX <- c(paste0('level',lvl - 1,'Label'),paste0('level',lvl,'Label'))
+                colsY <- c('parent','label')
+            }
             
             ids <- union(ids,merge(data,s[s$level == lvl,],by.x = colsX, by.y = colsY)[[keyColumn]])
-
         }}
 
     sort(ids)
@@ -196,7 +202,7 @@ appendZeroRow <- function(member,dim,df) {
 #'
 #' @export
 #' 
-getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, altData = NULL) {
+getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
     dd <- env$dims[[dim]]
 
     f <- NULL
@@ -206,19 +212,14 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
 
     tmp <- NULL
 
-    s <- NA
     footer <- NA
     adhoc <- FALSE
 
-    if (!is.null(level) || !is.null(parent) || !is.null(selected)) {
+    if (!is.null(level) || !is.null(parent)) {
         adhoc <- TRUE
         gcache <- NULL
     } else {
         gcache <- cacheFind(env, dim)
-    }
-
-    if (dim %in% selectableDims(env)) {
-        s <- dd$selected
     }
 
     lvl <- isNull(level,dd$level)
@@ -234,13 +235,14 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
         gparent <- NULL
     }
     
-
     maxLvl <- dd$maxLevel
 
     ignoreDims <- union(dimProxySelect(env),dd$ignoreDims)
 
     ml <- getMeasList(env,dim)
-
+    ignoreParent <- isNull(dd$ignoreParent,FALSE)
+    filterXtra <- isNull(dd$filterXtra,'')
+    
     meas <- ml[ml$type == 'direct',]
     measCols <- meas$viewColumn[order(meas$sort)]
     sortColumn <- meas$viewColumn[grepl('*_sort',meas$viewColumn)]
@@ -250,29 +252,60 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
 
         condition <- ''
 
-        for (d in setdiff(setdiff(filteringDims(env),dim),ignoreDims)) {
+        # for (d in sort(setdiff(setdiff(filteringDims(env),dim),ignoreDims))) {
+        #     dkey <- env$dims[[d]]$keyColumn
+        # 
+        #     if (any(env$dims[[d]]$selected$level > 0)) {
+        #         env[[paste0(d,'Ids')]] <- env$dims[[d]]$selectedIds
+        # 
+        #         if (condition != '') {
+        #             condition <- paste0(condition,' & ')
+        #         }
+        #         condition <- paste0(condition,' ',dkey,' %in% env$',d,'Ids')
+        #     }
+        # }
+        
+        stmt <- 'env$facts'
+       
+        for (d in sort(setdiff(setdiff(filteringDims(env),dim),ignoreDims))) {
             dkey <- env$dims[[d]]$keyColumn
-
+            
             if (any(env$dims[[d]]$selected$level > 0)) {
+                
                 if (condition != '') {
                     condition <- paste0(condition,' & ')
                 }
-                condition <- paste0(condition,'env$facts[[\'',dkey,'\']] %in% env$dims[[\'',d,'\']]$selectedIds')
+                
+                condition <- paste0(condition,' ',dkey,' %in% env$',d,'Ids')
+                
+                env[[paste0(d,'Ids')]] <- env$dims[[d]]$selectedIds
+                stmt <- paste0(stmt, '[', dkey,' %in% env$',d,'Ids]')
             }
         }
         
-        if (condition == '') {
-            condition <- TRUE
+        if (env$factCaching) {
+            condHash <- digest::digest(condition,'md5')
+            
+            if (condHash %in% names(env$factCache)) {
+                tmp <- env$factCache[[condHash]]
+            } else {
+                tmp <- eval(parse(text = stmt))
+                env$factCache[[condHash]] <- tmp
+            }
+        } else {
+            tmp <- eval(parse(text = stmt))
         }
-        
-        tmp <- data.table::data.table(env$facts[eval(parse(text = condition)),])
         
         cnt1 <- nrow(tmp)
         
-        if (is.null(gparent)) {
-            parentFilter <- paste0('level', lvl - 1, 'Label == parent')
+        if (ignoreParent) {
+            parentFilter <- '1 == 1'
         } else {
-            parentFilter <- paste0('level', lvl - 1, 'Label == parent & level', lvl - 2, 'Label == gparent')
+            if (is.null(gparent)) {
+                parentFilter <- paste0('level', lvl - 1, 'Label == parent')
+            } else {
+                parentFilter <- paste0('level', lvl - 1, 'Label == parent & level', lvl - 2, 'Label == gparent')
+            }
         }
         
         if (dd$fixedMembers) {
@@ -290,12 +323,19 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
         }
         
         cnt2 <- nrow(tmp)
-
+        
+        if (filterXtra != '') {
+            tmp <- tmp[eval(parse(text = filterXtra))]
+            if (nrow(tmp) == 0 && cnt1 != 0)
+                warning('FilterXtra: no results')
+        }
+        
         if(cnt1 != 0 && cnt2 == 0 && !(adhoc)) {
-
+    
             parent = dd$rootLabel
             lvl = 1
 
+            dd$prevLevel <- dd$level
             dd$level <- lvl
             dd$parent <- parent
             dd$ancestors <- c('',parent)
@@ -312,6 +352,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
             narm <- 'na.rm = FALSE'
         }
         
+        hasCustom <- FALSE
         measFun <- 'list(cnt = .N'
 
         for (q in meas$as[order(meas$sort)]) {
@@ -341,15 +382,16 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
                 }
 
                 if (fun == 'min') {
-                    measFun <- paste0(measFun,"min(",factColumn,",",narm,")")
+                    measFun <- paste0(measFun,"suppressWarnings(min(",factColumn,",",narm,"))")
                 }
 
                 if (fun == 'max') {
-                    measFun <- paste0(measFun,"max(",factColumn,",",narm,")")
+                    measFun <- paste0(measFun,"suppressWarnings(max(",factColumn,",",narm,"))")
                 }
                 
                 if (!fun %in% domains[['aggregateFun']]) {
-                    measFun <- paste0(measFun,"custom('",fun,"',",factColumn,")")
+                    hasCustom <- TRUE
+                    measFun <- paste0(measFun,"custom('",fun,"','",factColumn,"',.SD)")
                 }
             }
 
@@ -357,14 +399,16 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
 
         measFun <- paste0(measFun,')')
         
-        custom <- function(fun,col) {
-            do.call(fun,list(col),envir = env$ce)
+        custom <- function(fun,col,sd) {
+            do.call(fun,list(env,dim,sd),envir = env$ce)
         }
-        
         
         if (lvl == 0) {
             
-            body <- tmp[,eval(expr = parse(text = measFun)),by = level0Label]
+            if (hasCustom)
+                body <- tmp[,eval(expr = parse(text = measFun)),by = level0Label, .SDcols = names(env$facts)]
+            else 
+                body <- tmp[,eval(expr = parse(text = measFun)),by = level0Label]
             
             if(lvl %in% dd$footerLevels) {
                 footer <- body
@@ -372,19 +416,38 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
             
         } else {
             
-            parentFilter <- paste0('level', lvl - 1, 'Label == parent')
+            if (ignoreParent) {
+                parentFilter <- '1 == 1'
+            } else {
+                parentFilter <- paste0('level', lvl - 1, 'Label == parent')
+            }
+            
             byText <- paste0('level',lvl,'Label')
             
-            body <- tmp[eval(expr = parse(text = parentFilter)),
-                        eval(expr = parse(text = measFun)),
-                        by = eval(expr = parse(text = byText))]
+            if (hasCustom) {
+                body <- tmp[eval(expr = parse(text = parentFilter)),
+                            eval(expr = parse(text = measFun)),
+                            by = eval(expr = parse(text = byText)),
+                            .SDcols = names(env$facts)]
+            } else {
+                body <- tmp[eval(expr = parse(text = parentFilter)),
+                            eval(expr = parse(text = measFun)),
+                            by = eval(expr = parse(text = byText))]
+            }
             
             if(lvl %in% dd$footerLevels) {
                 byText <- paste0('level',lvl - 1,'Label')
                 
-                footer <- tmp[eval(expr = parse(text = parentFilter)),
-                              eval(expr = parse(text = measFun)),
-                              by = eval(expr = parse(text = byText))]
+                if (hasCustom) {
+                    footer <- tmp[eval(expr = parse(text = parentFilter)),
+                                  eval(expr = parse(text = measFun)),
+                                  by = eval(expr = parse(text = byText)),
+                                  .SDcols = names(env$facts)]
+                } else {
+                    footer <- tmp[eval(expr = parse(text = parentFilter)),
+                                  eval(expr = parse(text = measFun)),
+                                  by = eval(expr = parse(text = byText))]
+                }
                 
             }
         }
@@ -392,30 +455,19 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
         names(body) <- c('member',measCols)
         body$member <- as.character(body$member)
 
-        lookup <- data.table(unique(dd$pc[dd$pc$level == lvl & dd$pc$parentLabel == parent & dd$pc$gparentLabel == isNull(gparent,''),][,c('label','code')]))
+        if (isNull(dd$ignoreParent,FALSE)) {
+            lookup <- data.table(unique(dd$pc[dd$pc$level == lvl,][,c('label','code')]))
+        } else {
+            lookup <- data.table(unique(dd$pc[dd$pc$level == lvl & dd$pc$parentLabel == parent & dd$pc$gparentLabel == isNull(gparent,''),][,c('label','code')]))
+        }
         names(lookup) <- c('member','memberKey')
     
         body <- as.data.frame(lookup[body,on = 'member'])
         body$memberKey[is.na(body$memberKey)] <- digest::digest(body$member[is.na(body$memberKey)])
         
-        #browser(expr = {dim == 'kpi'})
-        
         if(lvl %in% dd$footerLevels) {
             footer <- as.data.frame(footer)
         }
-        
-        # if (dim %in% selectableDims(env) && !(dd$type == 'output')) {
-        #     
-        #     diff <- setdiff(s$label[s$level == lvl &
-        #                                 s$parent == parent],body$member)
-        #     
-        #     if (length(diff) > 0) {
-        #         for (s in diff) {
-        #             body <- appendZeroRow(s,dim,body)
-        #         }
-        #     }
-        #     
-        # }
         
         if (nrow(body) == 0) {
             body <- appendZeroRow('Onbekend',dim,body)
@@ -431,7 +483,10 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
 
             vc <- meas$viewColumn[meas$processingOrder == ordr]
             fun <- meas$fun[meas$processingOrder == ordr]
-
+            
+            if (glob.env$debug)
+                print(paste0(dd$gdim,' derrivedMeasure: ',fun))
+                
             e <- new.env(parent = env$ce)
             assign(fun,get(fun,envir = env$ce), envir = e)
 
@@ -456,6 +511,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, selected = NULL, a
             
             e$type <- 'body'
             e$df <- body
+            
             bdy <- do.call(what = fun, args = list(), envir = e)
             if (is.vector(bdy) && length(bdy) == nrow(body)) {
                 body[[vc]] <- bdy
@@ -643,11 +699,7 @@ dimCorrectSelectionInfo <- function(input,env,dim) {
         if(length(rw) == 1) {
             l <- l[rw,]
         } else {
-            l <- data.frame( 
-                level = dd$level,
-                parent = dd$parent,
-                label = rwv,
-                stringsAsFactors = FALSE)
+            l <- l[1,]
         }
 
         dd$selected <- l
@@ -762,9 +814,9 @@ getFirstRow <- function(env,dim,tab) {
 }
 
 
-getMeasList <- function(env,dim) {
+getMeasList <- function(env,dim,level = NULL) {
     dd <- env$dims[[dim]]
-    lvl <- dd$levelMap$from[dd$levelMap$to == dd$level]
+    lvl <- dd$levelMap$from[dd$levelMap$to == isNull(level,dd$level)]
     meas <- dd$measList
     meas[which(bitwAnd(2**lvl,meas$applyToLevels) %in% 2**lvl),]
 }
@@ -793,23 +845,20 @@ isNa <- function(x,y) {
     if(is.na(x)) y else x
 }
 
-getCacheFile <- function(id) {
-    paste0(getwd(), '/tmp/', glob.env$dashboardName, '_', id, '_cache.rds')
+getCacheFile <- function() {
+    paste0(getwd(), '/tmp/', glob.env$dashboardName, 'Cache.rds')
 }
 
-getCache <- function(env) {
+getCache <- function(env,mtimeData) {
 
-    cacheFile <- getCacheFile(env$id)
+    cacheFile <- getCacheFile()
 
     if (glob.env$sessionCount == 1) {
+      
+        mtimeCache <- file.info(cacheFile)$mtime
 
-        if (is.na(file.info(cacheFile)$mtime)) {
-
-            dwhrStop(paste0('cacheFile: ',cacheFile,' not Found'))
-
-        } else {
-
-            glob.env$globalCache[[env$id]] <- readRDS(cacheFile)
+        if (!is.na(mtimeCache) && mtimeCache > mtimeData) {
+            glob.env$globalCache <- readRDS(cacheFile)
         }
     }
 
@@ -820,15 +869,6 @@ getGlobalId <- function(starId,dim) {
     paste0(starId,toupper(substr(dim,1,1)),substr(dim,2,100))   
 }
 
-getZoom <- function(env,dim) {
-    
-    dd <- env$dims[[dim]]
-    members <- dd$membersFiltered$member
-    if (dd$level == dd$maxLevel) 
-        return (' ')
-    
-}
-
 #'
 #' @export
 #' 
@@ -837,21 +877,21 @@ dwhrMerge <- function(cumDT,incDT,keyCols,noDeletes = TRUE) {
     mutCols <- setdiff(names(cumDT),keyCols)
 
     if (!'data.table' %in% class(cumDT)) {
-        dwhrStop('dwhMerge: cumDT must be of class data.table.')
+        stop('dwhMerge: cumDT must be of class data.table.')
     } 
     
     if (!'data.table' %in% class(incDT)) {
-        dwhrStop('dwhMerge: incDT must be of class data.table.')
+        stop('dwhMerge: incDT must be of class data.table.')
     } 
     
     if (!identical(sort(names(cumDT)), sort(names(incDT)))) {
-        dwhrStop('dwhMerge: column names differ')
+        stop('dwhMerge: column names differ')
     }
   
     incDT <- copy(incDT[,names(cumDT), with = FALSE])
 
     if (!identical(sapply(cumDT,class), sapply(incDT,class))) {
-        dwhrStop('dwhMerge: types differ')
+        stop('dwhMerge: types differ')
     }
 
     # update
@@ -882,6 +922,8 @@ latexEscape <- function(paragraph) {
     # This is made more complicated because the dollars will be escaped
     # by the subsequent replacement. Easiest to add \backslash
     # now and then add the dollars
+  
+    paragraph <- trimws(paragraph)
     
     paragraph <- gsub('\\\\','\\\\backslash',paragraph)
     #$paragraph =~ s/\\/\\backslash/g;
@@ -970,4 +1012,18 @@ sparkRelativeChange <- function(spark) {
         zz[is.nan(zz)] <- 0
         zz
     }))
+}
+
+expandList <- function(env,l){
+    lapply(l, function(x) {
+        if(class(x) == 'function')
+            do.call(x,list(env = env)) 
+        else 
+            if(class(x) == 'call')
+                eval(x,envir = env$ce)
+        else 
+            if(is.list(x)) 
+                expandList(env,x) 
+        else x
+    })
 }

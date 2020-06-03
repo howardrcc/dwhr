@@ -117,7 +117,14 @@ renderDims <- function(env,input,output) {
                     if (presType %in% c('selectInput','radioButton') || length(dd$name) == 0) {
                         name <- ''
                     } else {
-                        name <- h4(dd$name)
+                        name <- switch(
+                            as.character(dd$headerSize),
+                            '1' = h1(dd$name, style = 'margin-top: 0;margin-bottom: 0;'),
+                            '2' = h2(dd$name, style = 'margin-top: 0;margin-bottom: 0;'),
+                            '3' = h3(dd$name, style = 'margin-top: 0;margin-bottom: 0;'),
+                            '4' = h4(dd$name, style = 'margin-top: 0;margin-bottom: 0;'),
+                            '5' = h5(dd$name, style = 'margin-top: 0;margin-bottom: 0;'),
+                            '6' = h6(dd$name, style = 'margin-top: 0;margin-bottom: 0;'))
                     }
                     
                     name
@@ -140,11 +147,14 @@ renderDims <- function(env,input,output) {
                     
                     elems <- list()
                     
+                    totWidth <- 0
+                    
                     for (ll in links) {
-                        
-                        eleObject <- list(width = isNull(ll$width,12))
-                        
+                   
                         if(ifelse(!is.null(ll$visFun),do.call(ll$visFun,list(env = env),envir = env$ce),TRUE)) {
+                            
+                            eleObject <- list(width = isNull(ll$width,12))
+                            totWidth <- totWidth + isNull(ll$width,12)
                             
                             if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'actionLink') {
                                 ele <- shiny::actionLink(inputId = ll$id, label = ll$label)
@@ -156,6 +166,10 @@ renderDims <- function(env,input,output) {
                             
                             if (!is.null(ll$label) && !is.null(ll$id) && ll$type == 'downloadButton') {
                                 ele <- shiny::downloadButton(outputId = ll$id, label = ll$label)
+                            }
+                            
+                            if (!is.null(ll$id) && ll$type == 'uiOutput') {
+                                ele <- shiny::uiOutput(outputId = ll$id, inline = isNull(ll$inline,FALSE))
                             }
                             
                             if (!is.null(ll$id) && ll$type == 'dropDown') {
@@ -181,19 +195,22 @@ renderDims <- function(env,input,output) {
                             if (ll$type == 'dim') {
                                 ele <- getDimUI(starId = env$id, dim = ll$dim, skipTopRow = TRUE, checkDups = FALSE)
                             }
-                            
-                        } else {
-                            ele <- ''
-                        }
                         
-                        eleObject$ele <- ele
-                        elems[[length(elems) + 1]] <- eleObject
+                            eleObject$ele <- ele
+                            elems[[length(elems) + 1]] <- eleObject
+                            
+                        } 
                         
                     }
+                    
+                    if (totWidth < 12) 
+                        preElm <- shiny::column(width = 12 - totWidth)
+                    else 
+                        preElm <- NULL
           
-                    shiny::div(shiny::fluidRow(lapply(elems,function(x) {
-                        shiny::column(width = x$width, x$ele)
-                    }), style = 'float:right;'), class = paste0(gdim,'Links'))
+                    shiny::div(shiny::fluidRow(if(!is.null(preElm)) {preElm}, lapply(elems,function(x) {
+                        shiny::column(width = x$width, div(style = 'float:right;padding-right:20px',x$ele))
+                    })), class = paste0(gdim,'Links'))
                     
                 })
                 
@@ -395,7 +412,11 @@ renderDims <- function(env,input,output) {
                     printDebug(env = env, dim, eventIn = 'renderFooter')
                     
                     dd$reactive$presChange
-                    val <- input[[paste0(gdim,'DimMs')]]
+                    
+                    if (is.null(input[[paste0(gdim,'DimMs')]]))
+                        val <- dd$msState
+                    else 
+                        val <- input[[paste0(gdim,'DimMs')]]
 
                     presList <- dd$presList
                     presType <- presList[[dd$pres]]$type
@@ -439,19 +460,20 @@ renderDims <- function(env,input,output) {
 
                 })
 
-                # init dims
-                
-                if (dim %in% visibleDims(env)) {
-                 
-                    lst <- getMembers(env,dim)
-                    
-                    if (!is.null(lst)) {
-                        dd$membersFiltered <- lst$body
-                        dd$footer <- lst$footer
-                    }
-                }
-
             })
+            
+        }
+        
+        # init dims
+        
+        if (ddim %in% visibleDims(env)) {
+            
+            lst <- getMembers(env,ddim)
+            
+            if (!is.null(lst)) {
+                env$dims[[ddim]]$membersFiltered <- lst$body
+                env$dims[[ddim]]$footer <- lst$footer
+            }
         }
 
         if (glob.env$debug) {
