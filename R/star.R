@@ -759,7 +759,11 @@ getColors <- function(dt,pal,trans,domain = NULL,labels = NULL) {
                 colors <- rev(colors)
             
         } else {
-            colors <- rep(unlist(pal),length.out = length(dt))
+            if (!is.null(domain) && !is.null(labels)) {
+                colors <- scales::col_factor(pal, domain = domain)(labels)  
+            } else {
+                colors <- rep(unlist(pal),length.out = length(dt))
+            }
         }
         
     }
