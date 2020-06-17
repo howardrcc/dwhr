@@ -310,6 +310,9 @@ renderDims <- function(env,input,output) {
                     if (any(dd$selected$level > 0) && !hideNoFilter) {
 
                         txt <- paste0(txt,'&nbsp<span style="float:right;">',actionLink(inputId = paste0(gdim,'NoFilter'), label = 'Verwijder Filter', style='color:red'),'</span>')
+                    } else {
+                        if (!hideNoFilter)
+                            txt <- paste0(txt,'&nbsp')
                     }
 
                     txt <- paste0(txt,"</div>")
@@ -420,6 +423,7 @@ renderDims <- function(env,input,output) {
 
                     presList <- dd$presList
                     presType <- presList[[dd$pres]]$type
+                    noWait <- isNull(presList[[dd$pres]]$navOpts$noWait,FALSE)
 
                     if (dd$selectMode == 'multi' && presType == 'dataTable') {
 
@@ -434,7 +438,7 @@ renderDims <- function(env,input,output) {
                             '</td>')
 
 
-                        if (length(val) > 0 && val) {
+                        if (length(val) > 0 && val && !noWait) {
                             txt <- paste0(
                                 txt,
                                 '<td>',

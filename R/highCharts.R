@@ -527,7 +527,15 @@ prepHc <- function(env, dim, pres, print = NULL) {
                 }
             }
             
-            colorsPage <- getColors(dt, pal,seriesList$colorTrans)
+            cc <- paste0('level',dd$level,'Label')
+            
+            colorsPage <- getColors(
+                dt = dt, 
+                pal = pal,
+                trans = seriesList$colorTrans,
+                domain = dd$data[[cc]],
+                labels = labelsPage)
+            
             seriesList$colorTrans <- NULL
             
             if (!is.null(colorsPage)) {

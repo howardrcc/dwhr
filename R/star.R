@@ -56,7 +56,7 @@ domains <- list(
     fontWeight = c('bold','normal'),
     highChartsOpts = c('type', 'rangeSelector','chart','tooltip','xAxis', 'yAxis', 'legend', 'series', 'plotOptions', 'title','dashboard','pane','navigator','exporting'),
     simpleOpts = c('inline'),
-    navOpts = c('syncNav', 'hideNoFilter', 'hideAll', 'hideBreadCrumb', 'links','selLinks','minBreadCrumbLevel','noDrill'),
+    navOpts = c('syncNav', 'hideNoFilter', 'hideAll', 'hideBreadCrumb', 'links','selLinks','minBreadCrumbLevel','noDrill','fixDom','noWait','scrollY'),
     navOptsLinkTypes = c('actionLink','downloadLink','downloadButton','dropDown','dim','uiOutput'),
     orderBy = c('key','name'),
     cssOverflow = c('hidden','visible','scroll','auto'),
@@ -366,7 +366,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
                 measFun <- paste0(measFun,", ", viewColumn, "=")
 
                 if(fun == 'dcount') {
-                    measFun <- paste0(measFun,"length(unique(",factColumn,"))")
+                    measFun <- paste0(measFun,"length(unique(na.omit(",factColumn,")))")
                 }
 
                 if (fun == 'sum') {
@@ -717,57 +717,60 @@ isColor <- function(x)
     return(!"try-error"%in%class(res))
 }
 
-getColors <- function(dt,pal,trans) {
+getColors <- function(dt,pal,trans,domain = NULL,labels = NULL) {
 
     colors <- NULL
 
     if (!is.null(pal)) {
-
+        
         palInfo <- RColorBrewer::brewer.pal.info
         reverse <- FALSE
-
+        
         if (length(pal) == 1 && substr(pal,1,1) == '-') {
             pal <- substr(pal,2,1000)
             reverse <- TRUE
         }
-
+        
         if (length(pal) == 1 && pal %in% rownames(palInfo)) {
-
-            palVec <- suppressWarnings(RColorBrewer::brewer.pal(12,pal))
-            palFun <- colorRampPalette(palVec)
-            colors <- palFun(length(dt))
-
+            
+            if (!is.null(domain) && !is.null(labels) && pal %in% rownames(palInfo[palInfo$category != 'seq',])) {
+                
+                colors <- scales::col_factor(pal, domain = domain)(labels)
+                reverse <- FALSE
+                
+            } else {
+                
+                if (pal %in% rownames(palInfo[palInfo$category == 'seq',])) {
+                    
+                    if(!is.null(trans) && trans == 'log2') {
+                        dt[dt <= 0] <- NA
+                        colors <- scales::col_numeric(pal, domain = NULL)(log2(dt))
+                    } else {
+                        colors <- scales::col_numeric(pal, domain = NULL)(dt)
+                    }
+                } else {
+                    palVec <- suppressWarnings(RColorBrewer::brewer.pal(12,pal))
+                    palFun <- colorRampPalette(palVec)
+                    colors <- palFun(length(dt))
+                }
+            }
+            
             if (reverse)
                 colors <- rev(colors)
-
+            
         } else {
             colors <- rep(unlist(pal),length.out = length(dt))
         }
-
-        # Bij een sequentieel palette de waarde van de meetwaarde gebruiken
-
-        if (length(pal) == 1 && pal %in% rownames(palInfo[palInfo$category == 'seq',])) {
-
-            if(!is.null(trans) && trans == 'log2') {
-                dt[dt <= 0] <- NA
-                colors <- scales::col_numeric(pal, domain = NULL)(log2(dt))
-            } else {
-                colors <- scales::col_numeric(pal, domain = NULL)(dt)
-            }
-
-            if (reverse)
-                colors <- rev(colors)
-        }
-
+        
     }
-
+    
     return(colors)
 }
 
 
 getFirstRow <- function(env,dim,tab) {
     firstRow <- 1
-
+    
     dd <- env$dims[[dim]]
 
     lvl <- dd$level

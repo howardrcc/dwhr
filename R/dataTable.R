@@ -457,6 +457,8 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     presList <- dd$presList
     opts <- presList[[pres]]$dataTableOpts
     noDrill <- presList[[pres]]$navOpts$noDrill
+    fixDom <- presList[[pres]]$navOpts$fixDom
+    scrollY <- isNull(presList[[pres]]$navOpts$scrollY,'')
 
     measures <- rlist::list.stack(isNull(expandList(env,opts$measures),list(viewColumn = 'cnt')),fill = TRUE)
 
@@ -677,20 +679,27 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     paging <- TRUE
     searching <- TRUE
 
-    if(nrow(tab) <= min(pageLengthList)) {
+    if (is.null(fixDom)) {
+      if(nrow(tab) <= min(pageLengthList)) {
         if (search != '') {
-            dom <- 'frt'
+          dom <- 'frt'
         } else {
-            dom <- 'rt'
+          dom <- 'rt'
         }
-    } else {
-
+      } else {
+        
         if (length(pageLengthList) == 1) {
-            dom <- 'frtp'
+          dom <- 'frtp'
         } else {
-            dom <- 'flrtp'
+          dom <- 'flrtp'
         }
-
+      }
+    } else {
+        dom <- fixDom
+    }
+    
+    if (scrollY != '') {
+        paging <- FALSE
     }
     
     #
@@ -879,6 +888,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
                      , pagingType = pagingType
                      , lengthMenu = pageLengthList
                      , info = FALSE
+                     , scrollX = FALSE
                      , pageLength = pageLength
                      , columnDefs = columnDefs
                      , displayStart = firstRow - 1
@@ -889,6 +899,11 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     if (!is.null(orderOpt)) {
         options$order = list(orderOpt)
+    }
+    
+    if (scrollY != '') {
+        options$scrollY = scrollY
+        options$scrollCollapse = TRUE
     }
     
     if (hasSparkline) {
