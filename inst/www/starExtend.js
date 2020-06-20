@@ -129,23 +129,16 @@ rowGroupEvent = function(gdim,rowGroup) {
     
 };
  
-clearPlotbands = function(chart,id,color) {
+clearPlotbands = function(chart) {
 
     var len = chart.xAxis[0].plotLinesAndBands.length;
     var newPb = [];
 
     for (i = 0; i < len; i++) {
         var pb = chart.xAxis[0].plotLinesAndBands[i].options;
-
-        if (pb.id == id) {  
-            pb.color = color;
-        } else {
-            pb.color = 'rgba(0,0,0,0)';
-        }
-
+        pb.color = 'rgba(0,0,0,0)';
         newPb.push(pb);
     }
-
 
     for (i = 0; i < newPb.length; i++) {
         chart.xAxis[0].removePlotBand(i);
@@ -170,92 +163,163 @@ countSelected = function(chart,color) {
     return(cnt);
 };
 
-clearSelection = function(serie,id,color) {
+getSelected = function(series,color) {
 
-  var len = serie.data.length;
-  if (serie.type == 'pie') {
-      for (i = 0; i< len; i++) {
-          if(i == id) {
-              serie.data[i].slice(true);
-          } else {
-              serie.data[i].slice(false);
+  var len = series.data.length;
+  var selected  = [];
+  var i;
+  
+  if (series.chart.xAxis[0].plotLinesAndBands.length > 0) {
+      for (i = 0; i < len; i++) {
+          var pb = series.chart.xAxis[0].plotLinesAndBands[i].options;
+          if (pb.color == color) {
+              selected.push({data: i,id: series.data[i].id});
+          } 
+      }
+  } else {
+      if (series.type == 'pie') {
+          for (i = 0; i< len; i++) {
+              if (series.data[i].sliced) {
+                  selected.push({data: i,id: series.data[i].id});
+              }
+          }
+      } else {
+          if (series.type == 'treemap' || series.type == 'packedbubble') {
+              for (i = 0; i< len; i++) {
+                  if (series.data[i].color == color) {
+                      selected.push({data: i,id: series.data[i].id});
+                  }
+              }
           }
       }
-   } else {
-     if (serie.type == 'treemap') {
-        for (i = 0; i< len; i++) {
-            if( i == id) {
-                serie.data[i].update({color: color});
-            } else {
-                serie.data[i].update({color: serie.data[i].orgColor});
-            }
-        }
-     }
-   }
+  }
+  return(selected);
 };
 
-pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,color) {
+togglePlotband = function(chart,id,color) {
+   
+    if (chart.xAxis[0].plotLinesAndBands.length > 0) {
+        var len = chart.xAxis[0].plotLinesAndBands.length;
+        var newPb = [];
+        for (i = 0; i < len; i++) {
+            var pb = chart.xAxis[0].plotLinesAndBands[i].options;
+            if (pb.id == id) {  
+                if (pb.color == color) {
+                    pb.color = 'rgba(0,0,0,0)';  
+                } else {
+                    pb.color = color;  
+                }
+            }
+            newPb.push(pb);
+        }
+        for (i = 0; i < newPb.length; i++) {
+            chart.xAxis[0].removePlotBand(i);
+            chart.xAxis[0].addPlotBand(newPb[i]);
+        }
+    }
+};
+
+toggleSelection = function(point,color) {
+    var series = point.series;
+  
+    if (series.chart.xAxis[0].plotLinesAndBands.length > 0) {
+        var len = series.chart.xAxis[0].plotLinesAndBands.length;
+        var newPb = [];
+        for (i = 0; i < len; i++) {
+            var pb = series.chart.xAxis[0].plotLinesAndBands[i].options;
+            if (pb.id == point.index) {  
+                if (pb.color == color) {
+                    pb.color = 'rgba(0,0,0,0)';  
+                } else {
+                    pb.color = color;  
+                }
+            }
+            newPb.push(pb);
+        }
+        for (i = 0; i < newPb.length; i++) {
+            series.chart.xAxis[0].removePlotBand(i);
+            series.chart.xAxis[0].addPlotBand(newPb[i]);
+        }
+    } else {
+        if (series.type == 'pie') {
+            series.data[point.x].slice(!series.data[point.x].sliced);
+        } else {
+            if (series.type == 'treemap' || series.type == 'packedbubble') {
+                if (series.data[point.x].color == color) {
+                    series.data[point.x].update({color: series.data[point.x].orgColor});
+                } else {
+                    series.data[point.x].update({color: color});
+                }
+            }
+        }
+    }
+};
+
+clearSelection = function(series) {
+
+    if (series.chart.xAxis[0].plotLinesAndBands.length > 0) {
+        var len = series.chart.xAxis[0].plotLinesAndBands.length;
+        var newPb = [];
+
+        for (i = 0; i < len; i++) {
+            var pb = series.chart.xAxis[0].plotLinesAndBands[i].options;
+            pb.color = 'rgba(0,0,0,0)';
+            newPb.push(pb);
+        }
+
+        for (i = 0; i < newPb.length; i++) {
+            series.chart.xAxis[0].removePlotBand(i);
+            series.chart.xAxis[0].addPlotBand(newPb[i]);
+        }
+    } else {
+
+        var len = series.data.length;
+        if (series.type == 'pie') {
+            for (i = 0; i< len; i++) {
+                series.data[i].slice(false);
+            }
+        } else {
+            if (series.type == 'treemap' || series.type == 'packedbubble') {
+                for (i = 0; i< len; i++) {
+                    series.data[i].update({color: series.data[i].orgColor});
+                }
+            }
+        }
+    }
+};
+
+pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,color,multi) {
     var container = '#'.concat(dim,'DimChart');
     var eventName = dim.concat('HighchartClick');
-    var chart = $(container).highcharts();
+    var chart = point.series.chart;
     var drill = false;
     var select = false;
     var unSelect = false;
-
+debugger
     if (!event.ctrlKey) {
-
-        if(chart.xAxis[0].plotLinesAndBands.length > 0) {
-
-            var pbColor = chart.xAxis[0].plotLinesAndBands[point.index].options.color; 
-
-            cnt = countSelected(chart,color);
-            
-            if (pbColor == color && unSelectable && cnt == 1) {
+      
+        curSel = getSelected(point.series,color);
+                
+        if (curSel.length == 1) {
+            if (curSel[0].data == point.x && unSelectable) {
                 unSelect = true;
-                clearPlotbands(chart,-1,color);
             }
-
-            if ((cnt > 1 || pbColor != color) && selectable) {
-                clearPlotbands(chart,point.index,color);  
+            if (curSel[0].data != point.x) {
                 select = true;
+                if (!multi) {
+                    clearSelection(point.series);
+                }
             }
-        }
-
-        if (point.series.type == 'treemap') {
-
-            var pColor = point.color;
-            if(pColor == color && unSelectable) {
-                unSelect = true;
-                clearSelection(point.series,-1,color);
-            }
-
-            if(pColor != color && selectable) {
-                clearSelection(point.series,point.x,color);
+        } else {
+            if (selectable)
                 select = true;
-            }
-
         }
-
-        if (point.series.type == 'pie') {
-
-            var pSliced = point.sliced;
-            if(pSliced && unSelectable) {
-                unSelect = true;
-                clearSelection(point.series,-1);
-            }
-
-            if(!pSliced && selectable) {
-                clearSelection(point.series,point.x);
-                select = true;
-            }
-        }
-
-
+        if (select || unSelect)
+            toggleSelection(point,color); 
     } else {
-
         drill = drillable;
     }
-
+    
     Shiny.onInputChange(eventName,{
         r: Math.random(),
         data: point.x,
@@ -266,34 +330,39 @@ pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,c
 };
 
 
-plotBandSingleSelect = function(dim,plotBand,event,selectable,unSelectable,drillable,color) {
+plotBandSingleSelect = function(dim,plotBand,event,selectable,unSelectable,drillable,color,multi) {
     var container = '#'.concat(dim,'DimChart');
     var eventName = dim.concat('HighchartPbClick');
     var data = plotBand.options.from;    
     var chart = $(container).highcharts();
-    //var id = chart.series[0].data[plotBand.options.id].id;
-    //var id = chart.xAxis[0].series[0].data[plotBand.options.id].id;
-    id = plotBand.options.id;
+    var id = plotBand.options.id;
     var drill = false;
     var select = false;
     var unSelect = false;
     
-
     if (!event.ctrlKey) {
 
         var pBColor = plotBand.options.color;
         
         cnt = countSelected(chart,color);
             
-        if (pBColor == color && unSelectable && cnt == 1) {
-            unSelect = true;
-            clearPlotbands(chart,-1,color);
+        if (cnt == 1) {
+            if (pBColor == color && unSelectable) {
+                unSelect = true;
+            }
+            if (pBColor != color) {
+                select = true;
+                if (!multi) {
+                    clearPlotbands(chart);
+                }
+            }
+        } else {
+            if (selectable)
+                select = true;
         }
-
-        if ((cnt > 1 || pBColor != color) && selectable) {
-            select = true;
-            clearPlotbands(chart,plotBand.options.id,color); 
-        }
+        
+        if (select || unSelect)
+            togglePlotband(chart,id,color); 
 
     } else {
 
@@ -306,7 +375,7 @@ plotBandSingleSelect = function(dim,plotBand,event,selectable,unSelectable,drill
         drill: drill,
         select: select,
         unSelect: unSelect,
-        id : id}); //hier komt nu een integer uit, terwijl bij pointclick een categorie string uitkomt.
+        id : id}); 
 };
 
 

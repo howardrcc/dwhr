@@ -690,8 +690,7 @@ dimCorrectSelectionInfo <- function(input,env,dim) {
     l <- dd$selected
     gdim <- dd$gdim
     
-    if ((nrow(l) > 1 && dd$selectMode == 'single') ||
-        (nrow(l) > 1 && dd$selectMode == 'multi' && !(input[[paste0(gdim,'DimMs')]]))) {
+    if (nrow(l) > 1 && !dd$msState) {
         
         rwv <- isNa(dd$rowLastAccessed$value[dd$rowLastAccessed$level == dd$level],'')
         rw <- which(dd$seleced$label == rwv)
