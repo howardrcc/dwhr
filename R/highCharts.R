@@ -507,6 +507,10 @@ prepHc <- function(env, dim, pres, print = NULL) {
             if (serieType %in% c('pie','treemap','packedbubble')) {
                 labelsPage <- labelsPage[dt > 0 & !is.na(dt)]
                 dt <- dt[dt > 0 & !is.na(dt)]
+                if (serieType == 'packedbubble' && length(dt) == 1) { # bug in highcharts
+                    dt[2] <- 0
+                    labelsPage[2] <- 'Onbekend'
+                }
             }
             
             seriesData <- list()
