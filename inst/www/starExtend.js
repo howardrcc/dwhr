@@ -281,7 +281,9 @@ clearSelection = function(series) {
         } else {
             if (series.type == 'treemap' || series.type == 'packedbubble') {
                 for (i = 0; i< len; i++) {
-                    series.data[i].update({color: series.data[i].orgColor});
+                    if (series.data[i].color != series.data[i].orgColor) {
+                        series.data[i].update({color: series.data[i].orgColor});
+                    }
                 }
             }
         }
