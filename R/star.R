@@ -251,20 +251,6 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
     if (is.null(gcache)) {
 
         condition <- ''
-
-        # for (d in sort(setdiff(setdiff(filteringDims(env),dim),ignoreDims))) {
-        #     dkey <- env$dims[[d]]$keyColumn
-        # 
-        #     if (any(env$dims[[d]]$selected$level > 0)) {
-        #         env[[paste0(d,'Ids')]] <- env$dims[[d]]$selectedIds
-        # 
-        #         if (condition != '') {
-        #             condition <- paste0(condition,' & ')
-        #         }
-        #         condition <- paste0(condition,' ',dkey,' %in% env$',d,'Ids')
-        #     }
-        # }
-        
         stmt <- 'env$facts'
        
         for (d in sort(setdiff(setdiff(filteringDims(env),dim),ignoreDims))) {

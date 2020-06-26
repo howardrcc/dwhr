@@ -1551,14 +1551,6 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
         }
     }
     
-    # highChartsOpts checks
-    
-    if (!is.null(highChartsOpts)) {
-        
-        (dd$selectMode %in% c('none','single')) || (uiId != dim) || stop(paste0(dim, ': HighCharts presentation not available for multi-select'))
-        
-    }
-    
     # check links
     
     if (length(navOpts$links) > 0) {

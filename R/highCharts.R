@@ -882,22 +882,28 @@ renderHighchartDim <- function(env, dim, input,output) {
         
         env$hcRenderers[[dim]]$count
         
-        pres <- dd$pres
-        prep <- env$hcPrep[[dim]]
-        
         if (env$hcRenderers[[dim]]$count == 0) {
             return()
         }
         
-        printDebug(env, dim, eventIn = 'renderHighCharts', info = paste0('rendercount:', env$hcRenderers[[dim]]$count))
+        pres <- dd$pres
         
-        if (is.null(prep))
-            prep <- prepHc(env,dim,pres)
-        
-        env$hcPrev[[dim]] <- removeCallbacks(prep)
-        env$hcPrep[[dim]] <- NULL
-        
-        prep$widget
+        if (exists(paste0(dim,'HcCustom'),envir = env$ce)) {
+            do.call(paste0(dim,'HcCustom'),list(env = env, dim = dim, pres = pres),envir = env$ce)
+        } else {
+            
+            prep <- env$hcPrep[[dim]]
+            
+            printDebug(env, dim, eventIn = 'renderHighCharts', info = paste0('rendercount:', env$hcRenderers[[dim]]$count))
+            
+            if (is.null(prep))
+                prep <- prepHc(env,dim,pres)
+            
+            env$hcPrev[[dim]] <- removeCallbacks(prep)
+            env$hcPrep[[dim]] <- NULL
+            
+            prep$widget
+        }
         
     })
     
@@ -1276,6 +1282,10 @@ processHighCharts <- function(env,dim,pres){
     
     dd <- env$dims[[dim]]
     gdim <- dd$gdim
+    
+    if (exists(paste0(dim,'HcCustom'),envir = env$ce)) {
+        env$hcRenderers[[dim]]$count <- env$hcRenderers[[dim]]$count + 1    
+    }
     
     chart <- env$hcPrep[[dim]]
     
