@@ -506,10 +506,12 @@ addDimView <- function(
     
     if (is.null(selectParent)) {
         selectParent <- pc$parentLabel[pc$level == selectLevel & pc$label %in% selectLabel]
+        selectLabel <- pc$label[pc$level == selectLevel & pc$label %in% selectLabel]
     } else {
         if (!(selectParent %in% pc$parentLabel[pc$level == selectLevel & pc$label %in% selectLabel])) {
             warning(paste0('selectParent: ', selectParent, ' not found for selectLevel: ',selectLevel,' and selectLabel: ',selectLabel, '. selectParent set to first parent.'))
             selectParent <- pc$parentLabel[pc$level == selectLevel & pc$label %in% selectLabel]
+            selectLabel <- pc$label[pc$level == selectLevel & pc$label %in% selectLabel]
         }
     }
     

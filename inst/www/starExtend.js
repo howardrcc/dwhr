@@ -184,7 +184,7 @@ getSelected = function(series,color) {
               }
           }
       } else {
-          if (series.type == 'treemap' || series.type == 'packedbubble') {
+          if (series.type == 'treemap' || series.type == 'packedbubble' || series.type == 'heatmap') {
               for (i = 0; i< len; i++) {
                   if (series.data[i].color == color) {
                       selected.push({data: i,id: series.data[i].id});
@@ -242,13 +242,13 @@ toggleSelection = function(point,color) {
         }
     } else {
         if (series.type == 'pie') {
-            series.data[point.x].slice(!series.data[point.x].sliced);
+            series.data[point.index].slice(!series.data[point.index].sliced);
         } else {
-            if (series.type == 'treemap' || series.type == 'packedbubble') {
-                if (series.data[point.x].color == color) {
-                    series.data[point.x].update({color: series.data[point.x].orgColor});
+            if (series.type == 'treemap' || series.type == 'packedbubble' || series.type == 'heatmap') {
+                if (series.data[point.index].color == color) {
+                    series.data[point.index].update({color: series.data[point.index].orgColor});
                 } else {
-                    series.data[point.x].update({color: color});
+                    series.data[point.index].update({color: color});
                 }
             }
         }
@@ -279,7 +279,7 @@ clearSelection = function(series) {
                 series.data[i].slice(false);
             }
         } else {
-            if (series.type == 'treemap' || series.type == 'packedbubble') {
+            if (series.type == 'treemap' || series.type == 'packedbubble' || series.type == 'heatmap') {
                 for (i = 0; i< len; i++) {
                     if (series.data[i].color != series.data[i].orgColor) {
                         series.data[i].update({color: series.data[i].orgColor});
@@ -303,10 +303,10 @@ debugger
         curSel = getSelected(point.series,color);
                 
         if (curSel.length == 1) {
-            if (curSel[0].data == point.x && unSelectable) {
+            if (curSel[0].id == point.id && unSelectable) {
                 unSelect = true;
             }
-            if (curSel[0].data != point.x) {
+            if (curSel[0].id != point.id) {
                 select = true;
                 if (!multi) {
                     clearSelection(point.series);
@@ -324,7 +324,6 @@ debugger
     
     Shiny.onInputChange(eventName,{
         r: Math.random(),
-        data: point.x,
         drill: drill,
         select: select,
         unSelect: unSelect,

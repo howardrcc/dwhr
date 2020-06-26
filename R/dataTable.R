@@ -1134,38 +1134,7 @@ print('cells_selected')
                     stringsAsFactors = FALSE)
 
                 l <- rbind(l,s)
-
-                pc <- dd$pc
-
-                # unselect childs
-
-                delChildSel <- function(lbl,lvl) {
-
-                    del <- pc$label[pc$level == lvl + 1 & pc$parentLabel %in% lbl]
-
-                    if (length(del) > 0) {
-                        delChildSel(del,lvl + 1)
-                        l <<- l[!(l$level == lvl + 1 & l$parent %in% lbl),]
-                    }
-
-                }
-
-                delChildSel(selected,level)
-
-                # unselect parents
-
-                delParentSel <- function(par,lvl) {
-
-                    del <- pc$parentLabel[pc$level == lvl - 1 & pc$label == par]
-
-                    if (length(del) > 0) {
-                        delParentSel(del,lvl - 1)
-                        l <<- l[!(l$level == lvl - 1 & l$label == par),]
-                    }
-
-                }
-
-                delParentSel(parent,level)
+                
             }
         }
 
@@ -1177,7 +1146,9 @@ print('cells_selected')
         row.names(l) <- NULL
 
         s <- dd$selected
+        
         dd$selected <- l
+        fixMs(env,dim,parent,selected,level)
         
         if (dimCorrectSelectionInfo(input,env,dim) | dimSetHasSubselect(env,dim)) {
             printDebug(env = env, dim, eventIn = 'subSelectChange/CorrectInfo', eventOut = 'dimRefresh')

@@ -504,7 +504,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
             labelsPage <- as.character(labels[pageStart:pageEnd])
             labelsPage[is.na(labelsPage)] <- ' '
             
-            if (serieType %in% c('pie','treemap','packedbubble')) {
+            if (serieType %in% c('pie','treemap','packedbubble','heatmap')) {
                 labelsPage <- labelsPage[dt > 0 & !is.na(dt)]
                 dt <- dt[dt > 0 & !is.na(dt)]
                 if (serieType == 'packedbubble' && length(dt) == 1) { # bug in highcharts
@@ -620,7 +620,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
                             
                         }
                         
-                        if (serieType %in% c('treemap','packedbubble')) {
+                        if (serieType %in% c('treemap','packedbubble','heatmap')) {
                             
                             if (!is.na(dt[rec]) && dt[rec] >= 0) {
                                 point$value = dt[rec]
@@ -629,16 +629,21 @@ prepHc <- function(env, dim, pres, print = NULL) {
                                 if (labelsPage[rec] %in% sel) {
                                     point$color = plotBandColor
                                 } else {
-                                    point$color = colorsPage[rec]
+                                    point$color = isNull(colorsPage[rec],seriesList[['color']])
                                 }
-                                point$orgColor = colorsPage[rec]
+                                point$orgColor = isNull(colorsPage[rec],seriesList[['color']])
                                 point$id = labelsPage[rec]
                                 i <- i + 1
-                                #seriesData[[i]] <- point
+                                
+                                if (serieType == 'heatmap') {
+                                    point$x <- (rec - 1) %/% round(sqrt(length(dt)),0)
+                                    point$y <- round(sqrt(length(dt)),0) - 1 - ((rec - 1) %% round(sqrt(length(dt)),0))
+                                }
+                                
                             }
                         }
                         
-                        if (!(serieType %in% c('pie','treemap','packedbubble')) && !(chartType=='stock')) {
+                        if (!(serieType %in% c('pie','treemap','packedbubble','heatmap')) && !(chartType=='stock')) {
                             
                             i <- i + 1
                             point <- list(
@@ -721,7 +726,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
             series[[length(series)+1]] <- seriesList
 
             if(length(plotBands) == 0 &&
-               !(serieType %in% c('pie','treemap','packedbubble','gauge','solidgauge')) &&
+               !(serieType %in% c('pie','treemap','packedbubble','heatmap','gauge','solidgauge')) &&
                !(chartType == 'stock')) {
                 
                 x <- as.data.frame(tab[pageStart:pageEnd,presCols[which(clickable)]])
@@ -751,7 +756,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
             }
             
             if(length(plotBands) == 0 &&
-               !(serieType %in% c('pie','treemap','packedbubble','gauge','solidgauge')) &&
+               !(serieType %in% c('pie','treemap','packedbubble','heatmap','gauge','solidgauge')) &&
                (chartType == 'stock')) {
                 
                 x <- as.data.frame(tab[pageStart:pageEnd,presCols[which(clickable)]])
@@ -928,7 +933,6 @@ renderHighchartDim <- function(env, dim, input,output) {
             unSelect <- event$unSelect
             
             id <- event$id
-            data <- event$data
             
             if(exists(paste0(dim,'HighChartsClickHook'),envir = env$ce)) {
                 do.call(paste0(dim,'HighChartsClickHook'),list(env = env, event = event),envir = env$ce)
@@ -1005,6 +1009,9 @@ renderHighchartDim <- function(env, dim, input,output) {
                                         label = dd$membersFiltered$member[e],
                                         stringsAsFactors = FALSE))
                         }
+                        
+                        fixMs(env,dim,parent,dd$membersFiltered$member[e],as.numeric(lvl))
+                        
                     }
                         
                     dd$rowLastAccessed$value[dd$rowLastAccessed$level == lvl] <- dd$membersFiltered$member[e]
@@ -1227,6 +1234,9 @@ renderHighchartDim <- function(env, dim, input,output) {
                                         label = nm,
                                         stringsAsFactors = FALSE))
                         }
+                        
+                        fixMs(env,dim,parent,nm,as.numeric(lvl))
+                
                     }
                     
                     

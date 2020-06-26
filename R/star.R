@@ -683,6 +683,50 @@ dimSetHasSubselect <- function(env,dim) {
     }
 }
 
+fixMs <- function(env,dim,parent,sel,lvl) {
+    
+    dd <- env$dims[[dim]]
+    
+    pc <- dd$pc
+    l <- dd$selected
+    
+    if (nrow(l) > 1) {
+    
+        # unselect childs
+        
+        delChildSel <- function(lbl,lvl) {
+            
+            del <- pc$label[pc$level == lvl + 1 & pc$parentLabel %in% lbl]
+            
+            if (length(del) > 0) {
+                delChildSel(del,lvl + 1)
+                l <<- l[!(l$level == lvl + 1 & l$parent %in% lbl),]
+            }
+            
+        }
+        
+        delChildSel(sel,lvl)
+        
+        # unselect parents
+        
+        delParentSel <- function(par,lvl) {
+            
+            del <- pc$parentLabel[pc$level == lvl - 1 & pc$label == par]
+            
+            if (length(del) > 0) {
+                delParentSel(del,lvl - 1)
+                l <<- l[!(l$level == lvl - 1 & l$label == par),]
+            }
+            
+        }
+        
+        delParentSel(parent,lvl)
+        
+        dd$selected <- l
+    }
+}
+
+  
 dimCorrectSelectionInfo <- function(input,env,dim) {
 
     dd <- env$dims[[dim]]
