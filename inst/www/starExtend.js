@@ -167,27 +167,38 @@ getSelected = function(series,color) {
 
   var len = series.data.length;
   var selected  = [];
+  chart = series.chart;
   var i;
   
   if (series.chart.xAxis[0].plotLinesAndBands.length > 0) {
       for (i = 0; i < len; i++) {
           var pb = series.chart.xAxis[0].plotLinesAndBands[i].options;
           if (pb.color == color) {
-              selected.push({data: i,id: series.data[i].id});
+              selected.push({id: series.data[i].id});
           } 
       }
   } else {
       if (series.type == 'pie') {
-          for (i = 0; i< len; i++) {
+          for (i = 0; i < len; i++) {
               if (series.data[i].sliced) {
-                  selected.push({data: i,id: series.data[i].id});
+                  selected.push({id: series.data[i].id});
               }
           }
       } else {
           if (series.type == 'treemap' || series.type == 'packedbubble' || series.type == 'heatmap') {
-              for (i = 0; i< len; i++) {
+              for (i = 0; i < len; i++) {
                   if (series.data[i].color == color) {
-                      selected.push({data: i,id: series.data[i].id});
+                      selected.push({id: series.data[i].id});
+                  }
+              }
+          } else {
+              
+              if (series.type == 'areaspline') {
+                  len = chart.series.length;
+                  for (i = 0; i < len; i++) {
+                      if (chart.series[i].color == color) {
+                          selected.push({id: chart.series[i].options.id});
+                      }  
                   }
               }
           }
@@ -241,6 +252,13 @@ toggleSelection = function(point,color) {
             series.chart.xAxis[0].addPlotBand(newPb[i]);
         }
     } else {
+        if (series.type == 'areaspline') {
+            if (series.color == color) {
+                series.update({color: series.options.orgColor});
+            } else {
+                series.update({color: color});
+            }
+        } else {
         if (series.type == 'pie') {
             series.data[point.index].slice(!series.data[point.index].sliced);
         } else {
@@ -252,37 +270,49 @@ toggleSelection = function(point,color) {
                 }
             }
         }
+        }
     }
 };
 
 clearSelection = function(series) {
 
-    if (series.chart.xAxis[0].plotLinesAndBands.length > 0) {
-        var len = series.chart.xAxis[0].plotLinesAndBands.length;
+    chart = series.chart;
+    
+    if (chart.xAxis[0].plotLinesAndBands.length > 0) {
+        var len = chart.xAxis[0].plotLinesAndBands.length;
         var newPb = [];
 
         for (i = 0; i < len; i++) {
-            var pb = series.chart.xAxis[0].plotLinesAndBands[i].options;
+            var pb = chart.xAxis[0].plotLinesAndBands[i].options;
             pb.color = 'rgba(0,0,0,0)';
             newPb.push(pb);
         }
 
         for (i = 0; i < newPb.length; i++) {
-            series.chart.xAxis[0].removePlotBand(i);
-            series.chart.xAxis[0].addPlotBand(newPb[i]);
+            chart.xAxis[0].removePlotBand(i);
+            chart.xAxis[0].addPlotBand(newPb[i]);
         }
     } else {
 
-        var len = series.data.length;
-        if (series.type == 'pie') {
-            for (i = 0; i< len; i++) {
-                series.data[i].slice(false);
-            }
+        if (series.type == 'areaspline') {
+           var len = chart.series.length;
+           for (i = 0; i < len; i++) {
+               if (chart.series[i].color != chart.series[i].orgColor) {
+                   chart.series[i].update({color: series.options.orgColor});
+               }
+           }
         } else {
-            if (series.type == 'treemap' || series.type == 'packedbubble' || series.type == 'heatmap') {
+            var len = series.data.length;
+            if (series.type == 'pie') {
                 for (i = 0; i< len; i++) {
-                    if (series.data[i].color != series.data[i].orgColor) {
-                        series.data[i].update({color: series.data[i].orgColor});
+                    series.data[i].slice(false);
+                }
+            } else {
+                if (series.type == 'treemap' || series.type == 'packedbubble' || series.type == 'heatmap') {
+                    for (i = 0; i< len; i++) {
+                        if (series.data[i].color != series.data[i].orgColor) {
+                            series.data[i].update({color: series.data[i].orgColor});
+                        }
                     }
                 }
             }
@@ -298,15 +328,22 @@ pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,c
     var select = false;
     var unSelect = false;
 debugger
+
+    var curId = point.id;
+        
+    if (point.series.type == 'areaspline') {
+        curId = point.series.options.id; 
+    }
+        
     if (!event.ctrlKey) {
       
-        curSel = getSelected(point.series,color);
+        var curSel = getSelected(point.series,color);
                 
         if (curSel.length == 1) {
-            if (curSel[0].id == point.id && unSelectable) {
+            if (curSel[0].id == curId && unSelectable) {
                 unSelect = true;
             }
-            if (curSel[0].id != point.id) {
+            if (curSel[0].id != curId) {
                 select = true;
                 if (!multi) {
                     clearSelection(point.series);
@@ -327,7 +364,7 @@ debugger
         drill: drill,
         select: select,
         unSelect: unSelect,
-        id: point.id});
+        id: curId});
 };
 
 

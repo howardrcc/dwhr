@@ -35,11 +35,6 @@ plotBandSingleSelectJS <- function(env,dim,label,color,serieType) {
         drillable <- 'false'
     }
 
-    if (dd$selectMode != 'single') {
-        selectable <- 'false'
-        unSelectable <- 'false'
-    }
-
     if (dd$level == 0) {
         unSelectable <- 'false'
     }
@@ -94,11 +89,6 @@ pointSingleSelectJS <- function(env,dim,color,serieType) {
         selectable <- 'false'
         unSelectable <- 'false'
         drillable <- 'false'
-    }
-
-    if (dd$selectMode != 'single') {
-        selectable <- 'false'
-        unSelectable <- 'false'
     }
 
     if (dd$level == 0) {
@@ -937,7 +927,7 @@ renderHighchartDim <- function(env, dim, input,output) {
             drill <- event$drill
             select <- event$select
             unSelect <- event$unSelect
-            
+      
             id <- event$id
             
             if(exists(paste0(dim,'HighChartsClickHook'),envir = env$ce)) {
