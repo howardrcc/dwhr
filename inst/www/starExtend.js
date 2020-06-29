@@ -297,8 +297,8 @@ clearSelection = function(series) {
         if (series.type == 'areaspline') {
            var len = chart.series.length;
            for (i = 0; i < len; i++) {
-               if (chart.series[i].color != chart.series[i].orgColor) {
-                   chart.series[i].update({color: series.options.orgColor});
+               if (chart.series[i].color != chart.series[i].options.orgColor) {
+                   chart.series[i].update({color: chart.series[i].options.orgColor});
                }
            }
         } else {
