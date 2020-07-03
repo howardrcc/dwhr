@@ -1274,7 +1274,8 @@ processHighCharts <- function(env,dim,pres){
     gdim <- dd$gdim
     
     if (exists(paste0(dim,'HcCustom'),envir = env$ce)) {
-        env$hcRenderers[[dim]]$count <- env$hcRenderers[[dim]]$count + 1    
+        env$hcRenderers[[dim]]$count <- env$hcRenderers[[dim]]$count + 1   
+        return()
     }
     
     chart <- env$hcPrep[[dim]]
