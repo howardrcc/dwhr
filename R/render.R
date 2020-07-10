@@ -62,7 +62,7 @@ renderDims <- function(env,input,output) {
                         
                         if (dd$presListType == 'dropdown') {
                             
-                            txt <- '<span style = "font-size:90%; display: inline-block; margin-right:20px; margin-top:2px; float:right;">'
+                            txt <- '<span style = "font-size:90%; display: inline-block; margin-top:2px; float:right;">'
                             
                             txt <- paste0(
                                 txt,
