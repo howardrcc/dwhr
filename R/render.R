@@ -66,15 +66,13 @@ renderDims <- function(env,input,output) {
                             
                             txt <- paste0(
                                 txt,
-                                shiny::selectizeInput(
+                                shiny::selectInput(
                                     inputId = paste0(gdim,'Pres'),
                                     label = NULL,
+                                    selectize = FALSE,
                                     choices = presVec,
                                     width = "150px",
-                                    selected = dd$defPres,
-                                    options = list(
-                                        dropdownParent = 'body'
-                                    )))
+                                    selected = dd$defPres))
                         }
                         
                         if (dd$presListType == 'links') {
