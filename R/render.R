@@ -71,7 +71,10 @@ renderDims <- function(env,input,output) {
                                     label = NULL,
                                     choices = presVec,
                                     width = "150px",
-                                    selected = dd$defPres))
+                                    selected = dd$defPres,
+                                    options = list(
+                                        dropdownParent = 'body'
+                                    )))
                         }
                         
                         if (dd$presListType == 'links') {
