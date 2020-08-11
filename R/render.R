@@ -55,7 +55,13 @@ renderDims <- function(env,input,output) {
                     
                     printDebug(env = env, dim, eventIn = 'renderPresList')
                     
-                    presVec <- dd$presVec
+                    dd$reactive$presListChange
+                    
+                    if (!is.null(dd$presVisFun)) {
+                        presVec <- do.call(dd$presVisFun,list(env = env, dim = dim, vec = dd$presVec),envir = env$ce)
+                    } else {
+                        presVec <- dd$presVec
+                    }
                     
                     if (length(presVec) > 1) {
                         

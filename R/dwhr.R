@@ -612,6 +612,7 @@ addDimView <- function(
         pageChange = 0,
         pageLengthChange = 0,
         presChange = 0,
+        presListChange = 0,
         nameChange = 0,
         linksChange = 0,
         clickMeasureEvent = list(
