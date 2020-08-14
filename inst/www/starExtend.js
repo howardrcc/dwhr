@@ -144,7 +144,17 @@ clearPlotbands = function(chart) {
         chart.xAxis[0].removePlotBand(i);
         chart.xAxis[0].addPlotBand(newPb[i]);
     }
+    
+    for (j = 0; j < chart.series.length; j++) {
+       serie = chart.series[j];
 
+       if (serie.type == 'pie') {
+          len = serie.data.length;
+          for (i = 0; i< len; i++) {
+               serie.data[i].slice(false);
+          }
+       } 
+    }
 };
 
 countSelected = function(chart,color) {
@@ -191,17 +201,7 @@ getSelected = function(series,color) {
                       selected.push({id: series.data[i].id});
                   }
               }
-          } else {
-              
-              if (series.type == 'areaspline') {
-                  len = chart.series.length;
-                  for (i = 0; i < len; i++) {
-                      if (chart.series[i].color == color) {
-                          selected.push({id: chart.series[i].options.id});
-                      }  
-                  }
-              }
-          }
+          } 
       }
   }
   return(selected);
@@ -228,16 +228,26 @@ togglePlotband = function(chart,id,color) {
             chart.xAxis[0].addPlotBand(newPb[i]);
         }
     }
+    
+    for (j = 0; j < chart.series.length; j++) {
+       serie = chart.series[j];
+
+       if (serie.type == 'pie') {
+           serie.data[id].slice(!serie.data[id].sliced);
+       } 
+    }
+    
 };
 
 toggleSelection = function(point,color) {
     var series = point.series;
+    chart = series.chart;
   
-    if (series.chart.xAxis[0].plotLinesAndBands.length > 0) {
-        var len = series.chart.xAxis[0].plotLinesAndBands.length;
+    if (chart.xAxis[0].plotLinesAndBands.length > 0) {
+        var len = chart.xAxis[0].plotLinesAndBands.length;
         var newPb = [];
         for (i = 0; i < len; i++) {
-            var pb = series.chart.xAxis[0].plotLinesAndBands[i].options;
+            var pb = chart.xAxis[0].plotLinesAndBands[i].options;
             if (pb.id == point.index) {  
                 if (pb.color == color) {
                     pb.color = 'rgba(0,0,0,0)';  
@@ -248,37 +258,30 @@ toggleSelection = function(point,color) {
             newPb.push(pb);
         }
         for (i = 0; i < newPb.length; i++) {
-            series.chart.xAxis[0].removePlotBand(i);
-            series.chart.xAxis[0].addPlotBand(newPb[i]);
+            chart.xAxis[0].removePlotBand(i);
+            chart.xAxis[0].addPlotBand(newPb[i]);
         }
     } 
     
-    if (series.type == 'areaspline') {
-        if (series.color == color) {
-            series.update({color: series.options.orgColor});
+    for (j = 0; j < chart.series.length; j++) {
+       serie = chart.series[j];
+
+        if (serie.type == 'pie') {
+            serie.data[point.index].slice(!serie.data[point.index].sliced);
         } else {
-            series.update({color: color});
-        }
-    } else {
-        if (series.type == 'pie') {
-            series.data[point.index].slice(!series.data[point.index].sliced);
-        } else {
-            if (series.type == 'treemap' || series.type == 'packedbubble' || series.type == 'heatmap') {
-                if (series.data[point.index].color == color) {
-                    series.data[point.index].update({color: series.data[point.index].orgColor});
+            if (serie.type == 'treemap' || serie.type == 'packedbubble' || serie.type == 'heatmap') {
+                if (serie.data[point.index].color == color) {
+                    serie.data[point.index].update({color: serie.data[point.index].orgColor});
                 } else {
-                    series.data[point.index].update({color: color});
+                    serie.data[point.index].update({color: color});
                 }
             }
         }
-      
     }
 };
 
-clearSelection = function(series) {
+clearSelection = function(chart) {
 
-    chart = series.chart;
-    
     if (chart.xAxis[0].plotLinesAndBands.length > 0) {
         var len = chart.xAxis[0].plotLinesAndBands.length;
         var newPb = [];
@@ -293,31 +296,26 @@ clearSelection = function(series) {
             chart.xAxis[0].removePlotBand(i);
             chart.xAxis[0].addPlotBand(newPb[i]);
         }
-    } 
-  
-    if (series.type == 'areaspline') {
-       var len = chart.series.length;
-       for (i = 0; i < len; i++) {
-           if (chart.series[i].color != chart.series[i].options.orgColor) {
-               chart.series[i].update({color: chart.series[i].options.orgColor});
-           }
-       }
-    } else {
-        var len = series.data.length;
-        if (series.type == 'pie') {
-            for (i = 0; i< len; i++) {
-                series.data[i].slice(false);
-            }
-        } else {
-            if (series.type == 'treemap' || series.type == 'packedbubble' || series.type == 'heatmap') {
-                for (i = 0; i< len; i++) {
-                    if (series.data[i].color != series.data[i].orgColor) {
-                        series.data[i].update({color: series.data[i].orgColor});
-                    }
-                }
-            }
-        }
     }
+    
+    for (j = 0; j < chart.series.length; j++) {
+       serie = chart.series[j];
+            
+       var len = serie.data.length;
+       if (serie.type == 'pie') {
+           for (i = 0; i< len; i++) {
+               serie.data[i].slice(false);
+           }
+       } else {
+           if (serie.type == 'treemap' || serie.type == 'packedbubble' || serie.type == 'heatmap') {
+               for (i = 0; i< len; i++) {
+                   if (serie.data[i].color != serie.data[i].orgColor) {
+                       serie.data[i].update({color: serie.data[i].orgColor});
+                   }
+              }
+          }
+      }
+   }
 };
 
 pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,color,multi) {
@@ -346,7 +344,7 @@ debugger
             if (curSel[0].id != curId) {
                 select = true;
                 if (!multi) {
-                    clearSelection(point.series);
+                    clearSelection(point.series.chart);
                 }
             }
         } else {
