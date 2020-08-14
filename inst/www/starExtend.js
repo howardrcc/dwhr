@@ -251,14 +251,15 @@ toggleSelection = function(point,color) {
             series.chart.xAxis[0].removePlotBand(i);
             series.chart.xAxis[0].addPlotBand(newPb[i]);
         }
-    } else {
-        if (series.type == 'areaspline') {
-            if (series.color == color) {
-                series.update({color: series.options.orgColor});
-            } else {
-                series.update({color: color});
-            }
+    } 
+    
+    if (series.type == 'areaspline') {
+        if (series.color == color) {
+            series.update({color: series.options.orgColor});
         } else {
+            series.update({color: color});
+        }
+    } else {
         if (series.type == 'pie') {
             series.data[point.index].slice(!series.data[point.index].sliced);
         } else {
@@ -270,7 +271,7 @@ toggleSelection = function(point,color) {
                 }
             }
         }
-        }
+      
     }
 };
 
@@ -292,27 +293,26 @@ clearSelection = function(series) {
             chart.xAxis[0].removePlotBand(i);
             chart.xAxis[0].addPlotBand(newPb[i]);
         }
-    } else {
-
-        if (series.type == 'areaspline') {
-           var len = chart.series.length;
-           for (i = 0; i < len; i++) {
-               if (chart.series[i].color != chart.series[i].options.orgColor) {
-                   chart.series[i].update({color: chart.series[i].options.orgColor});
-               }
+    } 
+  
+    if (series.type == 'areaspline') {
+       var len = chart.series.length;
+       for (i = 0; i < len; i++) {
+           if (chart.series[i].color != chart.series[i].options.orgColor) {
+               chart.series[i].update({color: chart.series[i].options.orgColor});
            }
+       }
+    } else {
+        var len = series.data.length;
+        if (series.type == 'pie') {
+            for (i = 0; i< len; i++) {
+                series.data[i].slice(false);
+            }
         } else {
-            var len = series.data.length;
-            if (series.type == 'pie') {
+            if (series.type == 'treemap' || series.type == 'packedbubble' || series.type == 'heatmap') {
                 for (i = 0; i< len; i++) {
-                    series.data[i].slice(false);
-                }
-            } else {
-                if (series.type == 'treemap' || series.type == 'packedbubble' || series.type == 'heatmap') {
-                    for (i = 0; i< len; i++) {
-                        if (series.data[i].color != series.data[i].orgColor) {
-                            series.data[i].update({color: series.data[i].orgColor});
-                        }
+                    if (series.data[i].color != series.data[i].orgColor) {
+                        series.data[i].update({color: series.data[i].orgColor});
                     }
                 }
             }
