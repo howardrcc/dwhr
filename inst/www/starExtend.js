@@ -325,7 +325,6 @@ pointSingleSelect = function(dim,point,event,selectable,unSelectable,drillable,c
     var drill = false;
     var select = false;
     var unSelect = false;
-debugger
 
     var curId = point.id;
         

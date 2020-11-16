@@ -196,6 +196,7 @@ renderDims <- function(env,input,output) {
                                     inputId = ll$id, 
                                     label = ll$label, 
                                     choices = choices,
+                                    width = ll$ddWidth,
                                     options = list(dropdownParent = 'body'))
                             }
                             
