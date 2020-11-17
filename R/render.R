@@ -55,20 +55,27 @@ renderDims <- function(env,input,output) {
                     
                     printDebug(env = env, dim, eventIn = 'renderPresList')
                     
-                    presVec <- dd$presVec
+                    dd$reactive$presListChange
+                    
+                    if (!is.null(dd$presVisFun)) {
+                        presVec <- do.call(dd$presVisFun,list(env = env, dim = dim, vec = dd$presVec),envir = env$ce)
+                    } else {
+                        presVec <- dd$presVec
+                    }
                     
                     if (length(presVec) > 1) {
                         
                         
                         if (dd$presListType == 'dropdown') {
                             
-                            txt <- '<span style = "font-size:90%; display: inline-block; margin-right:20px; margin-top:2px; float:right;">'
+                            txt <- '<span style = "font-size:90%; display: inline-block; margin-top:2px; float:right;">'
                             
                             txt <- paste0(
                                 txt,
-                                shiny::selectizeInput(
+                                shiny::selectInput(
                                     inputId = paste0(gdim,'Pres'),
                                     label = NULL,
+                                    selectize = FALSE,
                                     choices = presVec,
                                     width = "150px",
                                     selected = dd$defPres))
@@ -189,6 +196,7 @@ renderDims <- function(env,input,output) {
                                     inputId = ll$id, 
                                     label = ll$label, 
                                     choices = choices,
+                                    width = ll$ddWidth,
                                     options = list(dropdownParent = 'body'))
                             }
                             
@@ -310,6 +318,9 @@ renderDims <- function(env,input,output) {
                     if (any(dd$selected$level > 0) && !hideNoFilter) {
 
                         txt <- paste0(txt,'&nbsp<span style="float:right;">',actionLink(inputId = paste0(gdim,'NoFilter'), label = 'Verwijder Filter', style='color:red'),'</span>')
+                    } else {
+                        if (!hideNoFilter)
+                            txt <- paste0(txt,'&nbsp')
                     }
 
                     txt <- paste0(txt,"</div>")
@@ -420,6 +431,7 @@ renderDims <- function(env,input,output) {
 
                     presList <- dd$presList
                     presType <- presList[[dd$pres]]$type
+                    noWait <- isNull(presList[[dd$pres]]$navOpts$noWait,FALSE)
 
                     if (dd$selectMode == 'multi' && presType == 'dataTable') {
 
@@ -434,7 +446,7 @@ renderDims <- function(env,input,output) {
                             '</td>')
 
 
-                        if (length(val) > 0 && val) {
+                        if (length(val) > 0 && val && !noWait) {
                             txt <- paste0(
                                 txt,
                                 '<td>',

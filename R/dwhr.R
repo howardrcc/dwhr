@@ -506,10 +506,12 @@ addDimView <- function(
     
     if (is.null(selectParent)) {
         selectParent <- pc$parentLabel[pc$level == selectLevel & pc$label %in% selectLabel]
+        selectLabel <- pc$label[pc$level == selectLevel & pc$label %in% selectLabel]
     } else {
         if (!(selectParent %in% pc$parentLabel[pc$level == selectLevel & pc$label %in% selectLabel])) {
             warning(paste0('selectParent: ', selectParent, ' not found for selectLevel: ',selectLevel,' and selectLabel: ',selectLabel, '. selectParent set to first parent.'))
             selectParent <- pc$parentLabel[pc$level == selectLevel & pc$label %in% selectLabel]
+            selectLabel <- pc$label[pc$level == selectLevel & pc$label %in% selectLabel]
         }
     }
     
@@ -610,6 +612,7 @@ addDimView <- function(
         pageChange = 0,
         pageLengthChange = 0,
         presChange = 0,
+        presListChange = 0,
         nameChange = 0,
         linksChange = 0,
         clickMeasureEvent = list(
@@ -1547,14 +1550,6 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
             dd$serverSideTable <- isNull(dd$serverSideTable,FALSE)
             dataTableOpts$serverSideTable <- dd$serverSideTable
         }
-    }
-    
-    # highChartsOpts checks
-    
-    if (!is.null(highChartsOpts)) {
-        
-        (dd$selectMode %in% c('none','single')) || (uiId != dim) || stop(paste0(dim, ': HighCharts presentation not available for multi-select'))
-        
     }
     
     # check links

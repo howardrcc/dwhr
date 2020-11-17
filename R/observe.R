@@ -313,18 +313,30 @@ startObserversPres <- function(env,dim,pres) {
     if (!(dimMs %in% obs)) {
         shiny::observeEvent(inp[[dimMs]], {
 
-            if(inp[[dimMs]] == FALSE) {
-                if(dimCorrectSelectionInfo(inp,env,dim))
-                    dd$reactive$selectChange <- dd$reactive$selectChange + 1    
-                
-                if(dimSetHasSubselect(env,dim))
-                    dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1    
-            }
-                
             if (dd$msState != inp[[dimMs]]) {
-                dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
-
+                
                 dd$msState <- inp[[dimMs]]
+                
+                if(inp[[dimMs]] == FALSE) {
+                    if(dimCorrectSelectionInfo(inp,env,dim))
+                        dd$reactive$selectChange <- dd$reactive$selectChange + 1    
+                }
+                
+                dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
+                
+                if (!is.null(dd$parentDim) || !is.null(dd$childDims)) {
+                    
+                    if (!is.null(dd$parentDim))
+                        dms <- union(dd$parentDim,setdiff(env$dims[[dd$parentDim]]$childDims,dim))
+                    else
+                        dms <- dd$childDims
+                    
+                    for (d in dms) {
+                        env$dims[[d]]$msState <- dd$msState
+                        env$dims[[d]]$reactive$dimRefresh <- env$dims[[d]]$reactive$dimRefresh + 1
+                    }
+                }
+                
                 printDebug(env = env, dim = dim,
                            eventIn = 'multSelect',
                            eventOut = 'dimRefresh',
@@ -549,7 +561,7 @@ startObserversPres <- function(env,dim,pres) {
         if (!(dimPresLink %in% obs)) {
             
             shiny::observeEvent(inp[[dimPresLink]],{
-                
+      
                 if (!(dim %in% visibleDims(env))) {  
                     return()
                 }
@@ -567,7 +579,7 @@ startObserversPres <- function(env,dim,pres) {
                     env$hcRenderers[[dim]]$count <- env$hcRenderers[[dim]]$count + 1
                 }
                 if (presType == 'dataTable' ) {
-                    env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
+                    processDataTable(env,dim,pres)
                 }
                 
             })

@@ -16,9 +16,9 @@ dwhrInit <- function() {
         
         # Loading message
 
-        div(
+        shiny::div(
             id = "loading-content",
-            h2("Laden dashboard ...")
+            shiny::h2("Laden dashboard ...")
         ),
         
         shiny::tags$head(
@@ -87,8 +87,8 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
         
         shiny::div(
             id = paste0(gdim,'Dimensie'),
-            div(class = 'dwhrAccordion',
-                HTML(paste0(
+            shiny::div(class = 'dwhrAccordion',
+                shiny::HTML(paste0(
                     '<table width = "100%">'
                     , '<tbody>'
                     , '<tr>'
@@ -99,7 +99,7 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
                     , '</tr></tbody></table>')
                 ),
                 shiny::uiOutput(paste0(gdim,"DimHeader"))),
-            div(class = 'dwhrPanel', id = paste0(gdim,'DwhrPanel'),
+            shiny::div(class = 'dwhrPanel', id = paste0(gdim,'DwhrPanel'),
                 if (resize) {
                     shinyjqui::jqui_resizable(
                         options = resizeOptions,

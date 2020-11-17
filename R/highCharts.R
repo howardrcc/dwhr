@@ -10,6 +10,11 @@ plotBandSingleSelectJS <- function(env,dim,label,color,serieType) {
     selectable <- 'true'
     unSelectable <- 'true'
     drillable <- 'true'
+    multi <- 'false'
+    
+    if (dd$msState) {
+        multi <- 'true'
+    }
 
     if (!0 %in% dd$selectableLevels) {
         unSelectable <- 'false'
@@ -28,11 +33,6 @@ plotBandSingleSelectJS <- function(env,dim,label,color,serieType) {
         selectable <- 'false'
         unSelectable <- 'false'
         drillable <- 'false'
-    }
-
-    if (dd$selectMode != 'single') {
-        selectable <- 'false'
-        unSelectable <- 'false'
     }
 
     if (dd$level == 0) {
@@ -50,7 +50,7 @@ plotBandSingleSelectJS <- function(env,dim,label,color,serieType) {
     }
 
     highcharter::JS(paste0("function(event){
-    plotBandSingleSelect('",gdim,"',this, event,",selectable,",",unSelectable,",",drillable,",'",color,"');
+    plotBandSingleSelect('",gdim,"',this, event,",selectable,",",unSelectable,",",drillable,",'",color,"',",multi,");
 }"))
 }
 
@@ -66,6 +66,11 @@ pointSingleSelectJS <- function(env,dim,color,serieType) {
     selectable <- 'true'
     unSelectable <- 'true'
     drillable <- 'true'
+    multi <- 'false'
+    
+    if (dd$msState) {
+        multi <- 'true'
+    }
 
     if (!0 %in% dd$selectableLevels) {
         unSelectable <- 'false'
@@ -86,11 +91,6 @@ pointSingleSelectJS <- function(env,dim,color,serieType) {
         drillable <- 'false'
     }
 
-    if (dd$selectMode != 'single') {
-        selectable <- 'false'
-        unSelectable <- 'false'
-    }
-
     if (dd$level == 0) {
         unSelectable = 'false'
     }
@@ -100,7 +100,7 @@ pointSingleSelectJS <- function(env,dim,color,serieType) {
     }
     
     highcharter::JS(paste0("function(event){
-    pointSingleSelect('",gdim,"',this, event,",selectable,",",unSelectable,",",drillable,",'",color,"');
+    pointSingleSelect('",gdim,"',this, event,",selectable,",",unSelectable,",",drillable,",'",color,"',",multi,");
 }"))
 }
 
@@ -494,9 +494,13 @@ prepHc <- function(env, dim, pres, print = NULL) {
             labelsPage <- as.character(labels[pageStart:pageEnd])
             labelsPage[is.na(labelsPage)] <- ' '
             
-            if (serieType %in% c('pie','treemap')) {
+            if (serieType %in% c('pie','treemap','packedbubble','heatmap')) {
                 labelsPage <- labelsPage[dt > 0 & !is.na(dt)]
                 dt <- dt[dt > 0 & !is.na(dt)]
+                if (serieType == 'packedbubble' && length(dt) == 1) { # bug in highcharts
+                    dt[2] <- 0
+                    labelsPage[2] <- 'Onbekend'
+                }
             }
             
             seriesData <- list()
@@ -527,7 +531,15 @@ prepHc <- function(env, dim, pres, print = NULL) {
                 }
             }
             
-            colorsPage <- getColors(dt, pal,seriesList$colorTrans)
+            cc <- paste0('level',dd$level,'Label')
+            
+            colorsPage <- getColors(
+                dt = dt, 
+                pal = pal,
+                trans = seriesList$colorTrans,
+                domain = unique(dd$data[[cc]]),
+                labels = labelsPage)
+            
             seriesList$colorTrans <- NULL
             
             if (!is.null(colorsPage)) {
@@ -598,7 +610,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
                             
                         }
                         
-                        if (serieType == 'treemap') {
+                        if (serieType %in% c('treemap','packedbubble','heatmap')) {
                             
                             if (!is.na(dt[rec]) && dt[rec] >= 0) {
                                 point$value = dt[rec]
@@ -606,15 +618,22 @@ prepHc <- function(env, dim, pres, print = NULL) {
                                 point$name = labelsPage[rec]
                                 if (labelsPage[rec] %in% sel) {
                                     point$color = plotBandColor
+                                } else {
+                                    point$color = isNull(colorsPage[rec],seriesList[['color']])
                                 }
-                                point$orgColor = colorsPage[rec]
+                                point$orgColor = isNull(colorsPage[rec],seriesList[['color']])
                                 point$id = labelsPage[rec]
                                 i <- i + 1
-                                #seriesData[[i]] <- point
+                                
+                                if (serieType == 'heatmap') {
+                                    point$x <- (rec - 1) %/% round(sqrt(length(dt)),0)
+                                    point$y <- round(sqrt(length(dt)),0) - 1 - ((rec - 1) %% round(sqrt(length(dt)),0))
+                                }
+                                
                             }
                         }
                         
-                        if (!(serieType %in% c('pie','treemap')) && !(chartType=='stock')) {
+                        if (!(serieType %in% c('pie','treemap','packedbubble','heatmap')) && !(chartType=='stock')) {
                             
                             i <- i + 1
                             point <- list(
@@ -697,7 +716,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
             series[[length(series)+1]] <- seriesList
 
             if(length(plotBands) == 0 &&
-               !(serieType %in% c('pie','treemap','gauge','solidgauge')) &&
+               !(serieType %in% c('pie','treemap','packedbubble','heatmap','gauge','solidgauge')) &&
                !(chartType == 'stock')) {
                 
                 x <- as.data.frame(tab[pageStart:pageEnd,presCols[which(clickable)]])
@@ -727,7 +746,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
             }
             
             if(length(plotBands) == 0 &&
-               !(serieType %in% c('pie','treemap','gauge','solidgauge')) &&
+               !(serieType %in% c('pie','treemap','packedbubble','heatmap','gauge','solidgauge')) &&
                (chartType == 'stock')) {
                 
                 x <- as.data.frame(tab[pageStart:pageEnd,presCols[which(clickable)]])
@@ -853,22 +872,28 @@ renderHighchartDim <- function(env, dim, input,output) {
         
         env$hcRenderers[[dim]]$count
         
-        pres <- dd$pres
-        prep <- env$hcPrep[[dim]]
-        
         if (env$hcRenderers[[dim]]$count == 0) {
             return()
         }
         
-        printDebug(env, dim, eventIn = 'renderHighCharts', info = paste0('rendercount:', env$hcRenderers[[dim]]$count))
+        pres <- dd$pres
         
-        if (is.null(prep))
-            prep <- prepHc(env,dim,pres)
-        
-        env$hcPrev[[dim]] <- removeCallbacks(prep)
-        env$hcPrep[[dim]] <- NULL
-        
-        prep$widget
+        if (exists(paste0(dim,'HcCustom'),envir = env$ce)) {
+            do.call(paste0(dim,'HcCustom'),list(env = env, dim = dim, pres = pres),envir = env$ce)
+        } else {
+            
+            prep <- env$hcPrep[[dim]]
+            
+            printDebug(env, dim, eventIn = 'renderHighCharts', info = paste0('rendercount:', env$hcRenderers[[dim]]$count))
+            
+            if (is.null(prep))
+                prep <- prepHc(env,dim,pres)
+            
+            env$hcPrev[[dim]] <- removeCallbacks(prep)
+            env$hcPrep[[dim]] <- NULL
+            
+            prep$widget
+        }
         
     })
     
@@ -902,6 +927,7 @@ renderHighchartDim <- function(env, dim, input,output) {
             drill <- event$drill
             select <- event$select
             unSelect <- event$unSelect
+      
             id <- event$id
             
             if(exists(paste0(dim,'HighChartsClickHook'),envir = env$ce)) {
@@ -915,7 +941,6 @@ renderHighchartDim <- function(env, dim, input,output) {
                 e <- which(tab$member == id)
                 
                 dd$highchartsClickEvent <- e
-                
                 
                 if (drill) {
                     
@@ -931,21 +956,60 @@ renderHighchartDim <- function(env, dim, input,output) {
                     
                 } else {
                     
-                    l <- data.frame(
-                        level = as.numeric(lvl),
-                        parent = parent,
-                        label = dd$membersFiltered$member[e],
-                        stringsAsFactors = FALSE)
-                    
                     s <- dd$selected
                     s$level <- as.numeric(s$level)
-                    
-                    if (identical(s,l)) {
-                        dd$selected <- dd$rootSelected
+                        
+                    if (!dd$msState) {
+                        
+                        l <- data.frame(
+                            level = as.numeric(lvl),
+                            parent = parent,
+                            label = dd$membersFiltered$member[e],
+                            stringsAsFactors = FALSE)
+                        
+                        if (identical(s,l)) {
+                            dd$selected <- dd$rootSelected
+                        } else {
+                            dd$selected <- l
+                        }
+                        
                     } else {
-                        dd$selected <- l
+                        
+                        if (nrow(s[s$level == as.numeric(lvl) &
+                                   s$parent == parent &
+                                   s$label == dd$membersFiltered$member[e],]) > 0) {
+                            
+                            l <- s[!(s$level == as.numeric(lvl) &
+                                         s$parent == parent &
+                                         s$label == dd$membersFiltered$member[e]),] 
+                            
+                            if (nrow(l) == 0) {
+                                dd$selected <- dd$rootSelected
+                            } else {
+                                dd$selected <- l
+                            }
+                        } else {
+                            
+                            if (all(dd$selected$level == 0))
+                                dd$selected <- data.frame(
+                                    level = as.numeric(lvl),
+                                    parent = parent,
+                                    label = dd$membersFiltered$member[e],
+                                    stringsAsFactors = FALSE)
+                            else
+                                dd$selected <- rbind(
+                                    dd$selected, 
+                                    data.frame(
+                                        level = as.numeric(lvl),
+                                        parent = parent,
+                                        label = dd$membersFiltered$member[e],
+                                        stringsAsFactors = FALSE))
+                        }
+                        
+                        fixMs(env,dim,parent,dd$membersFiltered$member[e],as.numeric(lvl))
+                        
                     }
-                    
+                        
                     dd$rowLastAccessed$value[dd$rowLastAccessed$level == lvl] <- dd$membersFiltered$member[e]
                     
                     dimCorrectSelectionInfo(input,env,dim)
@@ -1117,22 +1181,62 @@ renderHighchartDim <- function(env, dim, input,output) {
                     
                 } else {
                     
-                    l <- data.frame(
-                        level = as.numeric(lvl),
-                        parent = parent,
-                        label = nm, #dd$membersFiltered$member[e],
-                        stringsAsFactors = FALSE)
-                    
                     s <- dd$selected
                     s$level <- as.numeric(s$level)
                     
-                    if (identical(s,l)) {
-                        dd$selected <- dd$rootSelected
+                    if (!dd$msState) {
+                        
+                        l <- data.frame(
+                            level = as.numeric(lvl),
+                            parent = parent,
+                            label = nm,
+                            stringsAsFactors = FALSE)
+                        
+                        if (identical(s,l)) {
+                            dd$selected <- dd$rootSelected
+                        } else {
+                            dd$selected <- l
+                        }
+                        
                     } else {
-                        dd$selected <- l
+                        
+                        if (nrow(s[s$level == as.numeric(lvl) &
+                                   s$parent == parent &
+                                   s$label == nm,]) > 0) {
+                            
+                            l <- s[!(s$level == as.numeric(lvl) &
+                                         s$parent == parent &
+                                         s$label == nm),] 
+                            
+                            if (nrow(l) == 0) {
+                                dd$selected <- dd$rootSelected
+                            } else {
+                                dd$selected <- l
+                            }
+                        } else {
+                            
+                            if (all(dd$selected$level == 0))
+                                dd$selected <- data.frame(
+                                    level = as.numeric(lvl),
+                                    parent = parent,
+                                    label = nm,
+                                    stringsAsFactors = FALSE)
+                            else
+                                dd$selected <- rbind(
+                                    dd$selected, 
+                                    data.frame(
+                                        level = as.numeric(lvl),
+                                        parent = parent,
+                                        label = nm,
+                                        stringsAsFactors = FALSE))
+                        }
+                        
+                        fixMs(env,dim,parent,nm,as.numeric(lvl))
+                
                     }
                     
-                    dd$rowLastAccessed$value[dd$rowLastAccessed$level == lvl] <- nm #dd$membersFiltered$member[e] #nm? wat doet deze regel?
+                    
+                    dd$rowLastAccessed$value[dd$rowLastAccessed$level == lvl] <- nm 
                     
                     dimCorrectSelectionInfo(input,env,dim)
                     dimSetHasSubselect(env,dim)
@@ -1169,6 +1273,11 @@ processHighCharts <- function(env,dim,pres){
     dd <- env$dims[[dim]]
     gdim <- dd$gdim
     
+    if (exists(paste0(dim,'HcCustom'),envir = env$ce)) {
+        env$hcRenderers[[dim]]$count <- env$hcRenderers[[dim]]$count + 1   
+        return()
+    }
+    
     chart <- env$hcPrep[[dim]]
     
     if (is.null(chart))
@@ -1198,6 +1307,9 @@ processHighCharts <- function(env,dim,pres){
     }
     
     if (!identical(env$hcPrev[[dim]]$exportingOpts,chart$exportingOpts))
+        useUpdate <- FALSE
+    
+    if (dd$msState)
         useUpdate <- FALSE
         
     if((is.null(useUpdate) || useUpdate) && length(setdiff(newLength,prevLength)) == 0 && !chart$print) {

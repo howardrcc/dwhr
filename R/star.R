@@ -56,7 +56,7 @@ domains <- list(
     fontWeight = c('bold','normal'),
     highChartsOpts = c('type', 'rangeSelector','chart','tooltip','xAxis', 'yAxis', 'legend', 'series', 'plotOptions', 'title','dashboard','pane','navigator','exporting'),
     simpleOpts = c('inline'),
-    navOpts = c('syncNav', 'hideNoFilter', 'hideAll', 'hideBreadCrumb', 'links','selLinks','minBreadCrumbLevel','noDrill'),
+    navOpts = c('syncNav', 'hideNoFilter', 'hideAll', 'hideBreadCrumb', 'links','selLinks','minBreadCrumbLevel','noDrill','fixDom','noWait','scrollY'),
     navOptsLinkTypes = c('actionLink','downloadLink','downloadButton','dropDown','dim','uiOutput'),
     orderBy = c('key','name'),
     cssOverflow = c('hidden','visible','scroll','auto'),
@@ -251,20 +251,6 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
     if (is.null(gcache)) {
 
         condition <- ''
-
-        # for (d in sort(setdiff(setdiff(filteringDims(env),dim),ignoreDims))) {
-        #     dkey <- env$dims[[d]]$keyColumn
-        # 
-        #     if (any(env$dims[[d]]$selected$level > 0)) {
-        #         env[[paste0(d,'Ids')]] <- env$dims[[d]]$selectedIds
-        # 
-        #         if (condition != '') {
-        #             condition <- paste0(condition,' & ')
-        #         }
-        #         condition <- paste0(condition,' ',dkey,' %in% env$',d,'Ids')
-        #     }
-        # }
-        
         stmt <- 'env$facts'
        
         for (d in sort(setdiff(setdiff(filteringDims(env),dim),ignoreDims))) {
@@ -366,7 +352,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
                 measFun <- paste0(measFun,", ", viewColumn, "=")
 
                 if(fun == 'dcount') {
-                    measFun <- paste0(measFun,"length(unique(",factColumn,"))")
+                    measFun <- paste0(measFun,"length(unique(na.omit(",factColumn,")))")
                 }
 
                 if (fun == 'sum') {
@@ -683,6 +669,50 @@ dimSetHasSubselect <- function(env,dim) {
     }
 }
 
+fixMs <- function(env,dim,parent,sel,lvl) {
+    
+    dd <- env$dims[[dim]]
+    
+    pc <- dd$pc
+    l <- dd$selected
+    
+    if (nrow(l) > 1) {
+    
+        # unselect childs
+        
+        delChildSel <- function(lbl,lvl) {
+            
+            del <- pc$label[pc$level == lvl + 1 & pc$parentLabel %in% lbl]
+            
+            if (length(del) > 0) {
+                delChildSel(del,lvl + 1)
+                l <<- l[!(l$level == lvl + 1 & l$parent %in% lbl),]
+            }
+            
+        }
+        
+        delChildSel(sel,lvl)
+        
+        # unselect parents
+        
+        delParentSel <- function(par,lvl) {
+            
+            del <- pc$parentLabel[pc$level == lvl - 1 & pc$label == par]
+            
+            if (length(del) > 0) {
+                delParentSel(del,lvl - 1)
+                l <<- l[!(l$level == lvl - 1 & l$label == par),]
+            }
+            
+        }
+        
+        delParentSel(parent,lvl)
+        
+        dd$selected <- l
+    }
+}
+
+  
 dimCorrectSelectionInfo <- function(input,env,dim) {
 
     dd <- env$dims[[dim]]
@@ -690,8 +720,7 @@ dimCorrectSelectionInfo <- function(input,env,dim) {
     l <- dd$selected
     gdim <- dd$gdim
     
-    if ((nrow(l) > 1 && dd$selectMode == 'single') ||
-        (nrow(l) > 1 && dd$selectMode == 'multi' && !(input[[paste0(gdim,'DimMs')]]))) {
+    if (nrow(l) > 1 && !dd$msState) {
         
         rwv <- isNa(dd$rowLastAccessed$value[dd$rowLastAccessed$level == dd$level],'')
         rw <- which(dd$seleced$label == rwv)
@@ -717,57 +746,64 @@ isColor <- function(x)
     return(!"try-error"%in%class(res))
 }
 
-getColors <- function(dt,pal,trans) {
+getColors <- function(dt,pal,trans,domain = NULL,labels = NULL) {
 
     colors <- NULL
 
     if (!is.null(pal)) {
-
+        
         palInfo <- RColorBrewer::brewer.pal.info
         reverse <- FALSE
-
+        
         if (length(pal) == 1 && substr(pal,1,1) == '-') {
             pal <- substr(pal,2,1000)
             reverse <- TRUE
         }
-
+        
         if (length(pal) == 1 && pal %in% rownames(palInfo)) {
-
-            palVec <- suppressWarnings(RColorBrewer::brewer.pal(12,pal))
-            palFun <- colorRampPalette(palVec)
-            colors <- palFun(length(dt))
-
-            if (reverse)
-                colors <- rev(colors)
-
-        } else {
-            colors <- rep(unlist(pal),length.out = length(dt))
-        }
-
-        # Bij een sequentieel palette de waarde van de meetwaarde gebruiken
-
-        if (length(pal) == 1 && pal %in% rownames(palInfo[palInfo$category == 'seq',])) {
-
-            if(!is.null(trans) && trans == 'log2') {
-                dt[dt <= 0] <- NA
-                colors <- scales::col_numeric(pal, domain = NULL)(log2(dt))
+            
+            if (!is.null(domain) && !is.null(labels) && pal %in% rownames(palInfo[palInfo$category != 'seq',])) {
+                
+                colors <- scales::col_factor(pal, domain = domain)(labels)
+                reverse <- FALSE
+                
             } else {
-                colors <- scales::col_numeric(pal, domain = NULL)(dt)
+                
+                if (pal %in% rownames(palInfo[palInfo$category == 'seq',])) {
+                    
+                    if(!is.null(trans) && trans == 'log2') {
+                        dt[dt <= 0] <- NA
+                        colors <- scales::col_numeric(pal, domain = NULL)(log2(dt))
+                    } else {
+                        colors <- scales::col_numeric(pal, domain = NULL)(dt)
+                    }
+                } else {
+                    palVec <- suppressWarnings(RColorBrewer::brewer.pal(12,pal))
+                    palFun <- colorRampPalette(palVec)
+                    colors <- palFun(length(dt))
+                }
             }
-
+            
             if (reverse)
                 colors <- rev(colors)
+            
+        } else {
+            if (!is.null(domain) && !is.null(labels)) {
+                colors <- scales::col_factor(pal, domain = domain)(labels)  
+            } else {
+                colors <- rep(unlist(pal),length.out = length(dt))
+            }
         }
-
+        
     }
-
+    
     return(colors)
 }
 
 
 getFirstRow <- function(env,dim,tab) {
     firstRow <- 1
-
+    
     dd <- env$dims[[dim]]
 
     lvl <- dd$level

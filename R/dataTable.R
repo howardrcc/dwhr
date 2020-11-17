@@ -457,6 +457,8 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     presList <- dd$presList
     opts <- presList[[pres]]$dataTableOpts
     noDrill <- presList[[pres]]$navOpts$noDrill
+    fixDom <- presList[[pres]]$navOpts$fixDom
+    scrollY <- isNull(presList[[pres]]$navOpts$scrollY,'')
 
     measures <- rlist::list.stack(isNull(expandList(env,opts$measures),list(viewColumn = 'cnt')),fill = TRUE)
 
@@ -677,20 +679,27 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     paging <- TRUE
     searching <- TRUE
 
-    if(nrow(tab) <= min(pageLengthList)) {
+    if (is.null(fixDom)) {
+      if(nrow(tab) <= min(pageLengthList)) {
         if (search != '') {
-            dom <- 'frt'
+          dom <- 'frt'
         } else {
-            dom <- 'rt'
+          dom <- 'rt'
         }
-    } else {
-
+      } else {
+        
         if (length(pageLengthList) == 1) {
-            dom <- 'frtp'
+          dom <- 'frtp'
         } else {
-            dom <- 'flrtp'
+          dom <- 'flrtp'
         }
-
+      }
+    } else {
+        dom <- fixDom
+    }
+    
+    if (scrollY != '') {
+        paging <- FALSE
     }
     
     #
@@ -879,6 +888,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
                      , pagingType = pagingType
                      , lengthMenu = pageLengthList
                      , info = FALSE
+                     , scrollX = FALSE
                      , pageLength = pageLength
                      , columnDefs = columnDefs
                      , displayStart = firstRow - 1
@@ -889,6 +899,11 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     if (!is.null(orderOpt)) {
         options$order = list(orderOpt)
+    }
+    
+    if (scrollY != '') {
+        options$scrollY = scrollY
+        options$scrollCollapse = TRUE
     }
     
     if (hasSparkline) {
@@ -1119,38 +1134,7 @@ print('cells_selected')
                     stringsAsFactors = FALSE)
 
                 l <- rbind(l,s)
-
-                pc <- dd$pc
-
-                # unselect childs
-
-                delChildSel <- function(lbl,lvl) {
-
-                    del <- pc$label[pc$level == lvl + 1 & pc$parentLabel %in% lbl]
-
-                    if (length(del) > 0) {
-                        delChildSel(del,lvl + 1)
-                        l <<- l[!(l$level == lvl + 1 & l$parent %in% lbl),]
-                    }
-
-                }
-
-                delChildSel(selected,level)
-
-                # unselect parents
-
-                delParentSel <- function(par,lvl) {
-
-                    del <- pc$parentLabel[pc$level == lvl - 1 & pc$label == par]
-
-                    if (length(del) > 0) {
-                        delParentSel(del,lvl - 1)
-                        l <<- l[!(l$level == lvl - 1 & l$label == par),]
-                    }
-
-                }
-
-                delParentSel(parent,level)
+                
             }
         }
 
@@ -1162,7 +1146,9 @@ print('cells_selected')
         row.names(l) <- NULL
 
         s <- dd$selected
+        
         dd$selected <- l
+        fixMs(env,dim,parent,selected,level)
         
         if (dimCorrectSelectionInfo(input,env,dim) | dimSetHasSubselect(env,dim)) {
             printDebug(env = env, dim, eventIn = 'subSelectChange/CorrectInfo', eventOut = 'dimRefresh')
