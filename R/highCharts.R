@@ -877,10 +877,13 @@ renderHighchartDim <- function(env, dim, input,output) {
         }
         
         pres <- dd$pres
+        widget <- NULL
         
         if (exists(paste0(dim,'HcCustom'),envir = env$ce)) {
-            do.call(paste0(dim,'HcCustom'),list(env = env, dim = dim, pres = pres),envir = env$ce)
-        } else {
+            widget <- do.call(paste0(dim,'HcCustom'),list(env = env, dim = dim, pres = pres),envir = env$ce)
+        } 
+        
+        if (is.null(widget)) {
             
             prep <- env$hcPrep[[dim]]
             
@@ -893,6 +896,10 @@ renderHighchartDim <- function(env, dim, input,output) {
             env$hcPrep[[dim]] <- NULL
             
             prep$widget
+            
+        } else {
+          
+            widget
         }
         
     })

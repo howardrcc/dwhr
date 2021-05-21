@@ -243,7 +243,7 @@ getSelectedItems <- function(env,dim){
         s <- s[(s$level == level & s$parent == parent),]
     }
 
-    m <- NA
+    m <- matrix(NA,ncol = 2)
 
     if (nrow(s) > 0) {
         rows <- match(s$label,member)

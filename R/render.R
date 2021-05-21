@@ -75,8 +75,8 @@ renderDims <- function(env,input,output) {
                                 shiny::selectInput(
                                     inputId = paste0(gdim,'Pres'),
                                     label = NULL,
-                                    selectize = FALSE,
                                     choices = presVec,
+                                    selectize = FALSE,
                                     width = "150px",
                                     selected = dd$defPres))
                         }
@@ -120,7 +120,7 @@ renderDims <- function(env,input,output) {
                     
                     presList <- dd$presList
                     presType <- presList[[dd$pres]]$type
-                    
+                 
                     if (presType %in% c('selectInput','radioButton') || length(dd$name) == 0) {
                         name <- ''
                     } else {
