@@ -359,7 +359,6 @@ prepHc <- function(env, dim, pres, print = NULL) {
     presList <- dd$presList
     presType <- presList[[pres]]$type
 
-    mode <- dd$selectMode
     followPager <- isNull(dd$syncNav,FALSE) && isNull(dd$pageLength,FALSE)
 
     highChartsOpts <- expandList(env,presList[[pres]]$highChartsOpts)
@@ -446,14 +445,12 @@ prepHc <- function(env, dim, pres, print = NULL) {
 
     sel <- NULL
 
-    if (mode == 'single') {
-        if (isNull(dd$ignoreParent,FALSE)) {
-            sel <- selected$label[selected$level == level]
-        } else {
-            sel <- selected$label[selected$level == level & selected$parent == parent]
-        }
+    if (isNull(dd$ignoreParent,FALSE)) {
+      sel <- selected$label[selected$level == level]
+    } else {
+      sel <- selected$label[selected$level == level & selected$parent == parent]
     }
-
+    
     if (is.null(sel) || length(sel) == 0) {
         sel <- ''
     }

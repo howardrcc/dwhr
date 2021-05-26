@@ -243,7 +243,7 @@ getSelectedItems <- function(env,dim){
         s <- s[(s$level == level & s$parent == parent),]
     }
 
-    m <- matrix(NA,ncol = 2)
+    m <- matrix(ncol = 2, nrow = 0) 
 
     if (nrow(s) > 0) {
         rows <- match(s$label,member)
@@ -655,7 +655,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
         selection = list(mode = 'none')
     } else {
         
-        if (!is.na(si) && nrow(si) > 1) {
+        if (!is.null(si) && !is.na(si) && nrow(si) > 1) {
             selection = list(mode = 'multiple', target = 'cell', selected = si)
         } else {
             if(dd$selectMode == 'single') {
@@ -982,7 +982,7 @@ renderDataTableDim <- function(env,dim,input,output) {
         info <- input[[cellClicked]]
         dd <- env$dims[[dim]]
     
-        if(length(info) > 0) {
+        if(length(info) > 0 && length(info$row) > 0 && length(info$col) > 0) {
 
             level <- dd$level
             dd$rowLastAccessed$row[dd$rowLastAccessed$level == level] <- info$row
@@ -1046,8 +1046,11 @@ renderDataTableDim <- function(env,dim,input,output) {
     shiny::observeEvent(input[[cellsSelected]], {
 
         m <- input[[cellsSelected]]
+
         dd <- env$dims[[dim]]
-print('cells_selected')
+        
+        print('cells_selected')
+        
         if (dd$selectSource == 'init') {
             dd$selectSource <- ''
             return()
@@ -1072,6 +1075,7 @@ print('cells_selected')
             rows <- m[m[,2] == 0,1]
 
             if (length(rows) == 1) {
+       
                 if (env$dtPrep[[dim]]$tab[rows,1] != '+') {
                     # op lege kolom geklikt trigger een refresh
                     dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1

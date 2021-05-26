@@ -10,7 +10,7 @@ dwhrInit <- function() {
     shiny::addResourcePath('dwhRs',system.file('www', package = 'dwhr'))
     glob.env$dimUiIds <- c()
     shiny::tagList(
-        shinyjqui::includeJqueryUI(),
+        #shinyjqui::includeJqueryUI(),
         shinyjs::useShinyjs(),
         shinyjs::extendShinyjs(script = system.file('www/starExtend.js', package = 'dwhr')),
         
@@ -104,17 +104,20 @@ getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflow
 
 initGlob <- function() {
     
-    options(warnPartialMatchDollar = TRUE)
-    #options(datatable.auto.index = FALSE)
+    options(
+        warnPartialMatchDollar = TRUE,
+        warnPartialMatchArgs = TRUE,
+        warnPartialMatchAttr = TRUE
+    )
     
-    if (!exists('glob.env', envir = .GlobalEnv, inherit = FALSE)) {
+    if (!exists('glob.env', envir = .GlobalEnv, inherits = FALSE)) {
         
         glob.env <- new.env(parent = emptyenv())
         .GlobalEnv$glob.env <- glob.env
         
         isDefinedGlobal <- function(var,default) {
             
-            if (exists(var, envir = .GlobalEnv, inherit = FALSE)) {
+            if (exists(var, envir = .GlobalEnv, inherits = FALSE)) {
                 glob.env[[var]] <- .GlobalEnv[[var]]
             } else {
                 glob.env[[var]] <- default
@@ -258,7 +261,7 @@ authenticate <- function(session) {
             print('Closing ODBC connections')
             RODBC::odbcCloseAll()
 
-            if (exists('globalCache', env = glob.env)) {
+            if (exists('globalCache', envir = glob.env)) {
                 saveRDS(glob.env$globalCache, getCacheFile())
             }
 
