@@ -130,20 +130,20 @@ readyJS <- function(dim) {
 }
 
 
-getCustomPattern <- function(env,dim,stroke,width,print) {
-    # door base tag in shinyserver-pro werken relatieve urls binnen svg niet -> absolute url gebruiken
-    userData <- env$session$userData
-    
-    id <- paste0('custom-',dim,'-',gsub('#','',stroke),'-',width)
-    env$customPatterns[[dim]][[id]] <- list( id = id
-                                  , path = list( d = 'M 0 0 L 10 10 M 9 -1 L 11 1 M -1 9 L 1 11'
-                                               , stroke = stroke
-                                               , strokeWidth = width))
-    if (print) 
-        paste0('url(#',id,')')
-    else
-        paste0('url(',userData$baseUrl,'#',id,')')
-}
+# getCustomPattern <- function(env,dim,stroke,width,print) {
+#     # door base tag in shinyserver-pro werken relatieve urls binnen svg niet -> absolute url gebruiken
+#     userData <- env$session$userData
+#     
+#     id <- paste0('custom-',dim,'-',gsub('#','',stroke),'-',width)
+#     env$customPatterns[[dim]][[id]] <- list( id = id
+#                                   , path = list( d = 'M 0 0 L 10 10 M 9 -1 L 11 1 M -1 9 L 1 11'
+#                                                , stroke = stroke
+#                                                , strokeWidth = width))
+#     if (print) 
+#         paste0('url(#',id,')')
+#     else
+#         paste0('url(',userData$baseUrl,'#',id,')')
+# }
 
 
 getFormat <- function(format) {
@@ -227,36 +227,16 @@ makeHcWidget <- function(env,dim,prep){
 
     if (!is.null(prep$chartOpts)) {
         prep$chartOpts$hc = a
-        if (packageVersion("highcharter") >= '0.6') { 
-            prep$chartOpts$events$render <- readyJS(gdim)
-        } else {
-            prep$chartOpts$events$redraw <- readyJS(gdim)
-        }
+        prep$chartOpts$events$render <- readyJS(gdim)
         
         if (print) {
             prep$chartOpts$width = 800
-          #  prep$chartOpts$height = 200
         }
 
         a <- do.call(eval(parse(text = 'highcharter::hc_chart')), prep$chartOpts)
+        a <- highcharter::hc_add_dependency(hc = a,name = "modules/pattern-fill.js")
     }
     
-    patterns <- lapply(env$customPatterns[[dim]],function(x) {return (x)})
-    
-    if (length(patterns) > 0) {
-        
-        names(patterns) <- NULL  # het moet een unnamed list zijn
-        
-        defsOpts <- list(
-            hc = a,
-            patterns = patterns)
-        
-        a <- do.call(eval(parse(text = 'highcharter::hc_defs')), defsOpts)
-        
-        if (packageVersion("highcharter") >= '0.6') { 
-            a <- highcharter::hc_add_dependency(hc = a,name = "plugins/pattern-fill-v2.js")
-        }
-    }
     
     if (!is.null(prep$titleOpts)) {
         prep$titleOpts$hc <- a
@@ -290,6 +270,9 @@ makeHcWidget <- function(env,dim,prep){
     
     if (!is.null(prep$plotOptionsOpts)) {
         prep$plotOptionsOpts$hc <- a
+        if (is.null(prep$plotOptionsOpts$series$states$inactive)) {
+          prep$plotOptionsOpts$series$states$inactive$opacity <- 1.0
+        }
         a <- do.call(eval(parse(text = 'highcharter::hc_plotOptions')), prep$plotOptionsOpts)
     }
     
@@ -523,9 +506,29 @@ prepHc <- function(env, dim, pres, print = NULL) {
             seriesList <- seriesOpts[[serieNum]]
             
             if (!is.null(seriesList[['color']])) {
-                if (length(pattern) > 0 && pattern == 'stripe1') {
-                    seriesList[['color']] <- getCustomPattern(env,dim,seriesList[['color']],2,print)
-                }
+              if (length(pattern) > 0 && class(pattern) == 'character' && pattern == 'stripe1') {
+                seriesList[['color']] <- list(
+                  pattern = list(
+                    path = list(
+                      d = 'M 0 0 L 10 10 M 9 -1 L 11 1 M -1 9 L 1 11',
+                      strokeWidth = 2),
+                    width = 10,
+                    height = 10,
+                    opacity = 1,
+                    color = seriesList[['color']]))
+              }
+              if (length(pattern) > 0 && class(pattern) == 'character' && pattern == 'stripe2') {
+                seriesList[['color']] <- list(
+                  pattern = list(
+                    path = list(
+                      d = 'M 0 0 L 10 10 M 9 -1 L 11 1 M -1 9 L 1 11',
+                      strokeWidth = 2),
+                    width = 10,
+                    height = 10,
+                    opacity = 1,
+                    patternTransform = "rotate(90)",
+                    color = seriesList[['color']]))
+              }
             }
             
             cc <- paste0('level',dd$level,'Label')

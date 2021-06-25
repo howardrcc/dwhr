@@ -73,7 +73,6 @@ new.star <- function(starId, session, facts, caching = FALSE, mtimeData = NULL, 
     # vars for highcharts renderer
 
     env$hcRenderers <- list()
-    env$customPatterns <- list()
     env$hcPrev <- list()
     env$hcPrep <- list()
     
