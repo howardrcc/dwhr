@@ -1,3 +1,10 @@
+
+dwhr 1.6.0
+==========
+
+Diverse aanpassingen voor upgrade naar de meest recente versies van highcharter, DT en shinyjqui.  Alleen shinyjs moet nog met een oudere versie 1.0 geinstalleerd zijn.
+
+
 dwhr 1.5.0
 ==========
 
