@@ -527,7 +527,7 @@ startObserversPres <- function(env,dim,pres) {
             
             shiny::observeEvent(inp[[dimPres]],{
 
-                if (!(dim %in% visibleDims(env)) || dd$pres == inp[[dimPres]]) {  
+                if (!(dim %in% visibleDims(env)) || dd$pres == inp[[dimPres]] || inp[[dimPres]] == '') {  
                     return()
                 }
                
@@ -543,7 +543,7 @@ startObserversPres <- function(env,dim,pres) {
                     env$hcRenderers[[dim]]$count <- env$hcRenderers[[dim]]$count + 1
                 }
                 if (presType == 'dataTable' ) {
-                    env$dtRenderers[[dim]]$count <- env$dtRenderers[[dim]]$count + 1
+                    processDataTable(env,dim,dd$pres)
                 }
                 
             })

@@ -73,7 +73,6 @@ new.star <- function(starId, session, facts, caching = FALSE, mtimeData = NULL, 
     # vars for highcharts renderer
 
     env$hcRenderers <- list()
-    env$customPatterns <- list()
     env$hcPrev <- list()
     env$hcPrep <- list()
     
@@ -1384,6 +1383,10 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
     navOpts$links <- isNull(navOpts$links,list())
     navOpts$minBreadCrumbLevel <- isNull(navOpts$minBreadCrumbLevel,0)
     navOpts$noDrill <- isNull(navOpts$noDrill,FALSE)
+    if (!is.null(dataTableOpts))
+        navOpts$hideFooter <- isNull(navOpts$hideFooter,FALSE) 
+    else 
+        navOpts$hideFooter <- isNull(navOpts$hideFooter,TRUE) 
     
     assert_is_a_bool(navOpts$syncNav)
     assert_is_a_bool(navOpts$hideNoFilter)
@@ -1392,6 +1395,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
     assert_is_list(navOpts$links)
     assert_is_a_number(navOpts$minBreadCrumbLevel)
     assert_is_a_bool(navOpts$noDrill)
+    assert_is_a_bool(navOpts$hideFooter)
     
     if (!navOpts$syncNav && dim == uiId) {
         navOpts$syncNav <- TRUE
@@ -1591,11 +1595,6 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
             }
             
             is.null(dd$syncNav) || dd$syncNav == navOpts$syncNav || stop(paste0(dim, ': Incompatible syncNav'))
-            
-            if (!is.null(highChartsOpts) && isNull(varArgs$selectMode,dd$selectMode) %in% c('multi')) {
-                #warning('multi-select not implemented for highCharts: dimView set to single-select')
-                call$selectMode <- 'single' 
-            } 
             
             if (!is.null(rangeOpts)) {
                 call$initLevel <- max(dd$useLevels)

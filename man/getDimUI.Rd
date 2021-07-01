@@ -12,8 +12,6 @@ getDimUI(
   overflowX = "hidden",
   accordion = FALSE,
   checkDups = TRUE,
-  resize = FALSE,
-  resizeOptions = list(),
   bodyStyle = NULL
 )
 }

@@ -56,7 +56,7 @@ domains <- list(
     fontWeight = c('bold','normal'),
     highChartsOpts = c('type', 'rangeSelector','chart','tooltip','xAxis', 'yAxis', 'legend', 'series', 'plotOptions', 'title','dashboard','pane','navigator','exporting'),
     simpleOpts = c('inline'),
-    navOpts = c('syncNav', 'hideNoFilter', 'hideAll', 'hideBreadCrumb', 'links','selLinks','minBreadCrumbLevel','noDrill','fixDom','noWait','scrollY'),
+    navOpts = c('syncNav', 'hideNoFilter', 'hideAll', 'hideBreadCrumb', 'links','selLinks','minBreadCrumbLevel','noDrill','fixDom','noWait','scrollY','hideFooter'),
     navOptsLinkTypes = c('actionLink','downloadLink','downloadButton','dropDown','dim','uiOutput'),
     orderBy = c('key','name'),
     cssOverflow = c('hidden','visible','scroll','auto'),
@@ -788,11 +788,7 @@ getColors <- function(dt,pal,trans,domain = NULL,labels = NULL) {
                 colors <- rev(colors)
             
         } else {
-            if (!is.null(domain) && !is.null(labels)) {
-                colors <- scales::col_factor(pal, domain = domain)(labels)  
-            } else {
-                colors <- rep(unlist(pal),length.out = length(dt))
-            }
+            colors <- rep(unlist(pal),length.out = length(dt))
         }
         
     }

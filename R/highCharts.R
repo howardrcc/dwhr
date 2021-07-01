@@ -130,20 +130,20 @@ readyJS <- function(dim) {
 }
 
 
-getCustomPattern <- function(env,dim,stroke,width,print) {
-    # door base tag in shinyserver-pro werken relatieve urls binnen svg niet -> absolute url gebruiken
-    userData <- env$session$userData
-    
-    id <- paste0('custom-',dim,'-',gsub('#','',stroke),'-',width)
-    env$customPatterns[[dim]][[id]] <- list( id = id
-                                  , path = list( d = 'M 0 0 L 10 10 M 9 -1 L 11 1 M -1 9 L 1 11'
-                                               , stroke = stroke
-                                               , strokeWidth = width))
-    if (print) 
-        paste0('url(#',id,')')
-    else
-        paste0('url(',userData$baseUrl,'#',id,')')
-}
+# getCustomPattern <- function(env,dim,stroke,width,print) {
+#     # door base tag in shinyserver-pro werken relatieve urls binnen svg niet -> absolute url gebruiken
+#     userData <- env$session$userData
+#     
+#     id <- paste0('custom-',dim,'-',gsub('#','',stroke),'-',width)
+#     env$customPatterns[[dim]][[id]] <- list( id = id
+#                                   , path = list( d = 'M 0 0 L 10 10 M 9 -1 L 11 1 M -1 9 L 1 11'
+#                                                , stroke = stroke
+#                                                , strokeWidth = width))
+#     if (print) 
+#         paste0('url(#',id,')')
+#     else
+#         paste0('url(',userData$baseUrl,'#',id,')')
+# }
 
 
 getFormat <- function(format) {
@@ -227,36 +227,16 @@ makeHcWidget <- function(env,dim,prep){
 
     if (!is.null(prep$chartOpts)) {
         prep$chartOpts$hc = a
-        if (packageVersion("highcharter") >= '0.6') { 
-            prep$chartOpts$events$render <- readyJS(gdim)
-        } else {
-            prep$chartOpts$events$redraw <- readyJS(gdim)
-        }
+        prep$chartOpts$events$render <- readyJS(gdim)
         
         if (print) {
             prep$chartOpts$width = 800
-          #  prep$chartOpts$height = 200
         }
 
         a <- do.call(eval(parse(text = 'highcharter::hc_chart')), prep$chartOpts)
+        a <- highcharter::hc_add_dependency(hc = a,name = "modules/pattern-fill.js")
     }
     
-    patterns <- lapply(env$customPatterns[[dim]],function(x) {return (x)})
-    
-    if (length(patterns) > 0) {
-        
-        names(patterns) <- NULL  # het moet een unnamed list zijn
-        
-        defsOpts <- list(
-            hc = a,
-            patterns = patterns)
-        
-        a <- do.call(eval(parse(text = 'highcharter::hc_defs')), defsOpts)
-        
-        if (packageVersion("highcharter") >= '0.6') { 
-            a <- highcharter::hc_add_dependency(hc = a,name = "plugins/pattern-fill-v2.js")
-        }
-    }
     
     if (!is.null(prep$titleOpts)) {
         prep$titleOpts$hc <- a
@@ -290,6 +270,9 @@ makeHcWidget <- function(env,dim,prep){
     
     if (!is.null(prep$plotOptionsOpts)) {
         prep$plotOptionsOpts$hc <- a
+        if (is.null(prep$plotOptionsOpts$series$states$inactive)) {
+          prep$plotOptionsOpts$series$states$inactive$opacity <- 1.0
+        }
         a <- do.call(eval(parse(text = 'highcharter::hc_plotOptions')), prep$plotOptionsOpts)
     }
     
@@ -359,7 +342,6 @@ prepHc <- function(env, dim, pres, print = NULL) {
     presList <- dd$presList
     presType <- presList[[pres]]$type
 
-    mode <- dd$selectMode
     followPager <- isNull(dd$syncNav,FALSE) && isNull(dd$pageLength,FALSE)
 
     highChartsOpts <- expandList(env,presList[[pres]]$highChartsOpts)
@@ -446,14 +428,12 @@ prepHc <- function(env, dim, pres, print = NULL) {
 
     sel <- NULL
 
-    if (mode == 'single') {
-        if (isNull(dd$ignoreParent,FALSE)) {
-            sel <- selected$label[selected$level == level]
-        } else {
-            sel <- selected$label[selected$level == level & selected$parent == parent]
-        }
+    if (isNull(dd$ignoreParent,FALSE)) {
+      sel <- selected$label[selected$level == level]
+    } else {
+      sel <- selected$label[selected$level == level & selected$parent == parent]
     }
-
+    
     if (is.null(sel) || length(sel) == 0) {
         sel <- ''
     }
@@ -526,9 +506,29 @@ prepHc <- function(env, dim, pres, print = NULL) {
             seriesList <- seriesOpts[[serieNum]]
             
             if (!is.null(seriesList[['color']])) {
-                if (length(pattern) > 0 && pattern == 'stripe1') {
-                    seriesList[['color']] <- getCustomPattern(env,dim,seriesList[['color']],2,print)
-                }
+              if (length(pattern) > 0 && class(pattern) == 'character' && pattern == 'stripe1') {
+                seriesList[['color']] <- list(
+                  pattern = list(
+                    path = list(
+                      d = 'M 0 0 L 10 10 M 9 -1 L 11 1 M -1 9 L 1 11',
+                      strokeWidth = 2),
+                    width = 10,
+                    height = 10,
+                    opacity = 1,
+                    color = seriesList[['color']]))
+              }
+              if (length(pattern) > 0 && class(pattern) == 'character' && pattern == 'stripe2') {
+                seriesList[['color']] <- list(
+                  pattern = list(
+                    path = list(
+                      d = 'M 0 0 L 10 10 M 9 -1 L 11 1 M -1 9 L 1 11',
+                      strokeWidth = 2),
+                    width = 10,
+                    height = 10,
+                    opacity = 1,
+                    patternTransform = "rotate(90)",
+                    color = seriesList[['color']]))
+              }
             }
             
             cc <- paste0('level',dd$level,'Label')
@@ -877,10 +877,13 @@ renderHighchartDim <- function(env, dim, input,output) {
         }
         
         pres <- dd$pres
+        widget <- NULL
         
         if (exists(paste0(dim,'HcCustom'),envir = env$ce)) {
-            do.call(paste0(dim,'HcCustom'),list(env = env, dim = dim, pres = pres),envir = env$ce)
-        } else {
+            widget <- do.call(paste0(dim,'HcCustom'),list(env = env, dim = dim, pres = pres),envir = env$ce)
+        } 
+        
+        if (is.null(widget)) {
             
             prep <- env$hcPrep[[dim]]
             
@@ -893,6 +896,10 @@ renderHighchartDim <- function(env, dim, input,output) {
             env$hcPrep[[dim]] <- NULL
             
             prep$widget
+            
+        } else {
+          
+            widget
         }
         
     })

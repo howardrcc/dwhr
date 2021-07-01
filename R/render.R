@@ -75,8 +75,8 @@ renderDims <- function(env,input,output) {
                                 shiny::selectInput(
                                     inputId = paste0(gdim,'Pres'),
                                     label = NULL,
-                                    selectize = FALSE,
                                     choices = presVec,
+                                    selectize = FALSE,
                                     width = "150px",
                                     selected = dd$defPres))
                         }
@@ -120,7 +120,7 @@ renderDims <- function(env,input,output) {
                     
                     presList <- dd$presList
                     presType <- presList[[dd$pres]]$type
-                    
+                 
                     if (presType %in% c('selectInput','radioButton') || length(dd$name) == 0) {
                         name <- ''
                     } else {
@@ -432,8 +432,9 @@ renderDims <- function(env,input,output) {
                     presList <- dd$presList
                     presType <- presList[[dd$pres]]$type
                     noWait <- isNull(presList[[dd$pres]]$navOpts$noWait,FALSE)
+                    hideFooter <- isNull(presList[[dd$pres]]$navOpts$hideFooter,FALSE)
 
-                    if (dd$selectMode == 'multi' && presType == 'dataTable') {
+                    if (dd$selectMode == 'multi' && presType %in% c('dataTable','highCharts') && !hideFooter) {
 
                         txt <- '<table><tr><td>'
 
