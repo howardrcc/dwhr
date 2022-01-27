@@ -42,7 +42,7 @@ isAuthenticated <- function(session) {
 
 
 domains <- list(
-    aggregateFun = c('sum','dcount','median','mean','min','max','custom'),
+    aggregateFun = c('sum','dcount','count','median','mean','min','max','custom'),
     format = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3'),
     ordering = c('HL','LH','asc','desc'),
     presType = c('dataTable','highCharts','radioButton','selectInput','dateRangeInput','rangeSliderInput'),
@@ -354,7 +354,11 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
                 if(fun == 'dcount') {
                     measFun <- paste0(measFun,"length(unique(na.omit(",factColumn,")))")
                 }
-
+                
+                if (fun == 'count') {
+                    measFun <- paste0(measFun,"length(",factColumn,")")
+                }
+                
                 if (fun == 'sum') {
                     measFun <- paste0(measFun,"sum(",factColumn,",",narm,")")
                 }

@@ -218,6 +218,8 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
                             decimal3 = formatC(digits = 3, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
                             standard = as.character(df[[vc]]))
                     }
+                } else {
+                  df[,paste0(vc,'_fc')] <- as.character(df[[vc]]) 
                 }
             }
         }
@@ -754,6 +756,8 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     # set presented column names
 
+    tab$zoom <- paste0('<div class="dt-zoom">',tab$zoom,'</div>')
+    
     names(tab) = c('  ',dd$itemName,'memberKey',measColNames,'subsel')
     container = htmltools::withTags(table(DT::tableHeader(tab),ft))
 
@@ -921,6 +925,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     #     tab[,2] <- paste0('<span class = "underline-on-hover">',tab[,2],'</span>')
     # }
     # 
+    
    
     ret <- list(
         tab = tab,
@@ -1047,6 +1052,10 @@ renderDataTableDim <- function(env,dim,input,output) {
 
         m <- input[[cellsSelected]]
 
+        # if (all(is.na(m))) {
+        #   return()
+        # }
+        
         dd <- env$dims[[dim]]
         
         print('cells_selected')
