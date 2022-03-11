@@ -218,8 +218,6 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
                             decimal3 = formatC(digits = 3, format = 'f', df[[vc]], big.mark='.',decimal.mark = ','),
                             standard = as.character(df[[vc]]))
                     }
-                } else {
-                  df[,paste0(vc,'_fc')] <- as.character(df[[vc]]) 
                 }
             }
         }
@@ -756,8 +754,6 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     # set presented column names
 
-    tab$zoom <- paste0('<div class="dt-zoom">',tab$zoom,'</div>')
-    
     names(tab) = c('  ',dd$itemName,'memberKey',measColNames,'subsel')
     container = htmltools::withTags(table(DT::tableHeader(tab),ft))
 
@@ -1049,12 +1045,12 @@ renderDataTableDim <- function(env,dim,input,output) {
     cellsSelected = paste0(gdim,'Dim_cells_selected')
 
     shiny::observeEvent(input[[cellsSelected]], {
-
+   
         m <- input[[cellsSelected]]
 
-        # if (all(is.na(m))) {
-        #   return()
-        # }
+        if (all(is.na(m)) && nrow(m) > 0) {
+          return()
+        }
         
         dd <- env$dims[[dim]]
         
@@ -1084,7 +1080,7 @@ renderDataTableDim <- function(env,dim,input,output) {
             rows <- m[m[,2] == 0,1]
 
             if (length(rows) == 1) {
-       
+   
                 if (env$dtPrep[[dim]]$tab[rows,1] != '+') {
                     # op lege kolom geklikt trigger een refresh
                     dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
