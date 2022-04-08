@@ -52,7 +52,7 @@ domains <- list(
     dataTableMeasures = c('colorBarColor1','colorBarColor2','viewColumn','format', 'orderable',
                           'bgStyle','fgStyle','width','fontWeight','align','cursor','visible','print','tooltip','sparkOpts'),
     dataTableStyle = c('cuts','levels','values','valueColumn'),
-    dataTableFormats = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3','hidden','paperclip','sparkline'),
+    dataTableFormats = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3','hidden','paperclip','cog','wrench','sparkline'),
     fontWeight = c('bold','normal'),
     highChartsOpts = c('type', 'rangeSelector','chart','tooltip','xAxis', 'yAxis', 'legend', 'series', 'plotOptions', 'title','dashboard','pane','navigator','exporting'),
     simpleOpts = c('inline'),
