@@ -438,7 +438,8 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
                                   eval(expr = parse(text = measFun)),
                                   by = eval(expr = parse(text = byText))]
                 }
-                
+                names(footer) <- c('member',measCols)
+                footer$member <- as.character(footer$member)
             }
         }
 
@@ -486,19 +487,6 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
 
             environment(e[[fun]]) <- e  # set the parent env for userFunc
                 
-            if(lvl %in% dd$footerLevels) {
-                e$type <- 'footer'
-                e$df <- footer
-                ftr <- do.call(what = fun, args = list(),  envir = e)
-                if (is.vector(ftr) && length(ftr) == 1) {
-                    footer[[vc]] <- ftr
-                } else {
-                    warning(paste0('userFunc: ', fun, ' has invalid footer length'))
-                    footer[[vc]] <- 0
-                }
-                e$footer <- footer
-            }
-            
             e$type <- 'body'
             e$df <- body
             
@@ -508,6 +496,20 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
             } else {
                 warning(paste0('userFunc: ', fun, ' has invalid body length'))
                 body[[vc]] <- 0
+            }
+            
+            if(lvl %in% dd$footerLevels) {
+              e$type <- 'footer'
+              e$df <- footer
+              e$body <- body
+              ftr <- do.call(what = fun, args = list(),  envir = e)
+              if (is.vector(ftr) && length(ftr) == 1) {
+                footer[[vc]] <- ftr
+              } else {
+                warning(paste0('userFunc: ', fun, ' has invalid footer length'))
+                footer[[vc]] <- 0
+              }
+              e$footer <- footer
             }
         }
         
@@ -766,14 +768,14 @@ getColors <- function(dt,pal,trans,domain = NULL,labels = NULL) {
         
         if (length(pal) == 1 && pal %in% rownames(palInfo)) {
             
-            if (!is.null(domain) && !is.null(labels) && pal %in% rownames(palInfo[palInfo$category != 'seq',])) {
+            if (!is.null(domain) && !is.null(labels) && pal %in% rownames(palInfo[!palInfo$category %in% c('seq','div'),])) {
                 
                 colors <- scales::col_factor(pal, domain = domain)(labels)
                 reverse <- FALSE
                 
             } else {
                 
-                if (pal %in% rownames(palInfo[palInfo$category == 'seq',])) {
+                if (pal %in% rownames(palInfo[!palInfo$category %in% c('seq','div'),])) {
                     
                     if(!is.null(trans) && trans == 'log2') {
                         dt[dt <= 0] <- NA
