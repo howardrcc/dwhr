@@ -406,7 +406,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
             
         } else {
             
-            if (ignoreParent) {
+            if (ignoreParent || lvl == 1) {
                 parentFilter <- '1 == 1'
             } else {
                 parentFilter <- paste0('level', lvl - 1, 'Label == parent')
