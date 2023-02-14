@@ -1,4 +1,10 @@
 
+dwhr 1.6.1
+==========
+
+Een aantal kleine aanpassingen count measure functie,footer, cog, wrench, popover en level1 of parentfilter.
+
+
 dwhr 1.6.0
 ==========
 
