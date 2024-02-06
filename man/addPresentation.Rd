@@ -27,7 +27,7 @@ addPresentation(
 
 \item{dim}{string, dimView id gecreeerd met \code{\link{addDimView}}.}
 
-\item{uiId}{string, id in de UI dat gebruikt wordt om deze presentatie in af te beelden. Als leeg geld: uiId = dim. Bij meerdere presentaties
+\item{uiId}{string, id in de UI dat gebruikt wordt om deze presentatie in af te beelden. Als leeg geldt: uiId = dim. Bij meerdere presentaties
 bij 1 uiId kan de presentatie gekozen worden via een dropdown lijst. Door een aparte uiId te gebruiken die afwijkt van dim kan dezelfde data via 2 presentaties tegelijkertijd
 getoond worden op het scherm. Hoe de navigatie in dat geval moet verlopen kan via de parameter navOpts geregeld worden. Het uiId moet voorkomen in UI.R}
 
