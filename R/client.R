@@ -12,7 +12,26 @@ dwhrInit <- function() {
     shiny::tagList(
         #shinyjqui::includeJqueryUI(),
         shinyjs::useShinyjs(),
-        shinyjs::extendShinyjs(script = system.file('www/starExtend.js', package = 'dwhr')),
+        shinyjs::extendShinyjs(
+            script = 'dwhRs/starExtend.js',
+            functions = c('dumpToConsole',
+                          'updateTitle',
+                          'updateSeriesData',
+                          'updateSeriesOpts',
+                          'updateXAxis',
+                          'updateYAxis',
+                          'updateXPlotBands',
+                          'redraw',
+                          'blockUI',
+                          'tooltip',
+                          'popover',
+                          'hideDim',
+                          'showDim',
+                          'searchDT',
+                          'updateDT',
+                          'init',
+                          'hcSetHeight'))
+        ,
         
         # Loading message
 
@@ -261,7 +280,7 @@ authenticate <- function(session) {
             print('Closing ODBC connections')
             RODBC::odbcCloseAll()
 
-            if (exists('globalCache', envir = glob.env)) {
+            if (length(glob.env$globalCache) > 0) {
                 saveRDS(glob.env$globalCache, getCacheFile())
             }
 

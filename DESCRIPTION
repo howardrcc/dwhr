@@ -1,7 +1,7 @@
 Package: dwhr
 Type: Package
 Title: dashboard library for datawarehouse data
-Version: 1.6.1
+Version: 1.6.2
 Author: Pieter Timmerman
 Maintainer: Pieter Timmerman <pieter.timmerman@radboudumc.nl>
 Description: dashboard library for datawarehouse data
@@ -10,9 +10,8 @@ Encoding: UTF-8
 LazyData: true
 Imports:
     shiny (>= 1.0.4),
-    shinyjs (== 1.0),
+    shinyjs (>= 2.0),
     shinyjqui (>= 0.3.2),
-    V8 (>= 1.1),
     data.table (>= 1.10.4-3),
     digest (>= 0.6.13),
     RODBC (>= 1.3-13),
