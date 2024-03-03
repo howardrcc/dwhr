@@ -231,22 +231,27 @@ initGlob <- function() {
 #' zijn in de data directory van de shiny app.
 #' 
 #' @param omg string, naam van te benaderen omgeving.
+#' @param db string, database naam, default R.
 #' 
 #' @return database-handle 
 #' @export
-getDbHandle <- function(omg) {
+getDbHandle <- function(omg,db = 'R') {
     
     assert_is_a_string(omg)
+    assert_is_a_string(db)
+    
+    if (!exists('glob.env')) 
+        stop('glob.env does not exist. Run dwhrInit()?')
     
     if (is.null(glob.env$dbCred))
-        return()
+        stop('No credentials')
     
     omg %in% names(glob.env$dbCred) || stop(paste0('No credentials for omg:', omg))
     
     if (is.null(glob.env$dbCred[[omg]]$handle)) {
         
         dbCred <- glob.env$dbCred
-        glob.env$dbCred[[omg]]$handle <- RODBC::odbcDriverConnect(paste0("DSN=",dbCred[[omg]]$dsn,";DATABASE=R;UID=",dbCred[[omg]]$user,";PWD=",dbCred[[omg]]$pwd))
+        glob.env$dbCred[[omg]]$handle <- RODBC::odbcDriverConnect(paste0("DSN=",dbCred[[omg]]$dsn,";DATABASE=",db,";UID=",dbCred[[omg]]$user,";PWD=",dbCred[[omg]]$pwd))
         
     }
     

@@ -317,7 +317,14 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
         }
         
         if(cnt1 != 0 && cnt2 == 0 && !(adhoc)) {
-    
+   
+            if (parent == dd$rootLabel && lvl == 1) {
+                # Er gaat iets serieus mis. Ook als we al op het hoogste nivo zitten voor deze dimensie is er,
+                # gegeven de andere filters op andere dimensie, geen fact data.
+
+                stop('parent not found, check foreignkeys')
+            }
+
             parent = dd$rootLabel
             lvl = 1
 
@@ -325,7 +332,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
             dd$level <- lvl
             dd$parent <- parent
             dd$ancestors <- c('',parent)
-            dd$reactive$levelChange <- dd$reactive$levelChange + 1
+            #dd$reactive$levelChange <- dd$reactive$levelChange + 1
 
             printDebug(env = env, dim, eventIn = 'getMembers', eventOut = 'levelChange', info = 'parent not found')
 

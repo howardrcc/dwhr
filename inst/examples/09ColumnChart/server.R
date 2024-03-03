@@ -2,7 +2,7 @@ library(shiny)
 library(magrittr)
 library(dwhr)
 
-dwhr::setDebug(TRUE)
+dwhr::setDebug(FALSE)
 
 # laden data
 

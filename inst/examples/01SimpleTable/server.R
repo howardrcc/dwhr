@@ -28,8 +28,8 @@ function(input, output, session) {
             name = 'Periode',                       # getoonde titel van dimensie
             data = per,                             # dimensie data.frame
             levelNames = c('Alle perioden', 'Jaar', 'Maand'),  # getoonde namen van nivo's
-            initLevel = 2,
-            initParent = '2017',
+            initLevel = 2,                          # initieel getoonde level
+            initParent = '2017',                    # met als parent 2017
             useLevels = c(0,1,2)) %>%
         addMeasure(
             dim = 'per',
@@ -39,7 +39,7 @@ function(input, output, session) {
             as = c('som','distinct','mediaan'),        # te tonen kolomnaam voor de measure
             format = c('decimal2','decimal2','euro2'), # te tonen format van de measure
             sort = c(30,20,10),
-            levels = c(0,2)
+            levels = c(0,2)                            # toon de measures alleen op deze levels
             ) %>%
         addPresentation(
             dim = 'per' ,

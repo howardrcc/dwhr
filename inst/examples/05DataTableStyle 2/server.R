@@ -62,7 +62,7 @@ function(input, output, session) {
                     list(viewColumn = 'xyz',
                          colorBarColor1 = '#e5c0cb'),
                     list(viewColumn = 'abc',
-                         format = 'hidden',
+           #              format = 'hidden',
                          bgStyle = list(
                              cuts = c(0),
                              values = c('pink','lightseagreen'),

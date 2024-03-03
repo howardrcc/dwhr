@@ -4,10 +4,12 @@
 \alias{getDbHandle}
 \title{get database-handle voor omgeving}
 \usage{
-getDbHandle(omg)
+getDbHandle(omg, db = "R")
 }
 \arguments{
 \item{omg}{string, naam van te benaderen omgeving.}
+
+\item{db}{string, database naam, default R.}
 }
 \value{
 database-handle

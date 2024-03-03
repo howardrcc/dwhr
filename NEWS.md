@@ -1,9 +1,19 @@
 
+dwhr 1.6.2
+==========
+
+* Documentatie uitgebreid en verbeterd.
+* foreignkeyCheck wordt nu altijd uitgevoerd per dimensie. Als deze optie op FALSE staat resulteert een foreign 
+  key constraint fout alleen tot een warning. Anders wordt dashb afgesloten.
+* In getMembers mogelijkheid tot recursieve aanroep sterk ingeperk. Bij data met foreignkey problemen kan dit anders leiden tot
+  stack overflows.
+* addMeasure, addMeasureDerrived etc, kunnen nu voor meerdere dimensies in 1 keer worden uitgevoerd. Dit voorkomt het meerdere keren herhalen
+  van measure lists etc als dit voor alle dimensies toch hetzelfde is.
+
 dwhr 1.6.1
 ==========
 
 Een aantal kleine aanpassingen count measure functie,footer, cog, wrench, popover en level1 of parentfilter.
-
 
 dwhr 1.6.0
 ==========
