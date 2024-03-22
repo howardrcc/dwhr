@@ -687,6 +687,8 @@ addDimView <- function(
     l$state <- state
     l$ignoreParent <- ignoreParent
     l$headerSize <- headerSize
+    l$childDims <- c()
+    l$parentDim <- c()
     
     l$factsFilteredDim <- shiny::reactive({
         
@@ -925,7 +927,7 @@ addMeasure <- function(env, dim, factColumn, fun, as = factColumn, viewColumn = 
         formatColumn <- .setFormatColumn(dd,as,formatColumn)
         formatRef <- isNull(formatColumn,NA)
         
-        length(dd$presList) + length(dd$childDims) == 0 || stop(paste0(ddim, ': Dimension already has presentation'))
+        length(dd$presList) + length(dd$childDims) == 0 || stop(paste0(ddim, ': dimension already has presentations'))
         
         dd$measureCalls[[length(dd$measureCalls) + 1]] <- match.call()
 
@@ -1042,7 +1044,7 @@ addMeasureDerrived <- function(env, dim, userFunc, as, viewColumn = NULL, sort =
         formatColumn <- .setFormatColumn(dd,as,formatColumn)
         formatRef <- isNull(formatColumn,NA)
         
-        length(dd$presList) + length(dd$childDims) == 0 || stop(paste0(ddim, ': Dimension already has presentation'))
+        length(dd$presList) + length(dd$childDims) == 0 || stop(paste0(ddim, ': dimension already has presentations'))
         
         dd$derrivedMeasureCalls[[length(dd$derrivedMeasureCalls) + 1]] <- match.call()
         
@@ -1389,9 +1391,6 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
     length(dim) > 1 && !identical(dim,uiId) && stop('Use of uiId not possible when dim is a vector')
     length(varArgs) == 0 || !identical(dim,uiId) || stop(paste0(dim, ': dim parameters in ... only valid for dim != uiId'))
 
-    assert_is_numeric(isNull(varArgs$useLevels,0))
-    useLevels <- as.integer(varArgs$useLevels)
-
     for (ddim in dim) {
 
         navOptsLocal <- navOpts
@@ -1411,7 +1410,6 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
         gdim <- getGlobalId(env$id,uiIdLocal)
         
         !checkUiId || gdim %in% glob.env$dimUiIds || stop(paste0(ddim, ': uiId not in UI'))
-        length(useLevels) == 0 || !isNull(dd$ignoreParent,FALSE) || stop(paste0(ddim, ': useLevels not valid for ignoreParent dims'))
         
         assert_is_subset(type,domains[['presType']])
         
@@ -1443,14 +1441,6 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
         assert_is_a_number(navOptsLocal$minBreadCrumbLevel)
         assert_is_a_bool(navOptsLocal$noDrill)
         assert_is_a_bool(navOptsLocal$hideFooter)
-        
-        if (!navOptsLocal$syncNav && ddim == uiIdLocal) {
-            navOptsLocal$syncNav <- TRUE
-        } 
-        
-        if (length(useLevels) != 0) {
-            navOptsLocal$syncNav <- FALSE
-        }
         
         if (is.null(simpleOptsLocal)  + is.null(dataTableOptsLocal) + is.null(highChartsOptsLocal) + is.null(rangeOptsLocal) != 3) {
             stop(paste0(ddim, ': Invalid options'))
@@ -1621,15 +1611,20 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
 
             if (!uiIdLocal %in% names(env$dims)) {
                 
-                call <- dd$call
+                assert_is_numeric(isNull(varArgs$useLevels,0))
+                useLevels <- as.integer(varArgs$useLevels)
 
+                !is.null(dd$parentDim) && stop(paste0(ddim, ': is itself already a child presentation of ', dd$parentDim, '. Use this dimension as a base for addPresentation'))
+                length(useLevels) == 0 || !isNull(dd$ignoreParent,FALSE) || stop(paste0(ddim, ': useLevels not valid for ignoreParent dims'))
+
+                call <- dd$call
                 call$dim <- uiIdLocal
                 call$ignoreDims <- c(eval(call$ignoreDims),ddim,dd$childDims)
                 call$env <- env
                 
-                if (length(useLevels) != 0) {
+                if (length(useLevels) != 0 && !identical(dd$useLevels,useLevels)) {
                     navOptsLocal$syncNav <- FALSE
-                    max(dd$useLevels) == max(useLevels) || stop(paste0(ddim, ': invalid useLevels parameter'))
+                    max(dd$useLevels) == max(useLevels) || stop(paste0(ddim, ': invalid useLevels parameter. Presentations must have maximum level (most detail) in common'))
                     call$useLevels <- useLevels
                     
                     if (any(dd$selected$level > 0)) {
@@ -1640,8 +1635,6 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
                 for (nm in names(varArgs)) {
                     call[[nm]] <- varArgs[[nm]]
                 }
-                
-                is.null(dd$syncNav) || dd$syncNav == navOptsLocal$syncNav || stop(paste0(ddim, ': Incompatible syncNav'))
                 
                 if (!is.null(rangeOptsLocal)) {
                     call$initLevel <- max(dd$useLevels)
@@ -1680,7 +1673,6 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
                 dd$childDims <-  c(dd$childDims,uiIdLocal)
                 dd$ignoreDims <- c(dd$ignoreDims,uiIdLocal)
                 
-                dd$syncNav <- navOptsLocal$syncNav
                 env$dims[[uiIdLocal]]$syncNav <- navOptsLocal$syncNav
                 
                 if (navOptsLocal$syncNav) {
@@ -1703,6 +1695,8 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
             ddim <- uiIdLocal
             dd <- env$dims[[ddim]]
             
+        } else {
+            dd$syncNav <- navOptsLocal$syncNav
         }
         
         # rangeOpts checks
@@ -1808,13 +1802,20 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
 #' @export
 #'
 changeFormatMeasure <- function(env, dim, viewColumn, format) {
+
+    class(env) == 'star' || stop('env is not of class star')
     dd <- env$dims[[dim]]
+    class(dd) == 'dimView' || stop(paste0(dim, ': dim is not of class dimView'))
     domainCheck(format,'format')
+
     ml <- dd$measList
+
+    all(viewColumn %in% ml$viewColumn) || stop(paste0(setdiff(viewColumn,ml$viewColumn)[1], ': column not present in measure list'))
+
     ml$format[ml$viewColumn %in% viewColumn] <- format
     dd$measList <- ml
 
-    if (isNull(dd$syncNav,FALSE) && (as.character(sys.call(-3)) != 'changeFormatMeasure')) {
+    if (as.character(sys.call(-3)[1]) != 'changeFormatMeasure'){
         lapply(union(dd$parentDim,dd$childDims), function(x) changeFormatMeasure(env = env, dim = x, viewColumn = viewColumn, format = format))
     }
     env
@@ -1843,10 +1844,12 @@ changeFormatMeasure <- function(env, dim, viewColumn, format) {
 #'
 setOrdering <- function(env, dim, as,sort, as2 = NULL) {
 
+    class(env) == 'star' || stop('env is not of class star')
     dd <- env$dims[[dim]]
+    class(dd) == 'dimView' || stop(paste0(dim, ': dim is not of class dimView'))
     domainCheck(sort,'ordering')
+    
     ord <- switch(sort, LH = 'asc', HL = 'desc', asc = 'asc', desc = 'desc')
-
     ml <- dd$measList
     itemName <- dd$itemName
 
@@ -1898,8 +1901,21 @@ setOrdering <- function(env, dim, as,sort, as2 = NULL) {
         dd$orderViewColumn2 <- vc2
     }
 
-    if (change && isNull(dd$syncNav,FALSE) && (as.character(sys.call(-3)) != 'setOrdering')) {
-        lapply(union(dd$parentDim,dd$childDims), function(x) setOrdering(env = env, dim = x, as = as, sort = ord, as2 = as2))
+    if (change && (as.character(sys.call(-3)[1]) != 'setOrdering')) {
+        
+        if (!is.null(dd$parentDim) && isNull(dd$syncNav,FALSE)) {
+            # dim heeft parent en syncNav op child staat aan
+            setOrdering(env = env, dim = dd$parentDim, as = as, sort = ord, as2 = as2)
+        }
+
+        if (is.null(dd$parentDim) && length(dd$childDims) > 0) {
+            # dim is de parent en heeft children met syncNav aan
+            lapply(dd$childDims, function(x) {
+
+                if (isNull(env$dims[[x]]$syncNav,FALSE))
+                    setOrdering(env = env, dim = x, as = as, sort = ord, as2 = as2)
+            })
+        }
     }
     
     env
@@ -2018,7 +2034,7 @@ setSelection2 <- function(env,dim,dimOrg,source = 'setSelection',dimRefresh = TR
         
         dd$selectSource <- source
         
-        if (isNull(dd$syncNav,FALSE)) {
+        if (isNull(dd$syncNav,FALSE) && isNull(ddOrg$syncNav,FALSE)) {
             dd$rowLastAccessed <- ddOrg$rowLastAccessed
         }
         
@@ -2288,7 +2304,7 @@ setColumnName <- function(env,dim,colFrom, viewColFrom = NULL,colTo) {
     
     env$dims[[dim]]$measList <- ml
     
-    if (isNull(env$dims[[dim]]$syncNav,FALSE) && (as.character(sys.call(-3)) != 'setColumName')) {
+    if (as.character(sys.call(-3)[1]) != 'setColumName') {
         lapply(union(env$dims[[dim]]$parentDim,env$dims[[dim]]$childDims), function(x) setColumnName(env = env, dim = x, colFrom = colFrom, viewColFrom = viewColFrom, colTo = colTo))
     }
     env

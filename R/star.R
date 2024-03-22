@@ -812,7 +812,7 @@ getColors <- function(dt,pal,trans,domain = NULL,labels = NULL) {
 
 getFirstRow <- function(env,dim,tab) {
     firstRow <- 1
-    
+   
     dd <- env$dims[[dim]]
 
     lvl <- dd$level
@@ -822,10 +822,9 @@ getFirstRow <- function(env,dim,tab) {
     meas <- getMeasList(env,dim)
     sortColumn <- meas$viewColumn[grepl('*_sort',meas$viewColumn)]
 
-    nm <- ''
     nm <- dd$rowLastAccessed$value[dd$rowLastAccessed$level == lvl]
 
-    if (nm == '') {
+    if (length(nm) == 0) {
         firstRow <- 1
     } else {
         if (length(sortColumn) > 0) {

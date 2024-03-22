@@ -287,9 +287,8 @@ makeDtWidget <- function(env,dim,prep) {
         DT::formatStyle(
             columns = 1,
             valueColumns = 'subsel',
-            backgroundColor = DT::styleEqual(c(1,0),c('lightGrey','white')),
+            color = DT::styleEqual(c(1,0),c('red','blue')),
             cursor = cursor,
-            color = color,
             fontWeight = 'bold')
     
     if (dd$type != 'output' && dd$selectMode != 'none' && dd$level %in% dd$selectableLevels) {

@@ -37,7 +37,7 @@ function(input, output, session) {
             data = per,                             # dimensie data.frame
             initLevel = 3,
             levelNames = c('Alle perioden','Jaar','maand','Dag'),
-            useLevel = c(3)) %>%
+            useLevels = c(4)) %>%
         addPresentation(
             dim = 'per' ,
             type = 'dateRangeInput',                     # presentatie-vorm is een dataRangeInput
@@ -63,7 +63,7 @@ function(input, output, session) {
             initLevel = 1,
             fixedMembers = TRUE,
             levelNames = c('Alle perioden','Jaar','maand','Dag'),
-            useLevel = c(0,1,2,3)) %>%
+            useLevels = c(0,1,2,3)) %>%
         addMeasure(
             dim = 'per2',
             factColumn = c('num1'),      # referentie naar fact-column
