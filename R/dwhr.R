@@ -2336,7 +2336,7 @@ clone.star <- function(from, toId, facts = NULL, dimViews = NULL, checkUiId = FA
 
     to <- eval(call, envir = from$ce)
     
-    names(dimViews) %in% names(from$dims) || stop('dimView(s) bestaan niet in from')
+    all(names(dimViews) %in% names(from$dims)) || stop('dimView(s) bestaan niet in from')
         
     for (dv in names(dimViews)) {
         
@@ -2373,7 +2373,7 @@ clone.star <- function(from, toId, facts = NULL, dimViews = NULL, checkUiId = FA
                     if (!is.null(dimViews[[dv]]$presentations)) {
                         
                         if (is.character(dimViews[[dv]]$presentations)) {
-                            dimViews[[dv]]$presentations %in% pres || stop('Invalid presentation-names in clone')
+                            all(dimViews[[dv]]$presentations %in% pres) || stop('Invalid presentation-names in clone')
                             pres <- dimViews[[dv]]$presentations
                         } else {
                             if (is.logical(dimViews[[dv]]$presentations) && !dimViews[[dv]]$presentations) 

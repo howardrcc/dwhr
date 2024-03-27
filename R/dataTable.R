@@ -149,7 +149,7 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
             
             fmt <- measures$format[measures$viewColumn == vc]
             
-            if ('format' %in% names(measures) && !is.na(fmt) && fmt == 'sparkline') {
+            if ('format' %in% names(measures) && !all(is.na(fmt)) && fmt == 'sparkline') {
                 
                 if (isFooter)
                     df[,paste0(vc,'_fc')] <- ''
@@ -161,11 +161,11 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
                 
                 if (is.numeric(df[[vc]])) {
                     
-                    if(!is.na(formatRef)) {
+                    if(!all(is.na(formatRef))) {
                         
                         for (rw in row.names(df)) {
                             
-                            if ('format' %in% names(measures) && !is.na(fmt)) {  # overrule format
+                            if ('format' %in% names(measures) && !all(is.na(fmt))) {  # overrule format
                                 format <- fmt
                             } else {
                                 format <- df[rw,formatRef]
@@ -196,7 +196,7 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
                         
                     } else {
                         
-                        if ('format' %in% names(measures) && !is.na(fmt)) {  # overrule format
+                        if ('format' %in% names(measures) && !all(is.na(fmt))) {  # overrule format
                             format <- fmt
                         } else {
                             format <- meas$format[meas$viewColumn == vc]
@@ -314,7 +314,7 @@ makeDtWidget <- function(env,dim,prep) {
             fontWeight <- isNa(isNull(meas$fontWeight[meas$as == fc],'normal'),'normal')
             cursor <- isNa(isNull(meas$cursor[meas$as == fc],'default'),'default')
             
-            if (length(color2) == 0 || is.na(color2)) {
+            if (length(color2) == 0 || all(is.na(color2))) {
                 
                 dt <- dt %>%
                     DT::formatStyle(
@@ -357,7 +357,7 @@ makeDtWidget <- function(env,dim,prep) {
             cursor <- isNa(isNull(meas$cursor[meas$as == fc],'default'),'default')
             valueColumn <- meas$bgStyle.valueColumn[meas$as == fc]
             
-            if(is.null(valueColumn) || is.na(valueColumn)) {
+            if(is.null(valueColumn) || all(is.na(valueColumn))) {
                 valueColumn <- paste0(fc,'_org')
             } else {
                 if (paste0(meas$as[meas$viewColumn == valueColumn],'_org') %in% names(prep$tab))
@@ -405,7 +405,7 @@ makeDtWidget <- function(env,dim,prep) {
             cursor <- isNa(isNull(meas$cursor[meas$as == fc],'default'),'default')
             valueColumn <- meas$fgStyle.valueColumn[meas$as == fc]
             
-            if(is.null(valueColumn) || is.na(valueColumn)) {
+            if(is.null(valueColumn) || all(is.na(valueColumn))) {
                 valueColumn <- paste0(fc,'_org')
             } else {
                 if (paste0(meas$as[meas$viewColumn == valueColumn],'_org') %in% names(prep$tab))
@@ -455,7 +455,7 @@ makeDtWidget <- function(env,dim,prep) {
 prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     dd <- env$dims[[dim]]
-    
+
     print <- isNull(print,isNull(dd$print,FALSE))
     presList <- dd$presList
     opts <- presList[[pres]]$dataTableOpts
@@ -548,7 +548,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
         }
 
     }
-    
+
     if (length(setdiff(measViewColNames,names(tab))) > 0) {
         stop('missende kolomnamen: ',paste0(setdiff(measViewColNames,names(tab)),collapse = ','))
     }
@@ -657,8 +657,8 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     if(dd$selectMode == 'none') {
         selection = list(mode = 'none')
     } else {
-        
-        if (!is.null(si) && !is.na(si) && nrow(si) > 1) {
+
+        if (!is.null(si) && !all(is.na(si)) && nrow(si) > 1) {
             selection = list(mode = 'multiple', target = 'cell', selected = si)
         } else {
             if(dd$selectMode == 'single') {
@@ -725,7 +725,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     footer <- NA
     
-    if (nrow(tab) > 1 && lvl %in% dd$footerLevels && !is.na(isNull(altData$footer,dd$footer))) {
+    if (nrow(tab) > 1 && lvl %in% dd$footerLevels && !all(is.na(isNull(altData$footer,dd$footer)))) {
         
         # browser(expr = {dim == 'kpi'})
         footer <- addFormatting(env,dim,isNull(altData$footer,dd$footer),measures,TRUE)
