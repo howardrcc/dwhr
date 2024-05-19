@@ -14,10 +14,12 @@ per <- read.csv(
     stringsAsFactors = FALSE)
 
 facts <- data.frame(
-    maandId = as.integer(round(runif(10000,min(per$maandId),max(per$maandId)),0)),
+    maandId = per$maandId[as.integer(round(runif(10000,1,nrow(per))))],
     num1 = -150  + runif(10000,100,200))
 
 function(input, output, session) {
+
+    shinyjs::runjs('toggleCodePosition();')
     
     source('columnChart.R', local = TRUE)
     
@@ -45,7 +47,7 @@ function(input, output, session) {
             levels = c(0,1,2)) 
     
     columnChartOpts$series <- list(
-        list(
+        abc = list(
             viewColumn = 'abc',
             type = 'column',                           # columnChart
             visible = TRUE,
@@ -53,7 +55,7 @@ function(input, output, session) {
             colorByPoint = TRUE,                       # nodig bij gebruik van colors optie
             colors = 'YlOrRd',                         # colorBrewer sequentieel palette (zie http://colorbrewer2.org)
             pointPadding = 0), 
-        list(
+        xyz = list(
             viewColumn = 'xyz',
             type = 'column',
             visible = TRUE,
@@ -61,7 +63,7 @@ function(input, output, session) {
             color = '#41b6c4',
             pattern = 'stripe1',                      # stripe pattern
             pointPadding = 0),
-        list(
+        pqr = list(
             viewColumn = 'pqr',
             type = 'column',
             visible = FALSE,

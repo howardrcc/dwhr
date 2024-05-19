@@ -46,7 +46,7 @@ addRowGroupColumn(env, dim, rowGroupColumn, levels = NULL)
 \arguments{
 \item{env}{sterschema object, gecreeerd met \code{\link{new.star}}.}
 
-\item{dim}{string, dimView id gecreeerd met \code{\link{addDimView}}.}
+\item{dim}{character, 1 of meerdere namen van dimViews, gecreeerd met \code{\link{addDimView}}.}
 
 \item{factColumn}{character, naam van numeric kolom in feiten tabel.}
 
@@ -88,9 +88,10 @@ de naam verloopt zo:
   \item decimal3: waarde afgerond op 3 decimalen
 }}
 
-\item{levels}{numeric. bepaalt voor welke levels de meetwaarden getoond worden in de UI (addMeasure, addDerrivedMeasure and addText) of voor welke levels de kolommen actief 
+\item{levels}{numeric of list. bepaalt voor welke levels de meetwaarden getoond worden in de UI (addMeasure, addDerrivedMeasure and addText) of voor welke levels de kolommen actief 
 zijn (addSortColumn, addTooltipColumn).
-De nummers refereren aan de originele levels van de dimensie-data (voordat parameter \code{useLevels} in \code{addDimView} is toegepast)}
+De nummers refereren aan de originele levels van de dimensie-data (voordat parameter \code{useLevels} in \code{addDimView} is toegepast).
+Als aangeboden in de vorm van een list: per dim wordt een levels vector meegegeven.  bv \code{levels = {periode = c(0,1,2), diag = c(2)}}.}
 
 \item{userFunc}{character, naam van gebruikers functie voor het implementeren van de een afgeleide meetwaarde. De functie moet de volgende eigenschappen hebben:
 \itemize{

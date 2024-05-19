@@ -266,9 +266,9 @@ getDbHandle <- function(omg,db = 'R') {
 #' 
 #' @return als geauthenticiteerd dan TRUE ander FALSE.
 #' @export
-authenticate <- function(session) {
+authenticate <- function(session, sessionTimeout = 0) {
     
-    'ShinySession' %in% class(session) || stop('session is not of class shinySession')
+    assert_is_all_of(session,'ShinySession')
     
     ce <- parent.frame() 
     
@@ -280,28 +280,63 @@ authenticate <- function(session) {
             do.call(paste0('sessionEndHook'),list(session = session),envir = ce)
         }
         
-        if (glob.env$sessionCount == 0 && !glob.env$restart) {
+#        if (glob.env$sessionCount == 0 && !glob.env$restart) {
+ 
+#           print('Closing ODBC connections')
+#           RODBC::odbcCloseAll()
 
-            print('Closing ODBC connections')
-            RODBC::odbcCloseAll()
+#           if (length(glob.env$globalCache) > 0) {
+#               saveRDS(glob.env$globalCache, getCacheFile())
+#           }
 
-            if (length(glob.env$globalCache) > 0) {
-                saveRDS(glob.env$globalCache, getCacheFile())
-            }
-
-            rm(glob.env, envir = .GlobalEnv)
-            stopApp()
-        }
+#           rm(glob.env, envir = .GlobalEnv)
+#           stopApp()
+#       }
         
         glob.env$restart <- FALSE
         
     })
-    
+
     ses <- session$userData
     
     if (exists('authenticated', envir = ses))
         return(ses$authenticated)
-    
+
+
+    # session timeout observer
+
+    if (sessionTimeout > 0) {
+        
+        shinyjs::runjs(paste0("function idleTimer() {
+                var t = setTimeout(logout, ", 1000 *  sessionTimeout,");
+                window.onmousemove = resetTimer; // catches mouse movements
+                window.onmousedown = resetTimer; // catches mouse movements
+                window.onclick = resetTimer;     // catches mouse clicks
+                window.onscroll = resetTimer;    // catches scrolling
+                window.onkeypress = resetTimer;  //catches keyboard actions
+
+                function logout() {
+                    Shiny.setInputValue('timeOut', '", sessionTimeout,"s')
+                }
+
+                function resetTimer() {
+                    clearTimeout(t);
+                    t = setTimeout(logout, ", 1000 * sessionTimeout,");  // time is in milliseconds (1000 is 1 second)
+                }
+            }
+            idleTimer();"))
+
+        observeEvent(session$input$timeOut, { 
+            print(paste0("Session (", session$token, ") timed out at: ", Sys.time()))
+            showModal(modalDialog(
+              title = "Timeout",
+              paste("Session timeout due to", session$input$timeOut, "inactivity -", Sys.time()),
+              footer = NULL
+            ))
+            session$close()
+        })
+    }
+
     ses$authenticated <- FALSE
     ses$cdata <- session$clientData
     ses$urlQuery <- parseQueryString(shiny::isolate(ses$cdata$url_search))

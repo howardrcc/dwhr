@@ -8,8 +8,8 @@ columnChartOpts = list(
     chart = list(
         zoomType = 'xy',
         height = 240,
-        #animation = list(duration = 2000,easing = 'easeOutBounce'),
-        animation = FALSE,
+        animation = list(duration = 2000,easing = 'easeOutBounce'),
+        #animation = FALSE,
         panning = TRUE,
         panKey = 'shift',
         # borderColor = 'black',
@@ -55,8 +55,8 @@ columnChartOpts = list(
             groupPadding = 0.1),
         series = list(
             shadow = FALSE,
-            animation = FALSE,
-            #animation = list(duration = 2000,easing = 'easeOutBounce'),
+            #animation = FALSE,
+            animation = list(duration = 2000,easing = 'easeOutBounce'),
             dataLabels = list(
                 style = list(
                     fontSize = '9px',

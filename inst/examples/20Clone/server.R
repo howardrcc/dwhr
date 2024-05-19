@@ -55,7 +55,7 @@ function(input, output, session) {
                     list(viewColumn = 'xyz', colorBarColor1 = '#f7fcb9')))) %>%
         renderDims(input,output)                    # start rendering
     
-    s2 <- clone.star(from = s1, toId = 's2', dimViews = list( per = list()), checkUiId = FALSE) %>%
+    s2 <- clone.star(from = s1, toId = 's2', dimViews = list( per = list()), checkUiId = TRUE) %>%
         renderDims(input,output)                    # start rendering
     
     observeEvent(s1$dims[['per']]$reactive$clickMeasureEvent,{

@@ -24,8 +24,7 @@ new.star <- function(starId, session, facts, caching = FALSE, mtimeData = NULL, 
     assert_is_data.frame(facts)
     assert_is_a_bool(caching)
     assert_is_a_bool(foreignKeyCheck)
-    
-    'ShinySession' %in% class(session) || stop('session is not of class shinySession')
+    assert_is_all_of(session,'ShinySession')
     
     ses <- session$userData
     
@@ -210,8 +209,7 @@ addDimView <- function(
     na.rm = TRUE, orderBy = 'name', selectableLevels = NULL, footerLevels = NA_integer_ , presListType = 'dropdown',
     returnPrepData = FALSE, selectedIds = NULL, ignoreParent = FALSE, headerSize = 2) {
 
-    class(env) == 'star' || stop('env is not of class star')
-    
+    assert_is_all_of(env,'star')
     assert_is_a_string(dim)
     assert_is_a_string(name)
     assert_is_data.frame(data)
@@ -796,7 +794,7 @@ addDimView <- function(
 
     if (!is.null(formatColumn)) {
         assert_is_character(formatColumn)
-        formatColumn %in% names(dd$data) || stop(paste0(dd$dim, ': Invalid formatColumn'))
+        all(formatColumn %in% names(dd$data)) || stop(paste0(dd$dim, ': Invalid formatColumn'))
         length(formatColumn) %in% c(1,length(as)) || stop(paste0(dd$dim, ': Invalid length formatColumn'))
         lapply(unique(formatColumn),function (x) assert_is_subset(dd$data[[x]],domains[['format']]))
     }
@@ -878,7 +876,7 @@ addDimView <- function(
 #'@param levels numeric of list. bepaalt voor welke levels de meetwaarden getoond worden in de UI (addMeasure, addDerrivedMeasure and addText) of voor welke levels de kolommen actief 
 #'zijn (addSortColumn, addTooltipColumn).
 #'De nummers refereren aan de originele levels van de dimensie-data (voordat parameter \code{useLevels} in \code{addDimView} is toegepast).
-#'Als aangeboden in de vorm van een list: per dim wordt een levels vector meegegeven.  bv \code{levels = {periode = c(0,1,2), diag = c(2)}.
+#'Als aangeboden in de vorm van een list: per dim wordt een levels vector meegegeven.  bv \code{levels = {periode = c(0,1,2), diag = c(2)}}.
 #'
 #'@return gewijzigd sterschema object.
 #'
@@ -886,19 +884,19 @@ addDimView <- function(
 addMeasure <- function(env, dim, factColumn, fun, as = factColumn, viewColumn = NULL,
                        sort = NULL, format = 'standard', formatColumn = NULL, levels = NULL) {
     
-    class(env) == 'star' || stop('env is not of class star')
-    
+    assert_is_all_of(env,'star')
     assert_is_character(dim)
+    assert_is_character(factColumn)
+    assert_is_character(fun)
    
     for (ddim in dim) {
 
         ddim %in% names(env$dims) || stop(paste0(ddim, ': Unknown dim'))
     
         dd <- env$dims[[ddim]]
-        class(dd) == 'dimView' || stop(paste0(ddim, ': dim is not of class dimView'))
+        assert_is_all_of(dd,'dimView')
         ml <- dd$measList
         
-        assert_is_character(factColumn)
         for (c in factColumn) {
             c %in% names(env$facts) || stop(paste0(c, ' is not a valid factColumn'))
         }
@@ -913,8 +911,6 @@ addMeasure <- function(env, dim, factColumn, fun, as = factColumn, viewColumn = 
         assert_are_same_length(as,factColumn)
         
         sort <- .setSort(dd,length(as),sort)
-        
-        assert_is_character(fun)
         
         for (x in fun) {
             x %in% domains[['aggregateFun']] || class(get(x, envir = env$ce)) == 'function' ||  stop(paste0(ddim, ': Invalid function'))
@@ -1002,18 +998,21 @@ addMeasure <- function(env, dim, factColumn, fun, as = factColumn, viewColumn = 
 addMeasureDerrived <- function(env, dim, userFunc, as, viewColumn = NULL, sort = NULL, processingOrder = NULL,
                                format = 'standard', formatColumn = NULL, levels = NULL) {
     
-    class(env) == 'star' || stop('env is not of class star')
-    
+    assert_is_all_of(env,'star')
     assert_is_character(dim)
+    assert_is_character(userFunc)
+    assert_are_same_length(userFunc,as)
+    assert_is_numeric(isNull(processingOrder,0))
 
     for (ddim in dim) {
 
         ddim %in% names(env$dims) || stop(paste0(ddim, ': Unknown dim'))
         
         dd <- env$dims[[ddim]]
-        class(dd) == 'dimView' || stop(paste0(ddim, ': dim is not of class dimView'))
         ml <- dd$measList
         
+        assert_is_all_of(dd,'dimView')
+
         if (dd$leafOnly) {
             levels <- max(dd$useLevels)
         }
@@ -1021,14 +1020,11 @@ addMeasureDerrived <- function(env, dim, userFunc, as, viewColumn = NULL, sort =
         levels <- .setLevels(dd,dim,levels)
         as <- .setAs(dd,levels,as)
         
-        assert_is_character(userFunc)
         all(unique(sapply(userFunc,function(x) class(get(x, envir = env$ce)))) == 'function') ||
             stop(paste0(ddim, ': Invalid function'))
-        assert_are_same_length(userFunc,as)
         
         sort <- .setSort(dd,length(as),sort)
         
-        assert_is_numeric(isNull(processingOrder,0))
         processingOrder <- as.integer(processingOrder)
         if (length(processingOrder) == 0) {
             mx <- max(ml$processingOrder[ml$processingOrder < 999])
@@ -1107,14 +1103,13 @@ addMeasureDerrived <- function(env, dim, userFunc, as, viewColumn = NULL, sort =
 #' @export
 addSortColumn <- function(env, dim, sortColumn, levels = NULL) {
 
-    class(env) == 'star' || stop('env is not of class star')
-
+    assert_is_all_of(env,'star')
     assert_is_character(dim)
     assert_is_a_string(sortColumn)
     
     for (ddim in dim) {
         dd <- env$dims[[ddim]]
-        class(dd) == 'dimView' || stop(paste0(ddim, ': dim is not of class dimView'))
+        assert_is_all_of(dd,'dimView')
         sortColumn %in% names(dd$data) || stop(paste0(ddim, ': Invalid sortColumn'))
         levels <- .setLevels(dd,dim,levels)
         
@@ -1155,14 +1150,13 @@ addSortColumn <- function(env, dim, sortColumn, levels = NULL) {
 #' @export
 addTooltipColumn <- function(env, dim, tooltipColumn, levels = NULL) {
 
-    class(env) == 'star' || stop('env is not of class star')
-    
+    assert_is_all_of(env,'star')
     assert_is_character(dim)
     assert_is_a_string(tooltipColumn)
    
     for (ddim in dim) {
         dd <- env$dims[[ddim]]
-        class(dd) == 'dimView' || stop(paste0(ddim, ': dim is not of class dimView'))
+        assert_is_all_of(dd,'dimView')
         tooltipColumn %in% names(dd$data) || stop(paste0(ddim, ': Invalid tooltipColumn'))
         levels <- .setLevels(dd,dim,levels)
         
@@ -1203,8 +1197,7 @@ addTooltipColumn <- function(env, dim, tooltipColumn, levels = NULL) {
 #' @export
 addTextColumn <- function(env, dim, textColumn, as, viewColumn, sort = NULL, levels = NULL) {
 
-    class(env) == 'star' || stop('env is not of class star')
-    
+    assert_is_all_of(env,'star')
     assert_is_character(dim)
     assert_is_a_string(textColumn)
     assert_is_a_string(as)
@@ -1212,7 +1205,7 @@ addTextColumn <- function(env, dim, textColumn, as, viewColumn, sort = NULL, lev
    
     for (ddim in dim) {
         dd <- env$dims[[ddim]]
-        class(dd) == 'dimView' || stop(paste0(ddim, ': dim is not of class dimView'))
+        assert_is_all_of(dd,'dimView')
         textColumn %in% names(dd$data) || stop(paste0(ddim, ': Invalid textColumn'))
         levels <- .setLevels(dd,dim,levels)
         
@@ -1253,14 +1246,13 @@ addTextColumn <- function(env, dim, textColumn, as, viewColumn, sort = NULL, lev
 #' @export
 addRowGroupColumn <- function(env, dim, rowGroupColumn, levels = NULL) {
     
-    class(env) == 'star' || stop('env is not of class star')
-    
+    assert_is_all_of(env,'star')
     assert_is_character(dim)
     assert_is_a_string(rowGroupColumn)
    
     for (ddim in dim) {
         dd <- env$dims[[ddim]]
-        class(dd) == 'dimView' || stop(paste0(ddim, ': dim is not of class dimView'))
+        assert_is_all_of(dd,'dimView')
         rowGroupColumn %in% names(dd$data) || stop(paste0(ddim, ': Invalid rowGroupColumn'))
         levels <- .setLevels(dd,dim,levels)
         
@@ -1368,8 +1360,7 @@ addRowGroupColumn <- function(env, dim, rowGroupColumn, levels = NULL) {
 addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, height = NULL, width = NULL,
                             navOpts = NULL, simpleOpts = NULL, dataTableOpts = NULL, highChartsOpts = NULL, rangeOpts = NULL, checkUiId = TRUE, ...) {
     
-    class(env) == 'star' || stop('env is not of class star')
-    
+    assert_is_all_of(env,'star')
     assert_is_character(dim)
     assert_is_character(uiId)
     assert_is_a_string(type)
@@ -1405,7 +1396,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
         }
 
         dd <- env$dims[[ddim]]
-        class(dd) == 'dimView' || stop(paste0(ddim, ': dim is not of class dimView'))
+        assert_is_all_of(dd,'dimView')
         
         gdim <- getGlobalId(env$id,uiIdLocal)
         
@@ -1574,22 +1565,13 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
             
             pl %in% pll || stop(paste0(ddim, ': pageLength not in pageLengthList'))
             
-            if (navOptsLocal$syncNav) {
-                is.null(dd$pageLength) || dd$pageLength == pl ||  stop(paste0(ddim, ': pageLength already set to', dd$pageLength))
-            }
-            
             dataTableOptsLocal$pageLength <- pl
             dataTableOptsLocal$pageLengthList <- pll
-            dd$pageLength <- pl
             
             if ('serverSideTable' %in% names(dataTableOptsLocal)) {
                 assert_is_a_bool(dataTableOptsLocal$serverSideTable)
-                is.null(dd$serverSideTable) || dd$serverSideTable == dataTableOptsLocal$serverSideTable ||
-                    stop(paste0(ddim, ': serverSideYable already set to', dd$serverSideTable))
-                dd$serverSideTable <- dataTableOptsLocal$serverSideTable
             } else {
-                dd$serverSideTable <- isNull(dd$serverSideTable,FALSE)
-                dataTableOptsLocal$serverSideTable <- dd$serverSideTable
+                dataTableOptsLocal$serverSideTable <- FALSE
             }
         }
         
@@ -1617,6 +1599,8 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
                 !is.null(dd$parentDim) && stop(paste0(ddim, ': is itself already a child presentation of ', dd$parentDim, '. Use this dimension as a base for addPresentation'))
                 length(useLevels) == 0 || !isNull(dd$ignoreParent,FALSE) || stop(paste0(ddim, ': useLevels not valid for ignoreParent dims'))
 
+                length(dd$presList) > 0 || stop(paste0(uiIdLocal, ': parent ',ddim ,' doesn\'t have presentations'))
+
                 call <- dd$call
                 call$dim <- uiIdLocal
                 call$ignoreDims <- c(eval(call$ignoreDims),ddim,dd$childDims)
@@ -1632,6 +1616,13 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
                     }
                 }
                 
+                if (!isNull(dd$syncNav,TRUE) && navOptsLocal$syncNav) {
+                    if (is.null(navOpts$syncNav))
+                        navOptsLocal$syncNav <- FALSE
+                    else
+                        stop('Incompatible syncNav') # als parent geen syncNav heeft, kan child dat ook niet krijgen
+                }
+
                 for (nm in names(varArgs)) {
                     call[[nm]] <- varArgs[[nm]]
                 }
@@ -1670,17 +1661,29 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
                     env$dims[[x]]$ignoreDims <- unique(c(env$dims[[x]]$ignoreDims,uiIdLocal))
                 }
                 
+                if (!is.null(dataTableOptsLocal)) {
+                    is.null(dd$serverSideTable) || dd$serverSideTable == dataTableOptsLocal$serverSideTable || stop(paste0(uiIdLocal, ': serverSideTable of parent ', ddim, ' already set to', dd$serverSideTable))
+                    dd$serverSideTable <- dataTableOptsLocal$serverSideTable
+
+                    if (navOptsLocal$syncNav) {
+                        is.null(dd$pageLength) || dd$pageLength == dataTableOptsLocal$pageLength ||  stop(paste0(uiIdLocal, ': pageLength of parent ', ddim, ' already set to', dd$pageLength))
+                        dd$pageLength <- dataTableOptsLocal$pageLength
+                        for (x in dd$childDims) {
+                            if (isNull(env$dims[[x]]$syncNav,TRUE)) 
+                               env$dims[[x]]$pageLength <- dd$pageLength
+                        }
+                    }
+                } else {
+                    if (navOptsLocal$syncNav && !is.null(dd$pageLength)) {
+                        env$dims[[uiIdLocal]]$pageLength <- dd$pageLength  
+                    }
+                }
+            
                 dd$childDims <-  c(dd$childDims,uiIdLocal)
                 dd$ignoreDims <- c(dd$ignoreDims,uiIdLocal)
                 
-                env$dims[[uiIdLocal]]$syncNav <- navOptsLocal$syncNav
-                
                 if (navOptsLocal$syncNav) {
-                    
-                    length(dd$presList) > 0 || stop(paste0(ddim, ': no presentation to sync with'))
-                    #  !is.null(dd$pageLength) || stop('No paging source')
                     setOrdering(env = env, dim = uiIdLocal, as = dd$orderColumn, sort = dd$orderColumnDir, as2 = dd$orderColumn2)
-                    env$dims[[uiIdLocal]]$pageLength <- dd$pageLength
                 }
                 
                 for (z in names(env$dims)) {
@@ -1695,8 +1698,13 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
             ddim <- uiIdLocal
             dd <- env$dims[[ddim]]
             
-        } else {
-            dd$syncNav <- navOptsLocal$syncNav
+        }
+
+        dd$syncNav <- navOptsLocal$syncNav
+
+        if (!is.null(dataTableOptsLocal)) {
+            dd$pageLength <- dataTableOptsLocal$pageLength
+            dd$serverSideTable <- dataTableOptsLocal$serverSideTable
         }
         
         # rangeOpts checks
@@ -1803,9 +1811,9 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
 #'
 changeFormatMeasure <- function(env, dim, viewColumn, format) {
 
-    class(env) == 'star' || stop('env is not of class star')
+    assert_is_all_of(env,'star')
     dd <- env$dims[[dim]]
-    class(dd) == 'dimView' || stop(paste0(dim, ': dim is not of class dimView'))
+    assert_is_all_of(dd,'dimView')
     domainCheck(format,'format')
 
     ml <- dd$measList
@@ -1844,9 +1852,9 @@ changeFormatMeasure <- function(env, dim, viewColumn, format) {
 #'
 setOrdering <- function(env, dim, as,sort, as2 = NULL) {
 
-    class(env) == 'star' || stop('env is not of class star')
+    assert_is_all_of(env,'star')
     dd <- env$dims[[dim]]
-    class(dd) == 'dimView' || stop(paste0(dim, ': dim is not of class dimView'))
+    assert_is_all_of(dd,'dimView')
     domainCheck(sort,'ordering')
     
     ord <- switch(sort, LH = 'asc', HL = 'desc', asc = 'asc', desc = 'desc')
@@ -1942,11 +1950,11 @@ setOrdering <- function(env, dim, as,sort, as2 = NULL) {
 #'
 setSelection <- function(env,dim,sel,source = 'setSelection',dimRefresh = TRUE,selectChange = TRUE) {
     
-    class(env) == 'star' || stop(paste0(dim,': env is not of class star'))
+    assert_is_all_of(env,'star')
     assert_is_a_string(dim)
     
     dd <- env$dims[[dim]]
-    class(dd) == 'dimView' || stop(paste0(dim,': dim is not of class dimView'))
+    assert_is_all_of(dd,'dimView')
     
     assert_is_data.frame(sel)
     
@@ -2138,12 +2146,12 @@ getSelected <- function(data,maxLevel,selectableLevels,selectedIds) {
 #'
 dimChangeState <- function(env, dim, newState) {
     
-    class(env) == 'star' || stop('env is not of class star')
+    assert_is_all_of(env,'star')
     assert_is_a_string(dim)
     assert_is_a_string(newState)
     
     dd <- env$dims[[dim]]
-    class(dd) == 'dimView' || stop(paste0(dim, ': dim is not of class dimView'))
+    assert_is_all_of(dd,'dimView')
     
     state <- dd$state
     gdim <- dd$gdim
@@ -2500,13 +2508,11 @@ runExampleDwhr <- function (example = NA, port = NULL, launch.browser = getOptio
 #' 
 changeDtFgStyle <- function(env,dim,pres,viewColumn,fgStyle = NULL) {
     
-    class(env) == 'star' || stop('env is not of class star')
-    
+    assert_is_all_of(env,'star')
     assert_is_a_string(dim)
     dim %in% names(env$dims) || stop(paste0(dim, ': Unknown dim'))
     dd <- env$dims[[dim]]
-    class(dd) == 'dimView' || stop(paste0(dim, ': dim is not of class dimView'))
-    
+    assert_is_all_of(dd,'dimView')
     assert_is_a_string(pres)
     
     pl <- dd$presList
@@ -2554,13 +2560,11 @@ changeDtFgStyle <- function(env,dim,pres,viewColumn,fgStyle = NULL) {
 #' 
 changeDtBgStyle <- function(env,dim,pres,viewColumn,bgStyle = NULL) {
     
-    class(env) == 'star' || stop('env is not of class star')
-    
+    assert_is_all_of(env,'star')
     assert_is_a_string(dim)
     dim %in% names(env$dims) || stop(paste0(dim, ': Unknown dim'))
     dd <- env$dims[[dim]]
-    class(dd) == 'dimView' || stop(paste0(dim, ': dim is not of class dimView'))
-    
+    assert_is_all_of(dd,'dimView')
     assert_is_a_string(pres)
     
     pl <- dd$presList
@@ -2601,13 +2605,11 @@ changeDtBgStyle <- function(env,dim,pres,viewColumn,bgStyle = NULL) {
 #'
 setDtVisible <- function(env,dim,pres,viewColumn,visible) {
     
-    class(env) == 'star' || stop('env is not of class star')
-    
+    assert_is_all_of(env,'star')
     assert_is_a_string(dim)
     dim %in% names(env$dims) || stop(paste0(dim, ': Unknown dim'))
     dd <- env$dims[[dim]]
-    class(dd) == 'dimView' || stop(paste0(dim, ': dim is not of class dimView'))
-    
+    assert_is_all_of(dd,'dimView')
     assert_is_a_string(pres)
     
     pl <- dd$presList
@@ -2619,7 +2621,7 @@ setDtVisible <- function(env,dim,pres,viewColumn,visible) {
     
     assert_is_character(viewColumn)
     presVc <- sapply(pl[[presNum]]$dataTableOpts$measures,function(x) x$viewColumn)
-    viewColumn %in% presVc || stop(paste0(dim, ': viewColumn invalid'))
+    all(viewColumn %in% presVc) || stop(paste0(dim, ': viewColumn invalid'))
     measNum <- which(presVc %in% viewColumn)
     
     if(!is_a_bool(visible) && !is_function(visible) && !(class(visible) == 'call'))

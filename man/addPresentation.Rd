@@ -63,7 +63,7 @@ getoond worden op het scherm. Hoe de navigatie in dat geval moet verlopen kan vi
 
 \item{dataTableOpts}{list, verplicht in het geval van een presentatie-type dataTable. De lijst moet in dat geval de volgende items hebben:
 \itemize{
-    \item measures: list, verlpicht, lijst met meetwaarden die in tabel opgenomen moeten worden. De list heeft het volgende format:
+    \item measures: list, verplicht, lijst met meetwaarden die in tabel opgenomen moeten worden. De list heeft het volgende format:
     \itemize{
         \item viewColumn: string, verplicht, identificatie van de kolom. Dit is de naam zoals meegegeven aan \code{\link{addMeasure}} of aan \code{\link{addMeasureDerrived}} of zoals die 
         in deze functies wordt afgeleid.
