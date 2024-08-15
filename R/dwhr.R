@@ -1991,7 +1991,7 @@ setSelection <- function(env,dim,sel,source = 'setSelection',dimRefresh = TRUE,s
     dd$setSelectionOK <- TRUE
     
     if (is.data.frame(dd$membersFiltered)) {
-        if (sel$level == dd$level && !sel$label %in% dd$membersFiltered$member) {
+        if (any(sel$level == dd$level) && !any(sel$label %in% dd$membersFiltered$member)) {
             warning(paste0(dim, ': selection out of range'))
             dd$setSelectionOK <- FALSE
         }

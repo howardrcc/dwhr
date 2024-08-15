@@ -143,8 +143,21 @@ initGlob <- function() {
             }
         }
         
-        isDefinedGlobal('securityModel','none')
-        isDefinedGlobal('omgeving','ACC')
+        glob.env$securityModel <- 'none'
+        shinyProxy <- Sys.getenv('SHINYPROXY')
+        rHome <- Sys.getenv('R_PROJECT_HOME')
+
+        if (rHome == '') 
+            rHome = paste0(getwd(),'/..')
+
+        if (shinyProxy != '') {
+            shinyProxy %in% c('PRD','ACC','LOCAL','NONE') || stop('Invalid value Environment variable SHINYPROXY') 
+            isDefinedGlobal('omgeving',shinyProxy)
+            glob.env$securityModel <- 'shinyproxy'
+        } else {
+            isDefinedGlobal('omgeving','NONE')
+        }
+
         isDefinedGlobal('debug',FALSE)
         isDefinedGlobal('debugDims',NULL)
         isDefinedGlobal('debugDumpReactive',FALSE)
@@ -157,27 +170,27 @@ initGlob <- function() {
         glob.env$dimUiIds <- c()
         glob.env$globalCache <- list()
         glob.env$reservedColumnPatterns <- c('*_fc','*_org','*_tooltip','*_text','*_sort')
+        glob.env$rHome <- rHome
         
-        glob.env$securityModel %in% c('none','proxy') || stop('Invalid securityModel')
         glob.env$restart <- FALSE
         
         # account data
         
-        credFile <- paste0(getwd(),'/data/dbCred.rds')
+        credFile <- paste0(rHome,'/admin/data/dbCred.rds')
         
-        if (glob.env$securityModel == 'proxy') {
+        if (glob.env$omgeving != 'NONE') {
             
-            if (is.na(file.info(credFile)$mtime)) {
-                
-                stop(paste0('credentials file: ', credFile, ' not found'))
-            }
+            is.na(file.info(credFile)$mtime) && stop(paste0('credentials file: ', credFile, ' not found'))
             
             dbCred <- readRDS(credFile)
-            
             omg <- glob.env$omgeving
+            omg %in% names(dbCred) || stop(paste0(omg,'  missing in dbCred file'))  
             
             sql <- paste0("exec R.dbo.get_startpunt '",omg,"'")
             handle <- RODBC::odbcDriverConnect(paste0("DSN=",dbCred[[omg]]$dsn,";DATABASE=R;UID=",dbCred[[omg]]$user,";PWD=",dbCred[[omg]]$pwd))
+            
+            assert_is_all_of(handle,'RODBC')
+
             glob.env$portalUrl <- RODBC::sqlQuery(handle, sql)$startpunt
     
             glob.env$dbCred <- dbCred
@@ -194,12 +207,12 @@ initGlob <- function() {
         }
         
      
-        adUserFile <- paste0(getwd(),"/../data/userInfo/ds_ad_user.txt")
+        adUserFile <- paste0(rHome,"/admin/data/ds_ad_user.txt")
         
         if (file.exists(adUserFile)) {
             
             glob.env$adUser <- as.data.table(read.csv(  
-                file = paste0(getwd(),"/../data/userInfo/ds_ad_user.txt"),
+                file = adUserFile,
                 header = FALSE,
                 sep = ";",
                 encoding = 'UTF-8',
@@ -251,8 +264,14 @@ getDbHandle <- function(omg,db = 'R') {
     if (is.null(glob.env$dbCred[[omg]]$handle)) {
         
         dbCred <- glob.env$dbCred
-        glob.env$dbCred[[omg]]$handle <- RODBC::odbcDriverConnect(paste0("DSN=",dbCred[[omg]]$dsn,";DATABASE=",db,";UID=",dbCred[[omg]]$user,";PWD=",dbCred[[omg]]$pwd))
+        handle <- RODBC::odbcDriverConnect(paste0("DSN=",dbCred[[omg]]$dsn,";DATABASE=",db,";UID=",dbCred[[omg]]$user,";PWD=",dbCred[[omg]]$pwd))
         
+        if (class(handle) != 'RODBC') {
+            warning(paste0('Failed to get dbHandle for omg = ', omg))
+            return(NULL)
+        }
+
+        glob.env$dbCred[[omg]]$handle <- handle
     }
     
     glob.env$dbCred[[omg]]$handle
@@ -352,49 +371,25 @@ authenticate <- function(session, sessionTimeout = 0) {
         return(TRUE)
     }
 
-    if(!shiny::serverInfo()[[1]]) {
-        user <- 'dev'
-        hash <- '123456'
-        ts <- 0
-    } else {
-        user <- ses$urlQuery$u
-        hash <- ses$urlQuery$h
-        ts <- ses$urlQuery$t
-    }
+    dashUser <- session$request[['HTTP_X_SP_USERID']]
+    dashGroups <- session$request[['HTTP_X_SP_USERGROUPS']]
 
-    omg <- glob.env$omgeving
-    sql <- paste0("exec R.dbo.check_hash '",user,"','",glob.env$dashboardName,"','",ts,"','",hash,"','",omg,"'")
-    res <- RODBC::sqlQuery(glob.env$dbCred[[omg]]$handle, sql)
+    (!is.null(dashUser) && substr(dashUser,1,1) == 'z') || stop('Invalid username')
 
-    if (res$status %in% c(3,4,5)) {
-        
-        if (is.na(res$redir) || res$redir == '') {
-            shinyjs::runjs(paste0('window.top.location.replace("',glob.env$portalUrl,'");'))
-        } else {
-            shinyjs::runjs(paste0('window.top.location.replace("',res$redir,'");'))
-        }
-        ses$authenticated <- FALSE
-        ses$dashUser <- 'dev'
-        ses$dashUserName <- 'dev'
-        ses$dashUserFunc <- 'ontwikkelaar'
-        return(FALSE)
-    }
-    
-    if (shiny::serverInfo()[[1]] && shiny::serverInfo()$edition != 'OS') {
-        ses$baseUrl <- shiny::isolate(paste0(
-            ses$cdata$url_protocol,'//',
-            ses$cdata$url_hostname,':',
-            ses$cdata$url_port,
-            '/boRedir?docId=',res$docid,'&server=',res$server))
-        
-        updateQueryString(paste0('/boRedir?docId=',res$docid,'&server=',res$server),'replace')
-    }
-    
     ses$authenticated <- TRUE
-    ses$dashUser <- user
-    adU <- glob.env$adUser[glob.env$adUser$usr == toupper(user),]
+    ses$dashUser <- dashUser
+    ses$dashGroups <- dashGroups
+    ses$schema <- session$request[['HTTP_X_FORWARDED_PROTO']]
+    ses$port <- session$request[['HTTP_X_FORWARDED_PORT']]
+    ses$server <- session$request[['HTTP_X_FORWARDED_SERVER']]
+    adU <- glob.env$adUser[glob.env$adUser$usr == toupper(dashUser),]
     ses$dashUserName = adU$naam
     ses$dashUserFunc = adU$functie
+
+    omg <- glob.env$omgeving
+    sql <- paste0("exec R.dbo.log_dash '",dashUser,"','",glob.env$dashboardName,"','",dashGroups,"'")
+    res <- RODBC::sqlQuery(glob.env$dbCred[[omg]]$handle, sql)
+
     return(TRUE)
 
 }

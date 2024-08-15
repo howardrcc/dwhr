@@ -960,7 +960,7 @@ dwhrMerge <- function(cumDT,incDT,keyCols,noDeletes = TRUE) {
 #'
 #' @export
 #' 
-latexEscape <- function(paragraph) {
+latexEscape <- function(paragraph, replaceNewline = TRUE) {
     
     # Replace a \ with $\backslash$
     # This is made more complicated because the dollars will be escaped
@@ -997,8 +997,11 @@ latexEscape <- function(paragraph) {
     paragraph <- gsub('\\|','\\\\textbar ',paragraph)
     
     # replace \n 
-    
-    paragraph <- gsub('\\n','\\\\newline ',paragraph)
+
+    if (replaceNewline) {
+        paragraph <- gsub('\\n','\\\\newline ',paragraph)
+    }
+
     paragraph;
 }
 
