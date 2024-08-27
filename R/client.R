@@ -374,10 +374,10 @@ authenticate <- function(session, sessionTimeout = 0) {
     dashUser <- session$request[['HTTP_X_SP_USERID']]
     dashGroups <- session$request[['HTTP_X_SP_USERGROUPS']]
 
-    (!is.null(dashUser) && substr(dashUser,1,1) == 'z') || stop('Invalid username')
+    (!is.null(dashUser) && substr(dashUser,1,1) %in% c('z','Z')) || stop('Invalid username')
 
     ses$authenticated <- TRUE
-    ses$dashUser <- dashUser
+    ses$dashUser <- tolower(dashUser)
     ses$dashGroups <- dashGroups
     ses$schema <- session$request[['HTTP_X_FORWARDED_PROTO']]
     ses$port <- session$request[['HTTP_X_FORWARDED_PORT']]
