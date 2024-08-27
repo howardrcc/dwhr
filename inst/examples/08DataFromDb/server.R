@@ -5,7 +5,7 @@ library(RODBC)
 
 # laden data
 
-dbh <- getDbHandle('PRD')
+dbh <- getDbHandle(glob.env$omgeving)
 
 per <- sqlQuery(channel = dbh, query = 
 'select

@@ -2469,7 +2469,7 @@ navigate <- function(env, dim, level, parent, gparent = NULL,levelChange = TRUE)
 #'
 #' @export
 #'
-runExampleDwhr <- function (example = NA, port = NULL, launch.browser = getOption("shiny.launch.browser", interactive()),
+runExampleDwhr <- function (example = NA, omgeving = NULL, port = NULL, launch.browser = getOption("shiny.launch.browser", interactive()),
                         host = getOption("shiny.host", "127.0.0.1"), 
                         display.mode = c("auto", "normal", "showcase")) {
     
@@ -2488,6 +2488,9 @@ runExampleDwhr <- function (example = NA, port = NULL, launch.browser = getOptio
         errFun(errMsg, "Valid examples are '", paste(list.files(examplesDir), collapse = "', '"), "'")
     }
     else {
+        if (!is.null(omgeving)) {
+            .GlobalEnv$omgeving <- omgeving
+        }
         shiny::runApp(dir, port = port, host = host, launch.browser = launch.browser, 
                display.mode = display.mode)
     }
