@@ -268,7 +268,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
                 stmt <- paste0(stmt, '[', dkey,' %in% env$',d,'Ids]')
             }
         }
-        
+
         if (env$factCaching) {
             condHash <- digest::digest(condition,'md5')
             
@@ -302,7 +302,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
             }
         } else {
             if (lvl > 1) {
-                tmp <- tmp[data.table::data.table(data)[eval(expr = parse(text = parentFilter))], on = keyColumn, nomatch=0]
+                tmp <- tmp[data.table::data.table(data)[eval(expr = parse(text = parentFilter))], on = keyColumn, nomatch=0,allow.cartesian = TRUE]
             } else {
                 tmp <- tmp[data.table::data.table(data), on = keyColumn, nomatch=0,allow.cartesian=TRUE]
             }
