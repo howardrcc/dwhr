@@ -612,6 +612,12 @@ shinyjs.hcSetHeight = function(params) {
     
 }
 
+shinyjs.stopProxy = function(params) {
+    proxyId = params.proxyId;
+    
+    shinyProxy.api.changeProxyStatus(proxyId,'Stopping');
+}
+
 resetUnblock = function(e,opts) {
     // ivm conflict tussen blockui en introjs
     $(e).css("position","")  

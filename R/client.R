@@ -30,7 +30,8 @@ dwhrInit <- function() {
                           'searchDT',
                           'updateDT',
                           'init',
-                          'hcSetHeight'))
+                          'hcSetHeight',
+                          'stopProxy'))
         ,
         
         # Loading message
@@ -324,7 +325,7 @@ authenticate <- function(session, sessionTimeout = 0) {
 
     # session timeout observer
 
-    if (sessionTimeout > 0) {
+    if (sessionTimeout > 0 && glob.env$securityModel == 'shinyproxy') {
         
         shinyjs::runjs(paste0("function idleTimer() {
                 var t = setTimeout(logout, ", 1000 *  sessionTimeout,");
@@ -333,9 +334,14 @@ authenticate <- function(session, sessionTimeout = 0) {
                 window.onclick = resetTimer;     // catches mouse clicks
                 window.onscroll = resetTimer;    // catches scrolling
                 window.onkeypress = resetTimer;  //catches keyboard actions
+                window.onFocus = resetTimer; 
 
                 function logout() {
-                    Shiny.setInputValue('timeOut', '", sessionTimeout,"s')
+                    if (document.hasFocus()) {
+                        Shiny.setInputValue('timeOut', '", sessionTimeout,"s');
+                    } else {
+                        resetTimer();
+                    }
                 }
 
                 function resetTimer() {
@@ -347,11 +353,7 @@ authenticate <- function(session, sessionTimeout = 0) {
 
         observeEvent(session$input$timeOut, { 
             print(paste0("Session (", session$token, ") timed out at: ", Sys.time()))
-            showModal(modalDialog(
-              title = "Timeout",
-              paste("Session timeout due to", session$input$timeOut, "inactivity -", Sys.time()),
-              footer = NULL
-            ))
+            shinyjs::js$stopProxy(proxyId = session$request[['HTTP_PROXYID']])
             session$close()
         })
     }
