@@ -389,8 +389,11 @@ authenticate <- function(session, sessionTimeout = 0) {
     ses$dashUserFunc = adU$functie
 
     omg <- glob.env$omgeving
-    sql <- paste0("exec R.dbo.log_dash '",dashUser,"','",glob.env$dashboardName,"','",dashGroups,"'")
-    res <- RODBC::sqlQuery(glob.env$dbCred[[omg]]$handle, sql)
+
+    if (omg != 'NONE') {
+        sql <- paste0("exec R.dbo.log_dash '",dashUser,"','",glob.env$dashboardName,"','",dashGroups,"'")
+        res <- RODBC::sqlQuery(glob.env$dbCred[[omg]]$handle, sql)
+    }
 
     return(TRUE)
 
