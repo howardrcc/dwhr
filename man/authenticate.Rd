@@ -4,7 +4,7 @@
 \alias{authenticate}
 \title{authenticate dwhr session.}
 \usage{
-authenticate(session)
+authenticate(session, sessionTimeout = 0)
 }
 \value{
 als geauthenticiteerd dan TRUE ander FALSE.

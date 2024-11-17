@@ -42,7 +42,7 @@ isAuthenticated <- function(session) {
 
 
 domains <- list(
-    aggregateFun = c('sum','dcount','median','mean','min','max','custom'),
+    aggregateFun = c('sum','dcount','count','median','mean','min','max','custom'),
     format = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3'),
     ordering = c('HL','LH','asc','desc'),
     presType = c('dataTable','highCharts','radioButton','selectInput','dateRangeInput','rangeSliderInput'),
@@ -52,7 +52,7 @@ domains <- list(
     dataTableMeasures = c('colorBarColor1','colorBarColor2','viewColumn','format', 'orderable',
                           'bgStyle','fgStyle','width','fontWeight','align','cursor','visible','print','tooltip','sparkOpts'),
     dataTableStyle = c('cuts','levels','values','valueColumn'),
-    dataTableFormats = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3','hidden','paperclip','sparkline'),
+    dataTableFormats = c('standard','integer','euro','euro2','keuro','perc','perc1','perc2','decimal1','decimal2','decimal3','hidden','paperclip','cog','wrench','sparkline'),
     fontWeight = c('bold','normal'),
     highChartsOpts = c('type', 'rangeSelector','chart','tooltip','xAxis', 'yAxis', 'legend', 'series', 'plotOptions', 'title','dashboard','pane','navigator','exporting'),
     simpleOpts = c('inline'),
@@ -268,7 +268,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
                 stmt <- paste0(stmt, '[', dkey,' %in% env$',d,'Ids]')
             }
         }
-        
+
         if (env$factCaching) {
             condHash <- digest::digest(condition,'md5')
             
@@ -302,7 +302,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
             }
         } else {
             if (lvl > 1) {
-                tmp <- tmp[data.table::data.table(data)[eval(expr = parse(text = parentFilter))], on = keyColumn, nomatch=0]
+                tmp <- tmp[data.table::data.table(data)[eval(expr = parse(text = parentFilter))], on = keyColumn, nomatch=0,allow.cartesian = TRUE]
             } else {
                 tmp <- tmp[data.table::data.table(data), on = keyColumn, nomatch=0,allow.cartesian=TRUE]
             }
@@ -317,7 +317,14 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
         }
         
         if(cnt1 != 0 && cnt2 == 0 && !(adhoc)) {
-    
+   
+            if (parent == dd$rootLabel && lvl == 1) {
+                # Er gaat iets serieus mis. Ook als we al op het hoogste nivo zitten voor deze dimensie is er,
+                # gegeven de andere filters op andere dimensie, geen fact data.
+
+                stop('parent not found, check foreignkeys')
+            }
+
             parent = dd$rootLabel
             lvl = 1
 
@@ -325,7 +332,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
             dd$level <- lvl
             dd$parent <- parent
             dd$ancestors <- c('',parent)
-            dd$reactive$levelChange <- dd$reactive$levelChange + 1
+            #dd$reactive$levelChange <- dd$reactive$levelChange + 1
 
             printDebug(env = env, dim, eventIn = 'getMembers', eventOut = 'levelChange', info = 'parent not found')
 
@@ -354,7 +361,11 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
                 if(fun == 'dcount') {
                     measFun <- paste0(measFun,"length(unique(na.omit(",factColumn,")))")
                 }
-
+                
+                if (fun == 'count') {
+                    measFun <- paste0(measFun,"length(",factColumn,")")
+                }
+                
                 if (fun == 'sum') {
                     measFun <- paste0(measFun,"sum(",factColumn,",",narm,")")
                 }
@@ -402,7 +413,7 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
             
         } else {
             
-            if (ignoreParent) {
+            if (ignoreParent || lvl == 1) {
                 parentFilter <- '1 == 1'
             } else {
                 parentFilter <- paste0('level', lvl - 1, 'Label == parent')
@@ -434,7 +445,8 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
                                   eval(expr = parse(text = measFun)),
                                   by = eval(expr = parse(text = byText))]
                 }
-                
+                names(footer) <- c('member',measCols)
+                footer$member <- as.character(footer$member)
             }
         }
 
@@ -482,19 +494,6 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
 
             environment(e[[fun]]) <- e  # set the parent env for userFunc
                 
-            if(lvl %in% dd$footerLevels) {
-                e$type <- 'footer'
-                e$df <- footer
-                ftr <- do.call(what = fun, args = list(),  envir = e)
-                if (is.vector(ftr) && length(ftr) == 1) {
-                    footer[[vc]] <- ftr
-                } else {
-                    warning(paste0('userFunc: ', fun, ' has invalid footer length'))
-                    footer[[vc]] <- 0
-                }
-                e$footer <- footer
-            }
-            
             e$type <- 'body'
             e$df <- body
             
@@ -504,6 +503,20 @@ getMembers <- function(env, dim, level = NULL, parent = NULL, altData = NULL) {
             } else {
                 warning(paste0('userFunc: ', fun, ' has invalid body length'))
                 body[[vc]] <- 0
+            }
+            
+            if(lvl %in% dd$footerLevels) {
+              e$type <- 'footer'
+              e$df <- footer
+              e$body <- body
+              ftr <- do.call(what = fun, args = list(),  envir = e)
+              if (is.vector(ftr) && length(ftr) == 1) {
+                footer[[vc]] <- ftr
+              } else {
+                warning(paste0('userFunc: ', fun, ' has invalid footer length'))
+                footer[[vc]] <- 0
+              }
+              e$footer <- footer
             }
         }
         
@@ -762,14 +775,14 @@ getColors <- function(dt,pal,trans,domain = NULL,labels = NULL) {
         
         if (length(pal) == 1 && pal %in% rownames(palInfo)) {
             
-            if (!is.null(domain) && !is.null(labels) && pal %in% rownames(palInfo[palInfo$category != 'seq',])) {
+            if (!is.null(domain) && !is.null(labels) && pal %in% rownames(palInfo[!palInfo$category %in% c('seq','div'),])) {
                 
                 colors <- scales::col_factor(pal, domain = domain)(labels)
                 reverse <- FALSE
                 
             } else {
                 
-                if (pal %in% rownames(palInfo[palInfo$category == 'seq',])) {
+                if (pal %in% rownames(palInfo[!palInfo$category %in% c('seq','div'),])) {
                     
                     if(!is.null(trans) && trans == 'log2') {
                         dt[dt <= 0] <- NA
@@ -799,7 +812,7 @@ getColors <- function(dt,pal,trans,domain = NULL,labels = NULL) {
 
 getFirstRow <- function(env,dim,tab) {
     firstRow <- 1
-    
+   
     dd <- env$dims[[dim]]
 
     lvl <- dd$level
@@ -809,10 +822,9 @@ getFirstRow <- function(env,dim,tab) {
     meas <- getMeasList(env,dim)
     sortColumn <- meas$viewColumn[grepl('*_sort',meas$viewColumn)]
 
-    nm <- ''
     nm <- dd$rowLastAccessed$value[dd$rowLastAccessed$level == lvl]
 
-    if (nm == '') {
+    if (length(nm) == 0) {
         firstRow <- 1
     } else {
         if (length(sortColumn) > 0) {
@@ -948,7 +960,7 @@ dwhrMerge <- function(cumDT,incDT,keyCols,noDeletes = TRUE) {
 #'
 #' @export
 #' 
-latexEscape <- function(paragraph) {
+latexEscape <- function(paragraph, replaceNewline = TRUE) {
     
     # Replace a \ with $\backslash$
     # This is made more complicated because the dollars will be escaped
@@ -985,8 +997,11 @@ latexEscape <- function(paragraph) {
     paragraph <- gsub('\\|','\\\\textbar ',paragraph)
     
     # replace \n 
-    
-    paragraph <- gsub('\\n','\\\\newline ',paragraph)
+
+    if (replaceNewline) {
+        paragraph <- gsub('\\n','\\\\newline ',paragraph)
+    }
+
     paragraph;
 }
 

@@ -14,7 +14,7 @@ per <- read.csv(
     stringsAsFactors = FALSE)
 
 facts <- data.frame(
-    maandId = as.integer(round(runif(10000,min(per$maandId),max(per$maandId)),0)),
+    maandId = per$maandId[as.integer(round(runif(10000,1,nrow(per))))],
     num1 = -150  + runif(10000,100,200))
 
 function(input, output, session) {
@@ -62,7 +62,7 @@ function(input, output, session) {
                     list(viewColumn = 'xyz',
                          colorBarColor1 = '#e5c0cb'),
                     list(viewColumn = 'abc',
-                         format = 'hidden',
+           #              format = 'hidden',
                          bgStyle = list(
                              cuts = c(0),
                              values = c('pink','lightseagreen'),

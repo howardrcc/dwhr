@@ -48,10 +48,13 @@ addDimView(
 \itemize{
   \item De eerste kolom is de sleutel van de dimensie. Deze sleutel wordt gebruikt om een join te leggen met een 
   kolom met \strong{dezelfde} naam in de feiten-tabel. Als voor het sterschema-object \code{env}  geldt dat \code{env$foreignKeyCheck == TRUE} 
-  dan wordt een foreignkey-check uitgevoerd en als dit fouten oplevert worden de eerste 10 verschillende foute id's getoond.
-  \item er *moet* een kolom zijn met de naam level1Label, Dit is de kolom met het laagste nivo aan details (meest geaggregeerd). Minder gegaggregeerde
+  dan wordt een foreignkey-check uitgevoerd en als dit fouten oplevert worden de eerste 10 verschillende foute id's getoond en wordt het dashboard afgesloten. Bij
+  \code{env$foreignKeyCheck == FALSE} worden alleen de foute id's getoond als warning.
+  \item Er *moet* een kolom zijn met de naam level1Label, Dit is de kolom met het laagste nivo aan details (meest geaggregeerd). Minder gegaggregeerde
   (hogere) nivo's krijgen corresponderende namen: level2Label, level3Label etc. Top level0Label wordt automatisch toegevoegd en hoort niet 
-  in het data.frame te zitten.}}
+  in het data.frame te zitten.
+  \item Optioneel zijn level?Code kolommen. Deze kolommen kunnen dan worden gebruikt voor sorterting. Zie orderBy. Als level?Code niet gegeven is wordt de level?Code
+  kolom gevuld met level?Label.}}
 
 \item{levelNames}{character, vector van level-namen beginnend met de naam van het top-level. Deze level-namen worden getoond in de UI (in het kruimel-pad
 en als getoonde kolomnaam van de dimView).}
@@ -109,6 +112,9 @@ outer join tussen dimensie en feiten-tabel.}
 \item{keepUnused}{boolean, als TRUE: niet gebruikte records in data (geen facts) worden niet opgeschoond, default TRUE.}
 
 \item{na.rm}{boolean, als TRUE worden NA values verwijderd voor het uitvoeren van de aggregatie-functie.}
+
+\item{orderBy}{string, mogelijke waarden: 'name' (default) of 'key'. Als orderby == 'name' dan vindt de sortering plaats op de naam kolom (level?Label), 
+bij orderby == 'key' wordt er gesorteerd via de level?Code.}
 
 \item{selectableLevels}{integer, bepaalt welke nivo's van de dimView selecteerbaar zijn, staat standaard op alle nivo's.}
 

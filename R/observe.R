@@ -32,14 +32,15 @@ startObserversData <- function(env,dim) {
                     dms <- dd$childDims
 
                 for (d in dms) {
+                    ddd <- env$dims[[d]]
 
-                    if (env$dims[[d]]$level != dd$level) {
+                    if (isNull(ddd$syncNav,FALSE) && ddd$level != dd$level) {
 
-                        env$dims[[d]]$prevLevel <- env$dims[[d]]$level
-                        env$dims[[d]]$level <- dd$level
-                        env$dims[[d]]$parent <- dd$parent
-                        env$dims[[d]]$ancestors <- dd$ancestors
-                        env$dims[[d]]$reactive$levelChange <- env$dims[[d]]$reactive$levelChange + 1
+                        ddd$prevLevel <- ddd$level
+                        ddd$level <- dd$level
+                        ddd$parent <- dd$parent
+                        ddd$ancestors <- dd$ancestors
+                        ddd$reactive$levelChange <- ddd$reactive$levelChange + 1
                         printDebug(env = env, d, eventIn = 'levelChangeSync', eventOut = 'levelChange')
                     }
 
@@ -79,15 +80,16 @@ startObserversData <- function(env,dim) {
                     dms <- dd$childDims
 
                 for (d in dms) {
+                    ddd <- env$dims[[d]]
 
-                    if (env$dims[[d]]$orderColumn != orderColumn || env$dims[[d]]$orderColumnDir != orderColumnDir) {
+                    if (isNull(ddd$syncNav,FALSE) && (ddd$orderColumn != orderColumn || ddd$orderColumnDir != orderColumnDir)) {
 
-                        env$dims[[d]]$orderColumn <- orderColumn
-                        env$dims[[d]]$orderViewColumn <- orderViewColumn
-                        env$dims[[d]]$orderViewColumn2 <- orderViewColumn2
-                        env$dims[[d]]$orderColumnDir <- orderColumnDir
-                        env$dims[[d]]$goToPage <- 1
-                        env$dims[[d]]$reactive$dimRefresh <- env$dims[[d]]$reactive$dimRefresh + 1
+                        ddd$orderColumn <- orderColumn
+                        ddd$orderViewColumn <- orderViewColumn
+                        ddd$orderViewColumn2 <- orderViewColumn2
+                        ddd$orderColumnDir <- orderColumnDir
+                        ddd$goToPage <- 1
+                        ddd$reactive$dimRefresh <- ddd$reactive$dimRefresh + 1
                         printDebug(env = env, d, eventIn = 'orderChangeSync', eventOut = 'dimRefresh')
                     }
 
@@ -120,10 +122,11 @@ startObserversData <- function(env,dim) {
                     dms <- dd$childDims
 
                 for (d in dms) {
+                    ddd <- env$dims[[d]]
 
-                    if (env$dims[[d]]$currentPage != dd$currentPage) {
-                        env$dims[[d]]$goToPage <- dd$currentPage
-                        env$dims[[d]]$reactive$dimRefresh <- env$dims[[d]]$reactive$dimRefresh + 1
+                    if (isNull(ddd$syncNav,FALSE) && ddd$currentPage != dd$currentPage) {
+                        ddd$goToPage <- dd$currentPage
+                        ddd$reactive$dimRefresh <- ddd$reactive$dimRefresh + 1
                         printDebug(env = env, d, eventIn = 'pageChangeSync', eventOut = 'dimRefresh')
                     }
 
@@ -156,11 +159,12 @@ startObserversData <- function(env,dim) {
                     dms <- dd$childDims
 
                 for (d in dms) {
+                    ddd <- env$dims[[d]]
 
-                    if (isNull(env$dims[[d]]$pageLength,0) != isNull(dd$pageLength,0)) {
-                        env$dims[[d]]$pageLength <- dd$pageLength
-                        env$dims[[d]]$goToPage <- dd$currentPage
-                        env$dims[[d]]$reactive$dimRefresh <- env$dims[[d]]$reactive$dimRefresh + 1
+                    if (isNull(ddd$syncNav,FALSE) && isNull(ddd$pageLength,0) != isNull(dd$pageLength,0)) {
+                        ddd$pageLength <- dd$pageLength
+                        ddd$goToPage <- dd$currentPage
+                        ddd$reactive$dimRefresh <- ddd$reactive$dimRefresh + 1
                         printDebug(env = env, d, eventIn = 'pageLengthChangeSync', eventOut = 'dimRefresh')
                     }
 

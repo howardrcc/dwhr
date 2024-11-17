@@ -12,7 +12,27 @@ dwhrInit <- function() {
     shiny::tagList(
         #shinyjqui::includeJqueryUI(),
         shinyjs::useShinyjs(),
-        shinyjs::extendShinyjs(script = system.file('www/starExtend.js', package = 'dwhr')),
+        shinyjs::extendShinyjs(
+            script = 'dwhRs/starExtend.js',
+            functions = c('dumpToConsole',
+                          'updateTitle',
+                          'updateSeriesData',
+                          'updateSeriesOpts',
+                          'updateXAxis',
+                          'updateYAxis',
+                          'updateXPlotBands',
+                          'redraw',
+                          'blockUI',
+                          'tooltip',
+                          'popover',
+                          'hideDim',
+                          'showDim',
+                          'searchDT',
+                          'updateDT',
+                          'init',
+                          'hcSetHeight',
+                          'stopProxy'))
+        ,
         
         # Loading message
 
@@ -124,8 +144,21 @@ initGlob <- function() {
             }
         }
         
-        isDefinedGlobal('securityModel','none')
-        isDefinedGlobal('omgeving','ACC')
+        glob.env$securityModel <- 'none'
+        shinyProxy <- Sys.getenv('SHINYPROXY')
+        rHome <- Sys.getenv('R_PROJECT_HOME')
+
+        if (rHome == '') 
+            rHome = paste0(getwd(),'/..')
+
+        if (shinyProxy != '') {
+            shinyProxy %in% c('PRD','ACC','LOCAL','NONE') || stop('Invalid value Environment variable SHINYPROXY') 
+            isDefinedGlobal('omgeving',shinyProxy)
+            glob.env$securityModel <- 'shinyproxy'
+        } else {
+            isDefinedGlobal('omgeving','NONE')
+        }
+
         isDefinedGlobal('debug',FALSE)
         isDefinedGlobal('debugDims',NULL)
         isDefinedGlobal('debugDumpReactive',FALSE)
@@ -138,27 +171,27 @@ initGlob <- function() {
         glob.env$dimUiIds <- c()
         glob.env$globalCache <- list()
         glob.env$reservedColumnPatterns <- c('*_fc','*_org','*_tooltip','*_text','*_sort')
+        glob.env$rHome <- rHome
         
-        glob.env$securityModel %in% c('none','proxy') || stop('Invalid securityModel')
         glob.env$restart <- FALSE
         
         # account data
         
-        credFile <- paste0(getwd(),'/data/dbCred.rds')
+        credFile <- paste0(rHome,'/admin/data/dbCred.rds')
         
-        if (glob.env$securityModel == 'proxy') {
+        if (glob.env$omgeving != 'NONE') {
             
-            if (is.na(file.info(credFile)$mtime)) {
-                
-                stop(paste0('credentials file: ', credFile, ' not found'))
-            }
+            is.na(file.info(credFile)$mtime) && stop(paste0('credentials file: ', credFile, ' not found'))
             
             dbCred <- readRDS(credFile)
-            
             omg <- glob.env$omgeving
+            omg %in% names(dbCred) || stop(paste0(omg,'  missing in dbCred file'))  
             
             sql <- paste0("exec R.dbo.get_startpunt '",omg,"'")
             handle <- RODBC::odbcDriverConnect(paste0("DSN=",dbCred[[omg]]$dsn,";DATABASE=R;UID=",dbCred[[omg]]$user,";PWD=",dbCred[[omg]]$pwd))
+            
+            assert_is_all_of(handle,'RODBC')
+
             glob.env$portalUrl <- RODBC::sqlQuery(handle, sql)$startpunt
     
             glob.env$dbCred <- dbCred
@@ -175,12 +208,12 @@ initGlob <- function() {
         }
         
      
-        adUserFile <- paste0(getwd(),"/../data/userInfo/ds_ad_user.txt")
+        adUserFile <- paste0(rHome,"/admin/data/ds_ad_user.txt")
         
         if (file.exists(adUserFile)) {
             
             glob.env$adUser <- as.data.table(read.csv(  
-                file = paste0(getwd(),"/../data/userInfo/ds_ad_user.txt"),
+                file = adUserFile,
                 header = FALSE,
                 sep = ";",
                 encoding = 'UTF-8',
@@ -212,23 +245,34 @@ initGlob <- function() {
 #' zijn in de data directory van de shiny app.
 #' 
 #' @param omg string, naam van te benaderen omgeving.
+#' @param db string, database naam, default R.
 #' 
 #' @return database-handle 
 #' @export
-getDbHandle <- function(omg) {
+getDbHandle <- function(omg,db = 'R') {
     
     assert_is_a_string(omg)
+    assert_is_a_string(db)
+    
+    if (!exists('glob.env')) 
+        stop('glob.env does not exist. Run dwhrInit()?')
     
     if (is.null(glob.env$dbCred))
-        return()
+        stop('No credentials')
     
     omg %in% names(glob.env$dbCred) || stop(paste0('No credentials for omg:', omg))
     
     if (is.null(glob.env$dbCred[[omg]]$handle)) {
         
         dbCred <- glob.env$dbCred
-        glob.env$dbCred[[omg]]$handle <- RODBC::odbcDriverConnect(paste0("DSN=",dbCred[[omg]]$dsn,";DATABASE=R;UID=",dbCred[[omg]]$user,";PWD=",dbCred[[omg]]$pwd))
+        handle <- RODBC::odbcDriverConnect(paste0("DSN=",dbCred[[omg]]$dsn,";DATABASE=",db,";UID=",dbCred[[omg]]$user,";PWD=",dbCred[[omg]]$pwd))
         
+        if (class(handle) != 'RODBC') {
+            warning(paste0('Failed to get dbHandle for omg = ', omg))
+            return(NULL)
+        }
+
+        glob.env$dbCred[[omg]]$handle <- handle
     }
     
     glob.env$dbCred[[omg]]$handle
@@ -242,9 +286,9 @@ getDbHandle <- function(omg) {
 #' 
 #' @return als geauthenticiteerd dan TRUE ander FALSE.
 #' @export
-authenticate <- function(session) {
+authenticate <- function(session, sessionTimeout = 0) {
     
-    'ShinySession' %in% class(session) || stop('session is not of class shinySession')
+    assert_is_all_of(session,'ShinySession')
     
     ce <- parent.frame() 
     
@@ -256,28 +300,64 @@ authenticate <- function(session) {
             do.call(paste0('sessionEndHook'),list(session = session),envir = ce)
         }
         
-        if (glob.env$sessionCount == 0 && !glob.env$restart) {
+#        if (glob.env$sessionCount == 0 && !glob.env$restart) {
+ 
+#           print('Closing ODBC connections')
+#           RODBC::odbcCloseAll()
 
-            print('Closing ODBC connections')
-            RODBC::odbcCloseAll()
+#           if (length(glob.env$globalCache) > 0) {
+#               saveRDS(glob.env$globalCache, getCacheFile())
+#           }
 
-            if (exists('globalCache', envir = glob.env)) {
-                saveRDS(glob.env$globalCache, getCacheFile())
-            }
-
-            rm(glob.env, envir = .GlobalEnv)
-            stopApp()
-        }
+#           rm(glob.env, envir = .GlobalEnv)
+#           stopApp()
+#       }
         
         glob.env$restart <- FALSE
         
     })
-    
+
     ses <- session$userData
     
     if (exists('authenticated', envir = ses))
         return(ses$authenticated)
-    
+
+
+    # session timeout observer
+
+    if (sessionTimeout > 0 && glob.env$securityModel == 'shinyproxy') {
+        
+        shinyjs::runjs(paste0("function idleTimer() {
+                var t = setTimeout(logout, ", 1000 *  sessionTimeout,");
+                window.onmousemove = resetTimer; // catches mouse movements
+                window.onmousedown = resetTimer; // catches mouse movements
+                window.onclick = resetTimer;     // catches mouse clicks
+                window.onscroll = resetTimer;    // catches scrolling
+                window.onkeypress = resetTimer;  //catches keyboard actions
+                window.onFocus = resetTimer; 
+
+                function logout() {
+                    if (document.hasFocus()) {
+                        Shiny.setInputValue('timeOut', '", sessionTimeout,"s');
+                    } else {
+                        resetTimer();
+                    }
+                }
+
+                function resetTimer() {
+                    clearTimeout(t);
+                    t = setTimeout(logout, ", 1000 * sessionTimeout,");  // time is in milliseconds (1000 is 1 second)
+                }
+            }
+            idleTimer();"))
+
+        observeEvent(session$input$timeOut, { 
+            print(paste0("Session (", session$token, ") timed out at: ", Sys.time()))
+            shinyjs::js$stopProxy(proxyId = session$request[['HTTP_PROXYID']])
+            session$close()
+        })
+    }
+
     ses$authenticated <- FALSE
     ses$cdata <- session$clientData
     ses$urlQuery <- parseQueryString(shiny::isolate(ses$cdata$url_search))
@@ -293,49 +373,28 @@ authenticate <- function(session) {
         return(TRUE)
     }
 
-    if(!shiny::serverInfo()[[1]]) {
-        user <- 'dev'
-        hash <- '123456'
-        ts <- 0
-    } else {
-        user <- ses$urlQuery$u
-        hash <- ses$urlQuery$h
-        ts <- ses$urlQuery$t
-    }
+    dashUser <- session$request[['HTTP_X_SP_USERID']]
+    dashGroups <- session$request[['HTTP_X_SP_USERGROUPS']]
 
-    omg <- glob.env$omgeving
-    sql <- paste0("exec R.dbo.check_hash '",user,"','",glob.env$dashboardName,"','",ts,"','",hash,"','",omg,"'")
-    res <- RODBC::sqlQuery(glob.env$dbCred[[omg]]$handle, sql)
+    (!is.null(dashUser) && substr(dashUser,1,1) %in% c('z','Z')) || stop('Invalid username')
 
-    if (res$status %in% c(3,4,5)) {
-        
-        if (is.na(res$redir) || res$redir == '') {
-            shinyjs::runjs(paste0('window.top.location.replace("',glob.env$portalUrl,'");'))
-        } else {
-            shinyjs::runjs(paste0('window.top.location.replace("',res$redir,'");'))
-        }
-        ses$authenticated <- FALSE
-        ses$dashUser <- 'dev'
-        ses$dashUserName <- 'dev'
-        ses$dashUserFunc <- 'ontwikkelaar'
-        return(FALSE)
-    }
-    
-    if (shiny::serverInfo()[[1]] && shiny::serverInfo()$edition != 'OS') {
-        ses$baseUrl <- shiny::isolate(paste0(
-            ses$cdata$url_protocol,'//',
-            ses$cdata$url_hostname,':',
-            ses$cdata$url_port,
-            '/boRedir?docId=',res$docid,'&server=',res$server))
-        
-        updateQueryString(paste0('/boRedir?docId=',res$docid,'&server=',res$server),'replace')
-    }
-    
     ses$authenticated <- TRUE
-    ses$dashUser <- user
-    adU <- glob.env$adUser[glob.env$adUser$usr == toupper(user),]
+    ses$dashUser <- tolower(dashUser)
+    ses$dashGroups <- dashGroups
+    ses$schema <- session$request[['HTTP_X_FORWARDED_PROTO']]
+    ses$port <- session$request[['HTTP_X_FORWARDED_PORT']]
+    ses$server <- session$request[['HTTP_X_FORWARDED_SERVER']]
+    adU <- glob.env$adUser[glob.env$adUser$usr == toupper(dashUser),]
     ses$dashUserName = adU$naam
     ses$dashUserFunc = adU$functie
+
+    omg <- glob.env$omgeving
+
+    if (omg != 'NONE') {
+        sql <- paste0("exec R.dbo.log_dash '",dashUser,"','",glob.env$dashboardName,"','",dashGroups,"'")
+        res <- RODBC::sqlQuery(glob.env$dbCred[[omg]]$handle, sql)
+    }
+
     return(TRUE)
 
 }

@@ -495,6 +495,17 @@ renderDims <- function(env,input,output) {
 
     }
     
+    output[['browser']] <- shiny::reactive({if ((glob.env$securityModel == 'shinyproxy')) {FALSE} else {TRUE}})
+    shiny::outputOptions(output, "browser", suspendWhenHidden = FALSE)  
+
+    shiny::observeEvent(input[['browser']],{
+      if (glob.env$securityModel == 'none') {
+        browser()
+      } else {
+        return()
+      }
+    })
+
     shinyjs::hide(id = "loading-content", anim = TRUE, animType = "fade",time = 2)
     env
 }

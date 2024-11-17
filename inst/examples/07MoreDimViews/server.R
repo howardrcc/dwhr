@@ -22,7 +22,7 @@ leeft$level1Code <- leeft$level1Label
 leeft$level2Code <- as.integer(leeft$leeftijd)
 
 facts <- data.frame(
-    maandId = as.integer(round(runif(10000,min(per$maandId),max(per$maandId)),0)),
+    maandId = per$maandId[as.integer(round(runif(10000,1,nrow(per))))],
     leeftijd = as.integer(round(runif(10000,0,100),0)),
     num1 = runif(10000,100,200))
 

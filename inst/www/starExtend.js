@@ -500,13 +500,38 @@ shinyjs.tooltip = function(params) {
 
 shinyjs.popover = function(params) {
     
-    if (params === null) {
-        trigger = 'hover';
-    } else {
-        trigger = params.trigger;
+    trigger = 'hover';
+    
+    if (params !== null) {
+        if (params.trigger !== null) {
+            trigger = params.trigger;
+        }
     }
     
-    $('[data-toggle="popover"]').popover({trigger: trigger, html: true, delay: {show: 200}});
+    if (trigger == 'manual') {
+        $('[data-toggle="popover"]').popover({
+            trigger: "manual",
+            html: true,
+            animation: false,
+            container: "body"
+        })  
+        .on("mouseenter", function() {
+            var _this = this;
+            $(this).popover("show");
+            $(".popover").on("mouseleave", function() {
+                $(_this).popover('hide');
+            });
+        }).on("mouseleave", function() {
+            var _this = this;
+            setTimeout(function() {
+                if (!$(".popover:hover").length) {
+                    $(_this).popover("hide");
+                }
+            }, 200);
+        });
+    } else {
+        $('[data-toggle="popover"]').popover({trigger: trigger, html: true, delay: {show: 200}});
+    }
 };
 
 shinyjs.hideDim = function(params) {
@@ -585,6 +610,12 @@ shinyjs.hcSetHeight = function(params) {
         chart.setSize(null,params.height,false);
     }
     
+}
+
+shinyjs.stopProxy = function(params) {
+    proxyId = params.proxyId;
+    
+    shinyProxy.api.changeProxyStatus(proxyId,'Stopping');
 }
 
 resetUnblock = function(e,opts) {

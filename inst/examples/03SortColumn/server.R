@@ -15,7 +15,7 @@ per$srt1 <- as.character(2018 - as.integer(per$level1Label))
 per$srt2 <- as.integer(round(runif(nrow(per),min(per$maandId),max(per$maandId)),0))
 
 facts <- data.frame(
-    maandId = as.integer(round(runif(10000,min(per$maandId),max(per$maandId)),0)),
+    maandId = per$maandId[as.integer(round(runif(10000,1,nrow(per))))],
     num1 = -150  + runif(10000,100,200))
 
 function(input, output, session) {

@@ -149,7 +149,7 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
             
             fmt <- measures$format[measures$viewColumn == vc]
             
-            if ('format' %in% names(measures) && !is.na(fmt) && fmt == 'sparkline') {
+            if ('format' %in% names(measures) && !all(is.na(fmt)) && fmt == 'sparkline') {
                 
                 if (isFooter)
                     df[,paste0(vc,'_fc')] <- ''
@@ -161,11 +161,11 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
                 
                 if (is.numeric(df[[vc]])) {
                     
-                    if(!is.na(formatRef)) {
+                    if(!all(is.na(formatRef))) {
                         
                         for (rw in row.names(df)) {
                             
-                            if ('format' %in% names(measures) && !is.na(fmt)) {  # overrule format
+                            if ('format' %in% names(measures) && !all(is.na(fmt))) {  # overrule format
                                 format <- fmt
                             } else {
                                 format <- df[rw,formatRef]
@@ -180,6 +180,8 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
                                 format,
                                 hidden = '',
                                 paperclip = ifelse(isFooter,'',as.character(shiny::icon('paperclip', lib = 'glyphicon'))),
+                                cog = ifelse(isFooter,'',as.character(shiny::icon('cog', lib = 'glyphicon'))),
+                                wrench = ifelse(isFooter,'',as.character(shiny::icon('wrench', lib = 'glyphicon'))),
                                 euro = paste0('\U20AC ', formatC(digits = 0, format = 'f', value, big.mark='.',decimal.mark = ',')),
                                 euro2 = paste0('\U20AC ', formatC(digits = 2, format = 'f', value, big.mark='.',decimal.mark = ',')),
                                 perc = paste0(formatC(digits = 0, format = 'f', value * 100, big.mark='.',decimal.mark = ','),' %'),
@@ -194,7 +196,7 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
                         
                     } else {
                         
-                        if ('format' %in% names(measures) && !is.na(fmt)) {  # overrule format
+                        if ('format' %in% names(measures) && !all(is.na(fmt))) {  # overrule format
                             format <- fmt
                         } else {
                             format <- meas$format[meas$viewColumn == vc]
@@ -207,6 +209,8 @@ addFormatting <- function(env,dim,df,measures,isFooter = FALSE) {
                             format,
                             hidden = '',
                             paperclip = ifelse(isFooter,'',as.character(shiny::icon('paperclip', lib = 'glyphicon'))),
+                            cog = ifelse(isFooter,'',as.character(shiny::icon('cog', lib = 'glyphicon'))),
+                            wrench = ifelse(isFooter,'',as.character(shiny::icon('wrench', lib = 'glyphicon'))),
                             euro = paste0('\U20AC ', formatC(digits = 0, format = 'f', df[[vc]], big.mark='.',decimal.mark = ',')),
                             euro2 = paste0('\U20AC ', formatC(digits = 2, format = 'f', df[[vc]], big.mark='.',decimal.mark = ',')),
                             perc = paste0(formatC(digits = 0, format = 'f', df[[vc]] * 100, big.mark='.',decimal.mark = ','),' %'),
@@ -283,9 +287,8 @@ makeDtWidget <- function(env,dim,prep) {
         DT::formatStyle(
             columns = 1,
             valueColumns = 'subsel',
-            backgroundColor = DT::styleEqual(c(1,0),c('lightGrey','white')),
+            color = DT::styleEqual(c(1,0),c('red','blue')),
             cursor = cursor,
-            color = color,
             fontWeight = 'bold')
     
     if (dd$type != 'output' && dd$selectMode != 'none' && dd$level %in% dd$selectableLevels) {
@@ -311,7 +314,7 @@ makeDtWidget <- function(env,dim,prep) {
             fontWeight <- isNa(isNull(meas$fontWeight[meas$as == fc],'normal'),'normal')
             cursor <- isNa(isNull(meas$cursor[meas$as == fc],'default'),'default')
             
-            if (length(color2) == 0 || is.na(color2)) {
+            if (length(color2) == 0 || all(is.na(color2))) {
                 
                 dt <- dt %>%
                     DT::formatStyle(
@@ -354,7 +357,7 @@ makeDtWidget <- function(env,dim,prep) {
             cursor <- isNa(isNull(meas$cursor[meas$as == fc],'default'),'default')
             valueColumn <- meas$bgStyle.valueColumn[meas$as == fc]
             
-            if(is.null(valueColumn) || is.na(valueColumn)) {
+            if(is.null(valueColumn) || all(is.na(valueColumn))) {
                 valueColumn <- paste0(fc,'_org')
             } else {
                 if (paste0(meas$as[meas$viewColumn == valueColumn],'_org') %in% names(prep$tab))
@@ -402,7 +405,7 @@ makeDtWidget <- function(env,dim,prep) {
             cursor <- isNa(isNull(meas$cursor[meas$as == fc],'default'),'default')
             valueColumn <- meas$fgStyle.valueColumn[meas$as == fc]
             
-            if(is.null(valueColumn) || is.na(valueColumn)) {
+            if(is.null(valueColumn) || all(is.na(valueColumn))) {
                 valueColumn <- paste0(fc,'_org')
             } else {
                 if (paste0(meas$as[meas$viewColumn == valueColumn],'_org') %in% names(prep$tab))
@@ -452,7 +455,7 @@ makeDtWidget <- function(env,dim,prep) {
 prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     dd <- env$dims[[dim]]
-    
+
     print <- isNull(print,isNull(dd$print,FALSE))
     presList <- dd$presList
     opts <- presList[[pres]]$dataTableOpts
@@ -545,7 +548,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
         }
 
     }
-    
+
     if (length(setdiff(measViewColNames,names(tab))) > 0) {
         stop('missende kolomnamen: ',paste0(setdiff(measViewColNames,names(tab)),collapse = ','))
     }
@@ -654,8 +657,8 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     if(dd$selectMode == 'none') {
         selection = list(mode = 'none')
     } else {
-        
-        if (!is.null(si) && !is.na(si) && nrow(si) > 1) {
+
+        if (!is.null(si) && !all(is.na(si)) && nrow(si) > 1) {
             selection = list(mode = 'multiple', target = 'cell', selected = si)
         } else {
             if(dd$selectMode == 'single') {
@@ -722,7 +725,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
 
     footer <- NA
     
-    if (nrow(tab) > 1 && lvl %in% dd$footerLevels && !is.na(isNull(altData$footer,dd$footer))) {
+    if (nrow(tab) > 1 && lvl %in% dd$footerLevels && !all(is.na(isNull(altData$footer,dd$footer)))) {
         
         # browser(expr = {dim == 'kpi'})
         footer <- addFormatting(env,dim,isNull(altData$footer,dd$footer),measures,TRUE)
@@ -921,6 +924,7 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     #     tab[,2] <- paste0('<span class = "underline-on-hover">',tab[,2],'</span>')
     # }
     # 
+    
    
     ret <- list(
         tab = tab,
@@ -1044,9 +1048,13 @@ renderDataTableDim <- function(env,dim,input,output) {
     cellsSelected = paste0(gdim,'Dim_cells_selected')
 
     shiny::observeEvent(input[[cellsSelected]], {
-
+   
         m <- input[[cellsSelected]]
 
+        if (all(is.na(m)) && nrow(m) > 0) {
+          return()
+        }
+        
         dd <- env$dims[[dim]]
         
         print('cells_selected')
@@ -1075,7 +1083,7 @@ renderDataTableDim <- function(env,dim,input,output) {
             rows <- m[m[,2] == 0,1]
 
             if (length(rows) == 1) {
-       
+   
                 if (env$dtPrep[[dim]]$tab[rows,1] != '+') {
                     # op lege kolom geklikt trigger een refresh
                     dd$reactive$dimRefresh <- dd$reactive$dimRefresh + 1
