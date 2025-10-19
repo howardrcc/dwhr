@@ -177,10 +177,8 @@ R CMD build .
 
 MIT License - see [LICENSE.md](LICENSE.md) for details
 
-## Authors
-
-Pieter Timmerman - Rest In Peaces old friend \
-Howard Ching Chung
+## In Memory of Pieter Timmerman
+This library is dedicated to the memory of Pieter Timmerman, a mentor who taught by example rather than instruction. When I was starting out, Pieter showed me what it meant to be a principled developer—someone who remained steadfast in their commitment to open source even as the tech world grew increasingly complex and corporate. He wasn't impressed by big tech; he was guided by his values. This project is open sourced in his honor, carrying forward the spirit of generosity and integrity he embodied. Thank you, Pieter, for being there.
 
 ## Version
 
