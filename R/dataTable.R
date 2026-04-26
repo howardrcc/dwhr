@@ -495,8 +495,6 @@ prepDt <- function(env,dim,pres,print = NULL,altData = NULL) {
     sparkOpts <- list()
     
     if ('format' %in% names(measures) && 'sparkline' %in% measures$format) {
-        require(sparkline)
-        
         hasSparkline <- TRUE
         sparklineCols <- measures$viewColumn[!is.na(measures$format) & measures$format == 'sparkline']
         for (slc in sparklineCols) {
