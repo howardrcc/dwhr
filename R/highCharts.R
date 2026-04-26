@@ -506,7 +506,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
             seriesList <- seriesOpts[[serieNum]]
             
             if (!is.null(seriesList[['color']])) {
-              if (length(pattern) > 0 && class(pattern) == 'character' && pattern == 'stripe1') {
+              if (length(pattern) > 0 && inherits(pattern, 'character') && pattern == 'stripe1') {
                 seriesList[['color']] <- list(
                   pattern = list(
                     path = list(
@@ -517,7 +517,7 @@ prepHc <- function(env, dim, pres, print = NULL) {
                     opacity = 1,
                     color = seriesList[['color']]))
               }
-              if (length(pattern) > 0 && class(pattern) == 'character' && pattern == 'stripe2') {
+              if (length(pattern) > 0 && inherits(pattern, 'character') && pattern == 'stripe2') {
                 seriesList[['color']] <- list(
                   pattern = list(
                     path = list(
@@ -1369,7 +1369,7 @@ processHighCharts <- function(env,dim,pres){
             
             printDebug(env, dim, eventIn = 'updateHighcharts', info = 'yAxisOpts')
             
-            if (class(names(l2)) == 'character') {
+            if (inherits(names(l2), 'character')) {
                 l1 <- list(l1)
                 l2 <- list(l2)
             }

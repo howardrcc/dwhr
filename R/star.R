@@ -1063,10 +1063,10 @@ sparkRelativeChange <- function(spark) {
 
 expandList <- function(env,l){
     lapply(l, function(x) {
-        if(class(x) == 'function')
+        if(inherits(x, 'function'))
             do.call(x,list(env = env)) 
         else 
-            if(class(x) == 'call')
+            if(inherits(x, 'call'))
                 eval(x,envir = env$ce)
         else 
             if(is.list(x)) 
