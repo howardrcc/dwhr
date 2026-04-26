@@ -67,16 +67,16 @@ dwhrInit <- function() {
 #' @export
 getDimUI <- function(starId, dim, skipTopRow = FALSE, maxHeight = NULL, overflowX = 'hidden', accordion = FALSE, checkDups = TRUE, bodyStyle = NULL ) {
     
-    assert_is_a_string(starId)
-    assert_is_a_string(dim)
-    assert_is_a_bool(skipTopRow)
-    assert_is_a_number(isNull(maxHeight,0))
+    assert_string(starId)
+    assert_string(dim)
+    assert_flag(skipTopRow)
+    assert_number(isNull(maxHeight,0))
     maxHeight <- as.integer(maxHeight)
-    assert_is_a_string(overflowX)
-    assert_is_subset(overflowX,domains[['cssOverflow']])
-    assert_is_a_bool(accordion)
-    assert_is_a_bool(checkDups)
-    assert_is_a_string(isNull(bodyStyle,''))
+    assert_string(overflowX)
+    assert_subset(overflowX,domains[['cssOverflow']])
+    assert_flag(accordion)
+    assert_flag(checkDups)
+    assert_string(isNull(bodyStyle,''))
     
     gdim <- getGlobalId(starId,dim)
     gdim %in% glob.env$dimUiIds && checkDups && stop('duplicate dims')    
@@ -190,7 +190,7 @@ initGlob <- function() {
             sql <- paste0("exec R.dbo.get_startpunt '",omg,"'")
             handle <- RODBC::odbcDriverConnect(paste0("DSN=",dbCred[[omg]]$dsn,";DATABASE=R;UID=",dbCred[[omg]]$user,";PWD=",dbCred[[omg]]$pwd))
             
-            assert_is_all_of(handle,'RODBC')
+            assert_class(handle,'RODBC')
 
             glob.env$portalUrl <- RODBC::sqlQuery(handle, sql)$startpunt
     
@@ -251,8 +251,8 @@ initGlob <- function() {
 #' @export
 getDbHandle <- function(omg,db = 'R') {
     
-    assert_is_a_string(omg)
-    assert_is_a_string(db)
+    assert_string(omg)
+    assert_string(db)
     
     if (!exists('glob.env')) 
         stop('glob.env does not exist. Run dwhrInit()?')
@@ -288,7 +288,7 @@ getDbHandle <- function(omg,db = 'R') {
 #' @export
 authenticate <- function(session, sessionTimeout = 0) {
     
-    assert_is_all_of(session,'ShinySession')
+    assert_class(session,'ShinySession')
     
     ce <- parent.frame() 
     
