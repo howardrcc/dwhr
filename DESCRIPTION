@@ -23,7 +23,6 @@ Depends:
 Imports:
     shiny (>= 1.0.4),
     shinyjs (>= 2.0),
-    shinyjqui (>= 0.3.2),
     data.table (>= 1.10.4-3),
     digest (>= 0.6.13),
     RODBC (>= 1.3-13),
@@ -32,5 +31,10 @@ Imports:
     highcharter (>= 0.5.0),
     rlist (>= 0.4.6.1),
     checkmate (>= 2.3.0),
-    sparkline (>= 2.0)
+    sparkline (>= 2.0),
+    magrittr (>= 1.5),
+    RColorBrewer,
+    htmltools,
+    htmlwidgets,
+    jsonlite
 RoxygenNote: 7.3.3

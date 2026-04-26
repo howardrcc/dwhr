@@ -913,7 +913,7 @@ addMeasure <- function(env, dim, factColumn, fun, as = factColumn, viewColumn = 
         sort <- .setSort(dd,length(as),sort)
         
         for (x in fun) {
-            x %in% domains[['aggregateFun']] || class(get(x, envir = env$ce)) == 'function' ||  stop(paste0(ddim, ': Invalid function'))
+            x %in% domains[['aggregateFun']] || inherits(get(x, envir = env$ce), 'function') ||  stop(paste0(ddim, ': Invalid function'))
         }
         
         length(fun) %in% c(1,length(factColumn)) || stop(paste0(ddim, ': Invalid length fun'))
@@ -1020,7 +1020,7 @@ addMeasureDerrived <- function(env, dim, userFunc, as, viewColumn = NULL, sort =
         levels <- .setLevels(dd,dim,levels)
         as <- .setAs(dd,levels,as)
         
-        all(unique(sapply(userFunc,function(x) class(get(x, envir = env$ce)))) == 'function') ||
+        all(vapply(userFunc, function(x) is.function(get(x, envir = env$ce)), logical(1))) ||
             stop(paste0(ddim, ': Invalid function'))
         
         sort <- .setSort(dd,length(as),sort)
@@ -1465,7 +1465,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
                     stop(paste0(ddim, ': Incorrect combination of measure opts'))
                 }
                 
-                if ('format' %in% names(x) && !is.function(x$format) && !(class(x$format) == 'call')) {
+                if ('format' %in% names(x) && !is.function(x$format) && !inherits(x$format, 'call')) {
                     assert_string(x$format)
                     assert_subset(x$format,domains[['dataTableFormats']])
                 }
@@ -1499,7 +1499,7 @@ addPresentation <- function(env, dim, uiId = dim, type, as, isDefault = FALSE, h
                 }
                 
                 if ('visible' %in% names(x)) {
-                    if(!checkmate::test_flag(x$visible) && !is.function(x$visible) && !(class(x$visible) == 'call'))
+                    if(!checkmate::test_flag(x$visible) && !is.function(x$visible) && !inherits(x$visible, 'call'))
                         assert_flag(x$visible)
                     dataTableOptsLocal$measures[[i]]$visible <- x$visible
                 } else {
@@ -2627,7 +2627,7 @@ setDtVisible <- function(env,dim,pres,viewColumn,visible) {
     all(viewColumn %in% presVc) || stop(paste0(dim, ': viewColumn invalid'))
     measNum <- which(presVc %in% viewColumn)
     
-    if(!checkmate::test_flag(visible) && !is.function(visible) && !(class(visible) == 'call'))
+    if(!checkmate::test_flag(visible) && !is.function(visible) && !inherits(visible, 'call'))
         assert_flag(visible)
 
     for (x in measNum)

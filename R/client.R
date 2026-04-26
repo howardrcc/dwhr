@@ -10,7 +10,6 @@ dwhrInit <- function() {
     shiny::addResourcePath('dwhRs',system.file('www', package = 'dwhr'))
     glob.env$dimUiIds <- c()
     shiny::tagList(
-        #shinyjqui::includeJqueryUI(),
         shinyjs::useShinyjs(),
         shinyjs::extendShinyjs(
             script = 'dwhRs/starExtend.js',
@@ -267,7 +266,7 @@ getDbHandle <- function(omg,db = 'R') {
         dbCred <- glob.env$dbCred
         handle <- RODBC::odbcDriverConnect(paste0("DSN=",dbCred[[omg]]$dsn,";DATABASE=",db,";UID=",dbCred[[omg]]$user,";PWD=",dbCred[[omg]]$pwd))
         
-        if (class(handle) != 'RODBC') {
+        if (!inherits(handle, 'RODBC')) {
             warning(paste0('Failed to get dbHandle for omg = ', omg))
             return(NULL)
         }
