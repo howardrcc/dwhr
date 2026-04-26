@@ -175,7 +175,27 @@ R CMD build .
 
 ## License
 
-MIT License - see [LICENSE.md](LICENSE.md) for details
+MIT License - see [LICENSE.md](LICENSE.md) for details.
+
+### Notice — Highcharts
+
+The `highCharts` presentation type is rendered via the
+[`highcharter`](https://github.com/jbkunst/highcharter) R package, which
+redistributes the Highcharts JavaScript library. **Highcharts is not free
+for commercial or governmental use.** It is dual-licensed: free under
+CC BY-NC 3.0 for non-commercial use, and a paid commercial license
+otherwise. See <https://www.highcharts.com/license>.
+
+`dwhr`'s MIT license neither provides nor implies a license for
+Highcharts. Anyone deploying `dwhr`-based dashboards in a commercial,
+internal-corporate, or governmental setting is responsible for obtaining
+their own Highcharts commercial license from
+[Highsoft](https://shop.highcharts.com).
+
+If a fully open-source charting stack is a hard requirement for your
+deployment, see [`docs/CHARTING-ALTERNATIVES.md`](docs/CHARTING-ALTERNATIVES.md)
+for an analysis of permissive-license alternatives (`echarts4r`, `plotly`,
+`billboarder`) and the migration cost.
 
 ## In Memory of Pieter Timmerman
 This library is dedicated to the memory of Pieter Timmerman, a mentor who taught by example rather than instruction. When I was starting out, Pieter showed me what it meant to be a principled developer—someone who remained steadfast in their commitment to open source even as the tech world grew increasingly complex and corporate. He wasn't impressed by big tech; he was guided by his values. This project is open sourced in his honor, carrying forward the spirit of generosity and integrity he embodied. Thank you, Pieter, for being there.

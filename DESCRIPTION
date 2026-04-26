@@ -12,7 +12,11 @@ Description: Provides a framework for building interactive Shiny dashboards
     from a facts table, dimension views, measures, and presentation
     specifications; the package handles the reactive plumbing between
     drillable hierarchical dimensions and DataTable, Highcharts, and form
-    control presentations.
+    control presentations. Note: the Highcharts presentation type is rendered
+    via the 'highcharter' package, which redistributes the Highcharts JS
+    library under its own license; commercial deployment of dashboards may
+    require a Highcharts commercial license — see
+    <https://www.highcharts.com/license>.
 License: MIT + file LICENSE
 URL: https://github.com/howardrcc/dwhr
 BugReports: https://github.com/howardrcc/dwhr/issues
