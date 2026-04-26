@@ -1,0 +1,185 @@
+# dwhr Modernization Spec
+
+Living document. Update the **Decision log** whenever a non-trivial choice is made or revised; keep the **Workstreams** section current as work lands.
+
+Status: **draft / pre-implementation** — agreed in conversation 2026-04-26, no code changes yet.
+
+---
+
+## 1. Goals
+
+1. Make `dwhr` install and `R CMD check --as-cran` clean on **R ≥ 4.4** with current CRAN versions of all dependencies.
+2. Replace the archived `assertive` dependency.
+3. Migrate the database layer off `RODBC` onto the modern DBI/`odbc` stack.
+4. Add a real test suite (`testthat`) and CI (GitHub Actions) so future upgrades are guard-railed.
+5. Submit to CRAN.
+
+## 2. Non-goals (this phase)
+
+- **Full Dutch → English translation** of roxygen blocks and user-facing strings. New/changed code is English; legacy strings are left until a dedicated i18n pass (see §9 TODO).
+- Refactoring the star-schema architecture, reactive model, or public concepts.
+- Performance work beyond what falls out of dependency upgrades.
+- New features or new presentation types.
+
+## 3. Target environment
+
+| | Current | Target |
+|---|---|---|
+| Minimum R | unspecified | **R ≥ 4.4** (declared in `Depends:`) |
+| Distribution | local install / GitHub | **CRAN** |
+| OS test matrix | none | macOS, Ubuntu, Windows × R-release + R-devel (CI) |
+| License field | `License: Whatever` | `License: MIT + file LICENSE` (CRAN form) |
+| Author field | `Author:` / `Maintainer:` legacy | `Authors@R = c(...)` |
+
+## 4. Dependency matrix
+
+| Package | Current pin | Action | Rationale |
+|---|---|---|---|
+| `shiny` | ≥ 1.0.4 | bump to current CRAN; audit `shiny::*` API | 1.0 is from 2017; many APIs changed |
+| `shinyjs` | ≥ 2.0 | retain, bump pin | actively maintained, low risk |
+| `shinyjqui` | ≥ 0.3.2 | bump pin, audit | NEWS 1.6.0 already mentions a prior round of fixes |
+| `data.table` | ≥ 1.10.4-3 | bump to current; check `setDT` semantics | core internal type |
+| `digest` | ≥ 0.6.13 | bump | trivial |
+| **`RODBC`** | ≥ 1.3-13 | **drop**, replace with `DBI` + `odbc` | see W3 |
+| `scales` | ≥ 0.5.0 | bump | trivial |
+| `DT` | ≥ 0.4 | bump, audit option keys | NEWS 1.6.0 mentions DT upgrade work |
+| `highcharter` | ≥ 0.5.0 | bump, audit options | NEWS 1.6.0 mentions highcharter upgrade work |
+| `rlist` | ≥ 0.4.6.1 | retain or drop if unused | grep before keeping |
+| **`assertive`** | ≥ 0.3-5 | **drop**, replace with `checkmate` | archived from CRAN |
+| `sparkline` | ≥ 2.0 | retain, bump | low risk |
+| **`checkmate`** | — | **add** | replacement for `assertive` |
+| **`DBI`** | — | **add** | replacement for `RODBC` |
+| **`odbc`** | — | **add** | replacement for `RODBC` |
+| **`testthat`** | — | **add** under `Suggests` | test suite |
+
+`Imports`/`Suggests`/`Depends` will be reset per CRAN best practices (no mass-`Depends`; `assertive`/`data.table` move to `Imports`).
+
+## 5. Workstreams
+
+Each workstream has acceptance criteria; tick them off as the work lands.
+
+### W1 — Build hygiene & metadata
+
+- [ ] `License: MIT + file LICENSE`; rename `LICENSE.md` → `LICENSE` in CRAN form (year + copyright holders + standard MIT text).
+- [ ] `Authors@R` populated:
+  ```r
+  Authors@R = c(
+    person("Pieter", "Timmerman", role = "aut",
+           comment = "original author, in memoriam"),
+    person("Howard", "Ching Chung", email = "howardchingchung@protonmail.com",
+           role = c("cre", "aut"))
+  )
+  ```
+- [ ] `Depends: R (>= 4.4)`.
+- [ ] `Description:` rewritten to a real CRAN-style paragraph (current is a one-line tautology).
+- [ ] `.Rbuildignore` covers `.git`, `.Rproj.user`, `*.Rproj`, `docs/`, `.github/`, `CLAUDE.md`, `.DS_Store`.
+- [ ] `inst/.DS_Store` and `.DS_Store` purged from the repo.
+
+### W2 — `assertive` → `checkmate`
+
+- [ ] Add `checkmate` to `Imports`.
+- [ ] Mechanical rename across R/ (script + manual review):
+  - `assert_is_a_string(x)` → `checkmate::assert_string(x)`
+  - `assert_is_a_bool(x)` → `checkmate::assert_flag(x)`
+  - `assert_is_data.frame(x)` → `checkmate::assert_data_frame(x)`
+  - `assert_is_all_of(x, "Cls")` → `checkmate::assert_class(x, "Cls")`
+- [ ] Spot-check 10 randomly sampled call sites for behavioral parity (especially error message wording, since some user code may grep on it).
+- [ ] Drop `assertive` from `Imports` and `Depends`.
+
+### W3 — `RODBC` → `DBI` + `odbc`
+
+**Plain-English context (re: your earlier question).** `RODBC` is a self-contained connector: `odbcDriverConnect()` returns an opaque `RODBC` handle that you pass to `sqlQuery()` / `sqlSave()`. The modern equivalent splits into two packages: `DBI` defines a generic interface (`dbConnect`, `dbGetQuery`, `dbWriteTable`, `dbExecute`), and `odbc` implements that interface for ODBC drivers. The handle returned by `dbConnect(odbc::odbc(), ...)` is a `DBI` connection — same role as the RODBC handle, but with a standard API shared by `RPostgres`, `RMariaDB`, `bigrquery`, etc. Net upside: standard interface, better error reporting, parameterized queries (safer), active maintenance. Net downside: minor public-API break in `getDbHandle()` (already approved); small example update.
+
+- [ ] Replace `RODBC::odbcDriverConnect(...)` with `DBI::dbConnect(odbc::odbc(), .connection_string = "...")` in `R/client.R` (3 sites).
+- [ ] Replace `RODBC::sqlQuery(...)` with `DBI::dbGetQuery(...)` (reads).
+- [ ] Add `DBI::dbExecute(...)` / `DBI::dbWriteTable(...)` patterns for the comment-writeback path. Use parameterized queries (`dbBind`/`dbExecute(... params = ...)`) — this is a **security improvement** over RODBC's string-concatenated SQL and should be called out in the migration notes.
+- [ ] Update `inst/examples/08DataFromDb` to use `DBI::dbGetQuery`.
+- [ ] Document the breaking change in `NEWS.md` with a 4-line "if you used `getDbHandle` directly, here's the new API" snippet.
+- [ ] Drop `RODBC` from `Imports`; add `DBI` and `odbc`.
+
+### W4 — Reverse-dependency API audit
+
+For each upgraded dep, grep for usage and confirm the call sites still work:
+
+- [ ] `shiny::*` — `reactiveValues`, `observeEvent`, `renderUI`, `addResourcePath` (used in `client.R`). All stable.
+- [ ] `DT::*` — option keys used in `dataTableOpts` (see `domains` in `R/star.R`); audit against current DT options.
+- [ ] `highcharter::*` — `domains$highChartsOpts`; audit against current highcharter API.
+- [ ] `shinyjs::extendShinyjs` signature — verify `script` + `functions` args still match.
+- [ ] `shinyjqui::*` — currently commented out (`#shinyjqui::includeJqueryUI()` in `client.R:14`); confirm it's actually still needed before keeping in `Imports`.
+- [ ] `rlist::*` — grep usage; drop if unused.
+
+### W5 — `testthat` scaffolding
+
+- [ ] `tests/testthat.R` + `tests/testthat/` skeleton.
+- [ ] Unit tests for the lowest-risk pure-ish helpers first:
+  - `domainCheck()` (R/star.R) — exhaustive coverage of allowed/rejected values per domain.
+  - `isNa()`, `isNull()`, `latexEscape()` — small surface, safe to lock down.
+  - Format helpers in `R/dwhr.R` (TBD: identify pure ones).
+- [ ] **Smoke tests** for each presentation type — load the example app, call `new.star() %>% addDimView() %>% ... %>% renderDims()` outside an interactive session using `shiny::testServer()`, assert no errors and that key reactive values update. Target: one smoke test per `presType` (`dataTable`, `highCharts`, `radioButton`/`selectInput`, `dateRangeInput`, `rangeSliderInput`).
+- [ ] Coverage target: not a hard %, but every public exported function called at least once.
+
+### W6 — GitHub Actions CI
+
+- [ ] `.github/workflows/R-CMD-check.yaml` using `r-lib/actions/setup-r@v2` + `r-lib/actions/check-r-package@v2`.
+- [ ] Matrix: `{macos-latest, ubuntu-latest, windows-latest} × {release, devel}`.
+- [ ] Upload check artifacts on failure.
+- [ ] Optional follow-up: `lint.yaml` (`lintr::lint_package`) and `test-coverage.yaml` (`covr` → codecov).
+
+### W7 — Roxygen / docs touch-up
+
+- [ ] All **new or modified** roxygen blocks written in English.
+- [ ] Legacy Dutch blocks left in place this phase (see §9 TODO).
+- [ ] `devtools::document()` regenerates `man/`; verify no `\href`/`\url` rot.
+- [ ] Add a top-level `?dwhr` package doc page (`R/dwhr-package.R`) since CRAN expects one.
+
+### W8 — CRAN check & submit
+
+- [ ] `R CMD check --as-cran` clean on local + CI matrix (0 errors / 0 warnings / 0 notes, or only the standard "new submission" note).
+- [ ] `urlchecker::url_check()` clean.
+- [ ] `devtools::spell_check()` reviewed.
+- [ ] `cran-comments.md` written.
+- [ ] Submit via `devtools::release()`.
+- [ ] Address reviewer feedback (expect 1–2 rounds for first submission).
+
+## 6. Acceptance criteria (definition of done)
+
+- `R CMD check --as-cran` passes on macOS / Ubuntu / Windows × R-release / R-devel in CI.
+- No dependency on `assertive` or `RODBC`.
+- `testthat` suite present and green; covers all five `presType` values via smoke tests.
+- `DESCRIPTION`, `LICENSE`, `NAMESPACE`, `man/` all CRAN-conformant.
+- Package accepted on CRAN (or submitted and pending review).
+
+## 7. Risks & open questions
+
+- **Reactive-context tests:** `shiny::testServer()` may not cover everything `dwhrInit()` does (it injects JS via `shinyjs::extendShinyjs`). If smoke tests can't exercise the rendering path headlessly, fall back to: (a) sourcing example apps with `shinytest2`, or (b) accepting that JS-side behavior stays manually verified.
+- **`odbc` driver availability in CI.** RODBC migration tests need an ODBC driver. Plan: gate DB tests with `skip_if_not_installed("odbc")` and `skip_on_cran()`; do not require a live DB on CRAN's check farm.
+- **`shinyjqui` necessity.** If grep shows no live usage, dropping the dep simplifies CRAN review.
+- **`magrittr` pipe vs base `|>`.** Examples use `%>%`. Current pin is implicit via `data.table`/`shiny`. Decision: keep `%>%` to avoid touching every example; do not migrate to `|>` in this phase.
+
+## 8. Decision log
+
+Append-only. New entries on top.
+
+| Date | Decision | Rationale |
+|---|---|---|
+| 2026-04-26 | **Baseline established** on R 4.5.3: `R CMD check` returns 0 errors / 4 warnings / 4 notes. Full report in [`docs/BASELINE.md`](BASELINE.md). | Confirms W1 + W2 ordering; surfaces W4 sub-tasks (`inherits()` rewrite, undeclared `::` imports, `library(sparkline)` removal). |
+| 2026-04-26 | **W2 reframed as a prerequisite, not a modernization step.** All 15 `assertive.*` sub-packages are archived; on a clean system the unmodified package is uninstallable until `assertive` is replaced. | Surfaced by the baseline install: `remotes::install_version` doesn't recurse into Archive for archived deps. Doesn't change PR order — W1 still lands first as metadata-only — but updates `NEWS.md` framing for the v2.0 release. |
+| 2026-04-26 | **Pandoc → nixpkgs, not brew.** `pandoc` lives in `environment.systemPackages` (Howard's `~/.dotfiles/modules/darwin/packages.nix`); only `r` (cask) and `unixodbc` (brew) need to be in the brew module. | Pandoc has no PATH constraints that force brew; matches existing pattern of putting CLI runtimes in nixpkgs. |
+| 2026-04-26 | **No R version pinning** for local dev. Brew cask installs latest CRAN R (currently 4.5.3 ≥ 4.4 floor). | Reproducibility belongs in CI matrix (W6), not on the dev box; pinning to 4.4 locally would hide forward-compat regressions we want to catch. `rig` is the right tool if version-specific debugging is needed later. |
+| 2026-04-26 | Defer Dutch → English translation of legacy strings to a follow-up phase. | Scope control; touch only what we're modifying. |
+| 2026-04-26 | Add GitHub Actions CI (R-CMD-check matrix) as part of this phase. | CRAN target makes CI essential; cheap to add now. |
+| 2026-04-26 | License: `MIT + file LICENSE`, standard CRAN form. | `LICENSE.md` already references MIT; aligns with CRAN convention. |
+| 2026-04-26 | `Authors@R`: Pieter Timmerman as `aut` (in memoriam), Howard Ching Chung as `cre`+`aut`. | Preserve original authorship; new maintainer. |
+| 2026-04-26 | API may break (modernize freely); document breaks in `NEWS.md`. | User approval; small user base; CRAN debut is a natural reset point. |
+| 2026-04-26 | Minimum R: 4.4. | Covers two latest stable lines; matches modern dep baselines. |
+| 2026-04-26 | Target CRAN. | User goal; forces clean metadata, license, docs. |
+| 2026-04-26 | RODBC → DBI + odbc (breaking change to `getDbHandle`). | RODBC aging; DBI is standard; parameterized queries are a security win for the comment-writeback path. |
+| 2026-04-26 | `assertive` → `checkmate` (rejected: base R, vendored shim). | Active maintenance, best error UX, widely used; new dep is acceptable per user. |
+
+## 9. TODO / deferred
+
+- **i18n: Dutch → English full pass.** Translate remaining roxygen blocks and `stop()` / `warning()` strings in `R/*.R`. Roughly: `R/dwhr.R` (largest), `R/star.R`, `R/observe.R`, `R/dataTable.R`, `R/highCharts.R`. Do as a single PR after the CRAN release lands so it's a clean diff.
+- **`magrittr` `%>%` → base `|>`** examples & internals (cosmetic; defer until after CRAN release).
+- **`lintr` + `covr` CI jobs** (W6 optional follow-up).
+- **`pkgdown` site** for docs hosting.
+- **Migration guide** for users of v1.x → v2.x in `vignettes/`.

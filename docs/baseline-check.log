@@ -1,0 +1,766 @@
+══ Building ════════════════════════════════════════════════════════════════════
+Setting env vars:
+• CFLAGS    : -Wall -pedantic
+• CXXFLAGS  : -Wall -pedantic
+• CXX11FLAGS: -Wall -pedantic
+• CXX14FLAGS: -Wall -pedantic
+• CXX17FLAGS: -Wall -pedantic
+• CXX20FLAGS: -Wall -pedantic
+── R CMD build ─────────────────────────────────────────────────────────────────
+* checking for file ‘/Users/howard/workspace/dwhr/DESCRIPTION’ ... OK
+* preparing ‘dwhr’:
+* checking DESCRIPTION meta-information ... OK
+* checking for LF line-endings in source and make files and shell scripts
+* checking for empty or unneeded directories
+Omitted ‘LazyData’ from DESCRIPTION
+* building ‘dwhr_1.6.2.tar.gz’
+
+══ Checking ════════════════════════════════════════════════════════════════════
+Setting env vars:
+• _R_CHECK_CRAN_INCOMING_REMOTE_               : FALSE
+• _R_CHECK_CRAN_INCOMING_                      : FALSE
+• _R_CHECK_FORCE_SUGGESTS_                     : FALSE
+• _R_CHECK_PACKAGES_USED_IGNORE_UNUSED_IMPORTS_: FALSE
+• NOT_CRAN                                     : true
+── R CMD check ─────────────────────────────────────────────────────────────────
+* using log directory ‘/private/var/folders/vn/f43bj8tx7f9377mx6b6fcv9c0000gn/T/RtmpvRAChd/filed0d43e77cef/dwhr.Rcheck’
+* using R version 4.5.3 (2026-03-11)
+* using platform: aarch64-apple-darwin20
+* R was compiled by
+    Apple clang version 16.0.0 (clang-1600.0.26.6)
+    GNU Fortran (GCC) 14.2.0
+* running under: macOS Sequoia 15.7.3
+* using session charset: UTF-8
+* using options ‘--no-manual --as-cran’
+* checking for file ‘dwhr/DESCRIPTION’ ... OK
+* checking extension type ... Package
+* this is package ‘dwhr’ version ‘1.6.2’
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... NOTE
+Found the following hidden files and directories:
+  .claude
+These were most likely included in error. See section ‘Package
+structure’ in the ‘Writing R Extensions’ manual.
+* checking for portable file names ... WARNING
+Found the following files with non-portable file names:
+  inst/examples/04DataTableStyle 1
+  inst/examples/05DataTableStyle 2
+These are not fully portable file names.
+See section ‘Package structure’ in the ‘Writing R Extensions’ manual.
+* checking for sufficient/correct file permissions ... OK
+* checking serialization versions ... OK
+* checking whether package ‘dwhr’ can be installed ... OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking for future file timestamps ... OK
+* checking DESCRIPTION meta-information ... NOTE
+Malformed Description field: should contain one or more complete sentences.
+Non-standard license specification:
+  Whatever
+Standardizable: FALSE
+Packages listed in more than one of Depends, Imports, Suggests, Enhances:
+  ‘data.table’ ‘assertive’
+A package should be listed in only one of these fields.
+* checking top-level files ... NOTE
+Non-standard files/directories found at top level:
+  ‘CLAUDE.md’ ‘LICENSE.md’ ‘docs’ ‘dwhr.Rproj’ ‘nix’ ‘scripts’
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking code files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... WARNING
+'::' or ':::' imports not declared from:
+  ‘RColorBrewer’ ‘htmltools’ ‘htmlwidgets’ ‘jsonlite’
+'library' or 'require' call not declared from: ‘sparkline’
+'library' or 'require' call to ‘sparkline’ in package code.
+  Please use :: or requireNamespace() instead.
+  See section 'Suggested packages' in the 'Writing R Extensions' manual.
+Namespaces in Imports field not imported from:
+  ‘assertive’ ‘shinyjqui’ ‘sparkline’
+  All declared Imports should be used.
+Packages in Depends field not imported from:
+  ‘assertive’ ‘data.table’
+  These packages need to be imported from (in the NAMESPACE file)
+  for when this namespace is loaded but not attached.
+':::' call which should be '::': ‘htmlwidgets:::getDependency’
+  See the note in ?`:::` about the use of this operator.
+Unexported object imported by a ':::' call: ‘shiny:::resolve’
+  See the note in ?`:::` about the use of this operator.
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... NOTE
+.setAs: no visible global function definition for ‘assert_is_character’
+.setAs: no visible global function definition for
+  ‘assert_has_no_duplicates’
+.setFormat: no visible global function definition for
+  ‘assert_is_character’
+.setFormat: no visible global function definition for
+  ‘assert_is_subset’
+.setFormatColumn: no visible global function definition for
+  ‘assert_is_character’
+.setFormatColumn : <anonymous>: no visible global function definition
+  for ‘assert_is_subset’
+.setLevels: no visible global function definition for
+  ‘assert_is_numeric’
+.setSort: no visible global function definition for ‘assert_is_numeric’
+.setStyle: no visible global function definition for ‘assert_is_list’
+.setStyle: no visible global function definition for ‘assert_is_subset’
+.setStyle: no visible global function definition for
+  ‘assert_is_character’
+.setStyle: no visible global function definition for
+  ‘assert_is_numeric’
+.setStyle: no visible global function definition for
+  ‘assert_is_a_string’
+.setViewColumn: no visible global function definition for
+  ‘assert_is_character’
+.setViewColumn: no visible global function definition for
+  ‘assert_are_same_length’
+.setViewColumn: no visible global function definition for
+  ‘assert_has_no_duplicates’
+.setViewColumn: no visible binding for global variable ‘glob.env’
+addDimView: no visible global function definition for
+  ‘assert_is_all_of’
+addDimView: no visible global function definition for
+  ‘assert_is_a_string’
+addDimView: no visible global function definition for
+  ‘assert_is_data.frame’
+addDimView: no visible global function definition for
+  ‘assert_is_character’
+addDimView: no visible global function definition for
+  ‘assert_is_a_number’
+addDimView: no visible global function definition for
+  ‘assert_is_numeric’
+addDimView: no visible global function definition for
+  ‘assert_is_a_bool’
+addDimView: no visible global function definition for
+  ‘assert_is_subset’
+addDimView: no visible global function definition for ‘head’
+addMeasure: no visible global function definition for
+  ‘assert_is_all_of’
+addMeasure: no visible global function definition for
+  ‘assert_is_character’
+addMeasure: no visible global function definition for
+  ‘assert_are_same_length’
+addMeasureDerrived: no visible global function definition for
+  ‘assert_is_all_of’
+addMeasureDerrived: no visible global function definition for
+  ‘assert_is_character’
+addMeasureDerrived: no visible global function definition for
+  ‘assert_are_same_length’
+addMeasureDerrived: no visible global function definition for
+  ‘assert_is_numeric’
+addMeasureDerrived: no visible global function definition for
+  ‘assert_are_disjoint_sets’
+addPresentation: no visible global function definition for
+  ‘assert_is_all_of’
+addPresentation: no visible global function definition for
+  ‘assert_is_character’
+addPresentation: no visible global function definition for
+  ‘assert_is_a_string’
+addPresentation: no visible global function definition for
+  ‘assert_is_a_bool’
+addPresentation: no visible global function definition for
+  ‘assert_is_a_number’
+addPresentation: no visible global function definition for
+  ‘assert_is_list’
+addPresentation: no visible binding for global variable ‘glob.env’
+addPresentation: no visible global function definition for
+  ‘assert_is_subset’
+addPresentation: no visible global function definition for
+  ‘assert_is_non_empty’
+addPresentation: no visible global function definition for
+  ‘is_function’
+addPresentation: no visible global function definition for
+  ‘assert_all_are_positive’
+addPresentation: no visible global function definition for ‘is_a_bool’
+addPresentation: no visible global function definition for
+  ‘assert_is_numeric’
+addPresentation: no visible global function definition for
+  ‘assert_all_are_date_strings’
+addRowGroupColumn: no visible global function definition for
+  ‘assert_is_all_of’
+addRowGroupColumn: no visible global function definition for
+  ‘assert_is_character’
+addRowGroupColumn: no visible global function definition for
+  ‘assert_is_a_string’
+addSortColumn: no visible global function definition for
+  ‘assert_is_all_of’
+addSortColumn: no visible global function definition for
+  ‘assert_is_character’
+addSortColumn: no visible global function definition for
+  ‘assert_is_a_string’
+addTextColumn: no visible global function definition for
+  ‘assert_is_all_of’
+addTextColumn: no visible global function definition for
+  ‘assert_is_character’
+addTextColumn: no visible global function definition for
+  ‘assert_is_a_string’
+addTooltipColumn: no visible global function definition for
+  ‘assert_is_all_of’
+addTooltipColumn: no visible global function definition for
+  ‘assert_is_character’
+addTooltipColumn: no visible global function definition for
+  ‘assert_is_a_string’
+authenticate: no visible global function definition for
+  ‘assert_is_all_of’
+authenticate: no visible global function definition for ‘observeEvent’
+authenticate: no visible global function definition for
+  ‘parseQueryString’
+cacheFind: no visible binding for global variable ‘glob.env’
+changeDtBgStyle: no visible global function definition for
+  ‘assert_is_all_of’
+changeDtBgStyle: no visible global function definition for
+  ‘assert_is_a_string’
+changeDtFgStyle: no visible global function definition for
+  ‘assert_is_all_of’
+changeDtFgStyle: no visible global function definition for
+  ‘assert_is_a_string’
+changeFormatMeasure: no visible global function definition for
+  ‘assert_is_all_of’
+checkVersion: no visible global function definition for
+  ‘packageVersion’
+dimChangeState: no visible global function definition for
+  ‘assert_is_all_of’
+dimChangeState: no visible global function definition for
+  ‘assert_is_a_string’
+dwhrMerge: no visible global function definition for ‘copy’
+dwhrMerge: no visible global function definition for ‘rbindlist’
+getCacheFile: no visible binding for global variable ‘glob.env’
+getColors: no visible global function definition for ‘colorRampPalette’
+getDbHandle: no visible global function definition for
+  ‘assert_is_a_string’
+getDimUI: no visible global function definition for
+  ‘assert_is_a_string’
+getDimUI: no visible global function definition for ‘assert_is_a_bool’
+getDimUI: no visible global function definition for
+  ‘assert_is_a_number’
+getDimUI: no visible global function definition for ‘assert_is_subset’
+getFacts: no visible global function definition for
+  ‘assert_is_a_string’
+getFacts: no visible global function definition for
+  ‘assert_is_character’
+getFacts: no visible global function definition for ‘assert_is_a_bool’
+getFacts: no visible binding for global variable ‘glob.env’
+getFacts: no visible global function definition for ‘read.csv’
+getMembers: no visible binding for global variable ‘level0Label’
+getMembers: no visible global function definition for ‘data.table’
+getMembers: no visible binding for global variable ‘glob.env’
+getReportName: no visible binding for global variable ‘glob.env’
+getSelected: no visible global function definition for ‘data.table’
+initGlob: no visible global function definition for ‘assert_is_all_of’
+initGlob: no visible global function definition for ‘as.data.table’
+initGlob: no visible global function definition for ‘read.csv’
+initGlob: no visible global function definition for ‘data.table’
+isColor: no visible global function definition for ‘col2rgb’
+makeDtWidget: no visible global function definition for ‘%>%’
+makeHcWidget: no visible global function definition for ‘%>%’
+new.star: no visible global function definition for
+  ‘assert_is_a_string’
+new.star: no visible global function definition for
+  ‘assert_is_data.frame’
+new.star: no visible global function definition for ‘assert_is_a_bool’
+new.star: no visible global function definition for ‘assert_is_all_of’
+new.star: no visible global function definition for ‘setDT’
+portalUrl: no visible binding for global variable ‘glob.env’
+prepDt: no visible global function definition for ‘data.table’
+printDebug: no visible binding for global variable ‘glob.env’
+renderDataTableDim: no visible global function definition for
+  ‘reactiveValues’
+renderDateRangeDim: no visible global function definition for
+  ‘reactive’
+renderDateRangeDim: no visible global function definition for ‘%>%’
+renderDims : <local>: no visible global function definition for ‘span’
+renderDims : <local>: no visible global function definition for ‘HTML’
+renderDims : <local>: no visible global function definition for ‘h1’
+renderDims : <local>: no visible global function definition for ‘h2’
+renderDims : <local>: no visible global function definition for ‘h3’
+renderDims : <local>: no visible global function definition for ‘h4’
+renderDims : <local>: no visible global function definition for ‘h5’
+renderDims : <local>: no visible global function definition for ‘h6’
+renderDims : <local> : <anonymous>: no visible global function
+  definition for ‘div’
+renderDims : <local>: no visible global function definition for
+  ‘actionLink’
+renderDims: no visible binding for global variable ‘glob.env’
+renderHighchartDim: no visible global function definition for
+  ‘reactiveValues’
+renderHighchartDim: no visible global function definition for
+  ‘observeEvent’
+renderRangeSliderDim: no visible global function definition for
+  ‘reactive’
+renderRangeSliderDim: no visible global function definition for ‘%>%’
+renderSimpleDim: no visible global function definition for
+  ‘observeEvent’
+setDtVisible: no visible global function definition for
+  ‘assert_is_all_of’
+setDtVisible: no visible global function definition for
+  ‘assert_is_a_string’
+setDtVisible: no visible global function definition for
+  ‘assert_is_character’
+setDtVisible: no visible global function definition for ‘is_a_bool’
+setDtVisible: no visible global function definition for ‘is_function’
+setDtVisible: no visible global function definition for
+  ‘assert_is_a_bool’
+setOrdering: no visible global function definition for
+  ‘assert_is_all_of’
+setSelection: no visible global function definition for
+  ‘assert_is_all_of’
+setSelection: no visible global function definition for
+  ‘assert_is_a_string’
+setSelection: no visible global function definition for
+  ‘assert_is_data.frame’
+setSelection: no visible global function definition for
+  ‘assert_is_a_bool’
+sparkRelativeChange : <anonymous>: no visible global function
+  definition for ‘coef’
+sparkRelativeChange : <anonymous>: no visible global function
+  definition for ‘lm’
+startObserversData: no visible binding for global variable ‘glob.env’
+startObserversData: no visible global function definition for
+  ‘observeEvent’
+xAxisdatetime: no visible binding for global variable ‘point’
+xAxisdatetime: no visible global function definition for
+  ‘datetime_to_timestamp’
+Undefined global functions or variables:
+  %>% HTML actionLink as.data.table assert_all_are_date_strings
+  assert_all_are_positive assert_are_disjoint_sets
+  assert_are_same_length assert_has_no_duplicates assert_is_a_bool
+  assert_is_a_number assert_is_a_string assert_is_all_of
+  assert_is_character assert_is_data.frame assert_is_list
+  assert_is_non_empty assert_is_numeric assert_is_subset coef col2rgb
+  colorRampPalette copy data.table datetime_to_timestamp div glob.env
+  h1 h2 h3 h4 h5 h6 head is_a_bool is_function level0Label lm
+  observeEvent packageVersion parseQueryString point rbindlist reactive
+  reactiveValues read.csv setDT span
+Consider adding
+  importFrom("grDevices", "col2rgb", "colorRampPalette")
+  importFrom("stats", "coef", "lm")
+  importFrom("utils", "head", "packageVersion", "read.csv")
+to your NAMESPACE file.
+Found if() conditions comparing class() to string:
+File ‘dwhr/R/client.R’: if (class(handle) != "RODBC") ...
+File ‘dwhr/R/dwhr.R’: if ("format" %in% names(x) && !is_function(x$format) && !(class(x$format) == "call")) ...
+File ‘dwhr/R/dwhr.R’: if (!is_a_bool(x$visible) && !is_function(x$visible) && !(class(x$visible) == "call")) ...
+File ‘dwhr/R/dwhr.R’: if (!is_a_bool(visible) && !is_function(visible) && !(class(visible) == "call")) ...
+File ‘dwhr/R/highCharts.R’: if (length(pattern) > 0 && class(pattern) == "character" && pattern == "stripe1") ...
+File ‘dwhr/R/highCharts.R’: if (length(pattern) > 0 && class(pattern) == "character" && pattern == "stripe2") ...
+File ‘dwhr/R/highCharts.R’: if (class(names(l2)) == "character") ...
+File ‘dwhr/R/star.R’: if (class(x) == "function") ...
+File ‘dwhr/R/star.R’: if (class(x) == "call") ...
+Use inherits() (or maybe is()) instead.
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd line widths ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... WARNING
+Undocumented code objects:
+  ‘addFormatting’ ‘checkVersion’ ‘clone.star’ ‘dwhrMerge’
+  ‘getDimViewPrepData’ ‘getMembers’ ‘getReportName’ ‘getSelectedIds’
+  ‘invalidateCache’ ‘isNa’ ‘isNull’ ‘latexEscape’ ‘navigate’ ‘prepDt’
+  ‘renderDims’ ‘runExampleDwhr’ ‘setDebug’ ‘sparkRelativeChange’
+All user-level objects in a package should have documentation entries.
+See chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... WARNING
+Undocumented arguments in Rd file 'addDimView.Rd'
+  ‘selectParent’ ‘returnPrepData’ ‘selectedIds’
+Undocumented arguments in Rd file 'addMeasure.Rd'
+  ‘formatColumn’
+Undocumented arguments in Rd file 'addPresentation.Rd'
+  ‘highChartsOpts’ ‘rangeOpts’ ‘...’
+Documented arguments not in \usage in Rd file 'addPresentation.Rd':
+  ‘highChartOpts’
+Undocumented arguments in Rd file 'authenticate.Rd'
+  ‘session’ ‘sessionTimeout’
+Undocumented arguments in Rd file 'getDimUI.Rd'
+  ‘bodyStyle’
+Undocumented arguments in Rd file 'getFacts.Rd'
+  ‘header’
+Undocumented arguments in Rd file 'setColumnName.Rd'
+  ‘colFrom’ ‘viewColFrom’ ‘colTo’
+Undocumented arguments in Rd file 'setSelection.Rd'
+  ‘selectChange’
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking examples ... NONE
+* checking for non-standard things in the check directory ... OK
+* checking for detritus in the temp directory ... OK
+* DONE
+
+Status: 4 WARNINGs, 4 NOTEs
+See
+  ‘/private/var/folders/vn/f43bj8tx7f9377mx6b6fcv9c0000gn/T/RtmpvRAChd/filed0d43e77cef/dwhr.Rcheck/00check.log’
+for details.
+── R CMD check results ───────────────────────────────────────── dwhr 1.6.2 ────
+Duration: 54s
+
+❯ checking for portable file names ... WARNING
+  Found the following files with non-portable file names:
+    inst/examples/04DataTableStyle 1
+    inst/examples/05DataTableStyle 2
+  These are not fully portable file names.
+  See section ‘Package structure’ in the ‘Writing R Extensions’ manual.
+
+❯ checking dependencies in R code ... WARNING
+  '::' or ':::' imports not declared from:
+    ‘RColorBrewer’ ‘htmltools’ ‘htmlwidgets’ ‘jsonlite’
+  'library' or 'require' call not declared from: ‘sparkline’
+  'library' or 'require' call to ‘sparkline’ in package code.
+    Please use :: or requireNamespace() instead.
+    See section 'Suggested packages' in the 'Writing R Extensions' manual.
+  Namespaces in Imports field not imported from:
+    ‘assertive’ ‘shinyjqui’ ‘sparkline’
+    All declared Imports should be used.
+  Packages in Depends field not imported from:
+    ‘assertive’ ‘data.table’
+    These packages need to be imported from (in the NAMESPACE file)
+    for when this namespace is loaded but not attached.
+  ':::' call which should be '::': ‘htmlwidgets:::getDependency’
+    See the note in ?`:::` about the use of this operator.
+  Unexported object imported by a ':::' call: ‘shiny:::resolve’
+    See the note in ?`:::` about the use of this operator.
+
+❯ checking for missing documentation entries ... WARNING
+  Undocumented code objects:
+    ‘addFormatting’ ‘checkVersion’ ‘clone.star’ ‘dwhrMerge’
+    ‘getDimViewPrepData’ ‘getMembers’ ‘getReportName’ ‘getSelectedIds’
+    ‘invalidateCache’ ‘isNa’ ‘isNull’ ‘latexEscape’ ‘navigate’ ‘prepDt’
+    ‘renderDims’ ‘runExampleDwhr’ ‘setDebug’ ‘sparkRelativeChange’
+  All user-level objects in a package should have documentation entries.
+  See chapter ‘Writing R documentation files’ in the ‘Writing R
+  Extensions’ manual.
+
+❯ checking Rd \usage sections ... WARNING
+  Undocumented arguments in Rd file 'addDimView.Rd'
+    ‘selectParent’ ‘returnPrepData’ ‘selectedIds’
+  
+  Undocumented arguments in Rd file 'addMeasure.Rd'
+    ‘formatColumn’
+  
+  Undocumented arguments in Rd file 'addPresentation.Rd'
+    ‘highChartsOpts’ ‘rangeOpts’ ‘...’
+  Documented arguments not in \usage in Rd file 'addPresentation.Rd':
+    ‘highChartOpts’
+  
+  Undocumented arguments in Rd file 'authenticate.Rd'
+    ‘session’ ‘sessionTimeout’
+  
+  Undocumented arguments in Rd file 'getDimUI.Rd'
+    ‘bodyStyle’
+  
+  Undocumented arguments in Rd file 'getFacts.Rd'
+    ‘header’
+  
+  Undocumented arguments in Rd file 'setColumnName.Rd'
+    ‘colFrom’ ‘viewColFrom’ ‘colTo’
+  
+  Undocumented arguments in Rd file 'setSelection.Rd'
+    ‘selectChange’
+  
+  Functions with \usage entries need to have the appropriate \alias
+  entries, and all their arguments documented.
+  The \usage entries must correspond to syntactically valid R code.
+  See chapter ‘Writing R documentation files’ in the ‘Writing R
+  Extensions’ manual.
+
+❯ checking for hidden files and directories ... NOTE
+  Found the following hidden files and directories:
+    .claude
+  These were most likely included in error. See section ‘Package
+  structure’ in the ‘Writing R Extensions’ manual.
+
+❯ checking DESCRIPTION meta-information ... NOTE
+  Malformed Description field: should contain one or more complete sentences.
+  Non-standard license specification:
+    Whatever
+  Standardizable: FALSE
+  Packages listed in more than one of Depends, Imports, Suggests, Enhances:
+    ‘data.table’ ‘assertive’
+  A package should be listed in only one of these fields.
+
+❯ checking top-level files ... NOTE
+  Non-standard files/directories found at top level:
+    ‘CLAUDE.md’ ‘LICENSE.md’ ‘docs’ ‘dwhr.Rproj’ ‘nix’ ‘scripts’
+
+❯ checking R code for possible problems ... NOTE
+  .setAs: no visible global function definition for ‘assert_is_character’
+  .setAs: no visible global function definition for
+    ‘assert_has_no_duplicates’
+  .setFormat: no visible global function definition for
+    ‘assert_is_character’
+  .setFormat: no visible global function definition for
+    ‘assert_is_subset’
+  .setFormatColumn: no visible global function definition for
+    ‘assert_is_character’
+  .setFormatColumn : <anonymous>: no visible global function definition
+    for ‘assert_is_subset’
+  .setLevels: no visible global function definition for
+    ‘assert_is_numeric’
+  .setSort: no visible global function definition for ‘assert_is_numeric’
+  .setStyle: no visible global function definition for ‘assert_is_list’
+  .setStyle: no visible global function definition for ‘assert_is_subset’
+  .setStyle: no visible global function definition for
+    ‘assert_is_character’
+  .setStyle: no visible global function definition for
+    ‘assert_is_numeric’
+  .setStyle: no visible global function definition for
+    ‘assert_is_a_string’
+  .setViewColumn: no visible global function definition for
+    ‘assert_is_character’
+  .setViewColumn: no visible global function definition for
+    ‘assert_are_same_length’
+  .setViewColumn: no visible global function definition for
+    ‘assert_has_no_duplicates’
+  .setViewColumn: no visible binding for global variable ‘glob.env’
+  addDimView: no visible global function definition for
+    ‘assert_is_all_of’
+  addDimView: no visible global function definition for
+    ‘assert_is_a_string’
+  addDimView: no visible global function definition for
+    ‘assert_is_data.frame’
+  addDimView: no visible global function definition for
+    ‘assert_is_character’
+  addDimView: no visible global function definition for
+    ‘assert_is_a_number’
+  addDimView: no visible global function definition for
+    ‘assert_is_numeric’
+  addDimView: no visible global function definition for
+    ‘assert_is_a_bool’
+  addDimView: no visible global function definition for
+    ‘assert_is_subset’
+  addDimView: no visible global function definition for ‘head’
+  addMeasure: no visible global function definition for
+    ‘assert_is_all_of’
+  addMeasure: no visible global function definition for
+    ‘assert_is_character’
+  addMeasure: no visible global function definition for
+    ‘assert_are_same_length’
+  addMeasureDerrived: no visible global function definition for
+    ‘assert_is_all_of’
+  addMeasureDerrived: no visible global function definition for
+    ‘assert_is_character’
+  addMeasureDerrived: no visible global function definition for
+    ‘assert_are_same_length’
+  addMeasureDerrived: no visible global function definition for
+    ‘assert_is_numeric’
+  addMeasureDerrived: no visible global function definition for
+    ‘assert_are_disjoint_sets’
+  addPresentation: no visible global function definition for
+    ‘assert_is_all_of’
+  addPresentation: no visible global function definition for
+    ‘assert_is_character’
+  addPresentation: no visible global function definition for
+    ‘assert_is_a_string’
+  addPresentation: no visible global function definition for
+    ‘assert_is_a_bool’
+  addPresentation: no visible global function definition for
+    ‘assert_is_a_number’
+  addPresentation: no visible global function definition for
+    ‘assert_is_list’
+  addPresentation: no visible binding for global variable ‘glob.env’
+  addPresentation: no visible global function definition for
+    ‘assert_is_subset’
+  addPresentation: no visible global function definition for
+    ‘assert_is_non_empty’
+  addPresentation: no visible global function definition for
+    ‘is_function’
+  addPresentation: no visible global function definition for
+    ‘assert_all_are_positive’
+  addPresentation: no visible global function definition for ‘is_a_bool’
+  addPresentation: no visible global function definition for
+    ‘assert_is_numeric’
+  addPresentation: no visible global function definition for
+    ‘assert_all_are_date_strings’
+  addRowGroupColumn: no visible global function definition for
+    ‘assert_is_all_of’
+  addRowGroupColumn: no visible global function definition for
+    ‘assert_is_character’
+  addRowGroupColumn: no visible global function definition for
+    ‘assert_is_a_string’
+  addSortColumn: no visible global function definition for
+    ‘assert_is_all_of’
+  addSortColumn: no visible global function definition for
+    ‘assert_is_character’
+  addSortColumn: no visible global function definition for
+    ‘assert_is_a_string’
+  addTextColumn: no visible global function definition for
+    ‘assert_is_all_of’
+  addTextColumn: no visible global function definition for
+    ‘assert_is_character’
+  addTextColumn: no visible global function definition for
+    ‘assert_is_a_string’
+  addTooltipColumn: no visible global function definition for
+    ‘assert_is_all_of’
+  addTooltipColumn: no visible global function definition for
+    ‘assert_is_character’
+  addTooltipColumn: no visible global function definition for
+    ‘assert_is_a_string’
+  authenticate: no visible global function definition for
+    ‘assert_is_all_of’
+  authenticate: no visible global function definition for ‘observeEvent’
+  authenticate: no visible global function definition for
+    ‘parseQueryString’
+  cacheFind: no visible binding for global variable ‘glob.env’
+  changeDtBgStyle: no visible global function definition for
+    ‘assert_is_all_of’
+  changeDtBgStyle: no visible global function definition for
+    ‘assert_is_a_string’
+  changeDtFgStyle: no visible global function definition for
+    ‘assert_is_all_of’
+  changeDtFgStyle: no visible global function definition for
+    ‘assert_is_a_string’
+  changeFormatMeasure: no visible global function definition for
+    ‘assert_is_all_of’
+  checkVersion: no visible global function definition for
+    ‘packageVersion’
+  dimChangeState: no visible global function definition for
+    ‘assert_is_all_of’
+  dimChangeState: no visible global function definition for
+    ‘assert_is_a_string’
+  dwhrMerge: no visible global function definition for ‘copy’
+  dwhrMerge: no visible global function definition for ‘rbindlist’
+  getCacheFile: no visible binding for global variable ‘glob.env’
+  getColors: no visible global function definition for ‘colorRampPalette’
+  getDbHandle: no visible global function definition for
+    ‘assert_is_a_string’
+  getDimUI: no visible global function definition for
+    ‘assert_is_a_string’
+  getDimUI: no visible global function definition for ‘assert_is_a_bool’
+  getDimUI: no visible global function definition for
+    ‘assert_is_a_number’
+  getDimUI: no visible global function definition for ‘assert_is_subset’
+  getFacts: no visible global function definition for
+    ‘assert_is_a_string’
+  getFacts: no visible global function definition for
+    ‘assert_is_character’
+  getFacts: no visible global function definition for ‘assert_is_a_bool’
+  getFacts: no visible binding for global variable ‘glob.env’
+  getFacts: no visible global function definition for ‘read.csv’
+  getMembers: no visible binding for global variable ‘level0Label’
+  getMembers: no visible global function definition for ‘data.table’
+  getMembers: no visible binding for global variable ‘glob.env’
+  getReportName: no visible binding for global variable ‘glob.env’
+  getSelected: no visible global function definition for ‘data.table’
+  initGlob: no visible global function definition for ‘assert_is_all_of’
+  initGlob: no visible global function definition for ‘as.data.table’
+  initGlob: no visible global function definition for ‘read.csv’
+  initGlob: no visible global function definition for ‘data.table’
+  isColor: no visible global function definition for ‘col2rgb’
+  makeDtWidget: no visible global function definition for ‘%>%’
+  makeHcWidget: no visible global function definition for ‘%>%’
+  new.star: no visible global function definition for
+    ‘assert_is_a_string’
+  new.star: no visible global function definition for
+    ‘assert_is_data.frame’
+  new.star: no visible global function definition for ‘assert_is_a_bool’
+  new.star: no visible global function definition for ‘assert_is_all_of’
+  new.star: no visible global function definition for ‘setDT’
+  portalUrl: no visible binding for global variable ‘glob.env’
+  prepDt: no visible global function definition for ‘data.table’
+  printDebug: no visible binding for global variable ‘glob.env’
+  renderDataTableDim: no visible global function definition for
+    ‘reactiveValues’
+  renderDateRangeDim: no visible global function definition for
+    ‘reactive’
+  renderDateRangeDim: no visible global function definition for ‘%>%’
+  renderDims : <local>: no visible global function definition for ‘span’
+  renderDims : <local>: no visible global function definition for ‘HTML’
+  renderDims : <local>: no visible global function definition for ‘h1’
+  renderDims : <local>: no visible global function definition for ‘h2’
+  renderDims : <local>: no visible global function definition for ‘h3’
+  renderDims : <local>: no visible global function definition for ‘h4’
+  renderDims : <local>: no visible global function definition for ‘h5’
+  renderDims : <local>: no visible global function definition for ‘h6’
+  renderDims : <local> : <anonymous>: no visible global function
+    definition for ‘div’
+  renderDims : <local>: no visible global function definition for
+    ‘actionLink’
+  renderDims: no visible binding for global variable ‘glob.env’
+  renderHighchartDim: no visible global function definition for
+    ‘reactiveValues’
+  renderHighchartDim: no visible global function definition for
+    ‘observeEvent’
+  renderRangeSliderDim: no visible global function definition for
+    ‘reactive’
+  renderRangeSliderDim: no visible global function definition for ‘%>%’
+  renderSimpleDim: no visible global function definition for
+    ‘observeEvent’
+  setDtVisible: no visible global function definition for
+    ‘assert_is_all_of’
+  setDtVisible: no visible global function definition for
+    ‘assert_is_a_string’
+  setDtVisible: no visible global function definition for
+    ‘assert_is_character’
+  setDtVisible: no visible global function definition for ‘is_a_bool’
+  setDtVisible: no visible global function definition for ‘is_function’
+  setDtVisible: no visible global function definition for
+    ‘assert_is_a_bool’
+  setOrdering: no visible global function definition for
+    ‘assert_is_all_of’
+  setSelection: no visible global function definition for
+    ‘assert_is_all_of’
+  setSelection: no visible global function definition for
+    ‘assert_is_a_string’
+  setSelection: no visible global function definition for
+    ‘assert_is_data.frame’
+  setSelection: no visible global function definition for
+    ‘assert_is_a_bool’
+  sparkRelativeChange : <anonymous>: no visible global function
+    definition for ‘coef’
+  sparkRelativeChange : <anonymous>: no visible global function
+    definition for ‘lm’
+  startObserversData: no visible binding for global variable ‘glob.env’
+  startObserversData: no visible global function definition for
+    ‘observeEvent’
+  xAxisdatetime: no visible binding for global variable ‘point’
+  xAxisdatetime: no visible global function definition for
+    ‘datetime_to_timestamp’
+  Undefined global functions or variables:
+    %>% HTML actionLink as.data.table assert_all_are_date_strings
+    assert_all_are_positive assert_are_disjoint_sets
+    assert_are_same_length assert_has_no_duplicates assert_is_a_bool
+    assert_is_a_number assert_is_a_string assert_is_all_of
+    assert_is_character assert_is_data.frame assert_is_list
+    assert_is_non_empty assert_is_numeric assert_is_subset coef col2rgb
+    colorRampPalette copy data.table datetime_to_timestamp div glob.env
+    h1 h2 h3 h4 h5 h6 head is_a_bool is_function level0Label lm
+    observeEvent packageVersion parseQueryString point rbindlist reactive
+    reactiveValues read.csv setDT span
+  Consider adding
+    importFrom("grDevices", "col2rgb", "colorRampPalette")
+    importFrom("stats", "coef", "lm")
+    importFrom("utils", "head", "packageVersion", "read.csv")
+  to your NAMESPACE file.
+  
+  Found if() conditions comparing class() to string:
+  File ‘dwhr/R/client.R’: if (class(handle) != "RODBC") ...
+  File ‘dwhr/R/dwhr.R’: if ("format" %in% names(x) && !is_function(x$format) && !(class(x$format) == "call")) ...
+  File ‘dwhr/R/dwhr.R’: if (!is_a_bool(x$visible) && !is_function(x$visible) && !(class(x$visible) == "call")) ...
+  File ‘dwhr/R/dwhr.R’: if (!is_a_bool(visible) && !is_function(visible) && !(class(visible) == "call")) ...
+  File ‘dwhr/R/highCharts.R’: if (length(pattern) > 0 && class(pattern) == "character" && pattern == "stripe1") ...
+  File ‘dwhr/R/highCharts.R’: if (length(pattern) > 0 && class(pattern) == "character" && pattern == "stripe2") ...
+  File ‘dwhr/R/highCharts.R’: if (class(names(l2)) == "character") ...
+  File ‘dwhr/R/star.R’: if (class(x) == "function") ...
+  File ‘dwhr/R/star.R’: if (class(x) == "call") ...
+  Use inherits() (or maybe is()) instead.
+
+0 errors ✔ | 4 warnings ✖ | 4 notes ✖
