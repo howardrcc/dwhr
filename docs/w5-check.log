@@ -1,0 +1,104 @@
+* using log directory ‘/private/tmp/dwhr-check/dwhr.Rcheck’
+* using R version 4.5.3 (2026-03-11)
+* using platform: aarch64-apple-darwin20
+* R was compiled by
+    Apple clang version 16.0.0 (clang-1600.0.26.6)
+    GNU Fortran (GCC) 14.2.0
+* running under: macOS Sequoia 15.7.3
+* using session charset: UTF-8
+* using options ‘--no-manual --as-cran’
+* checking for file ‘dwhr/DESCRIPTION’ ... OK
+* checking extension type ... Package
+* this is package ‘dwhr’ version ‘1.6.2’
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘dwhr’ can be installed ... OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking for future file timestamps ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking code files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking dependencies in R code ... NOTE
+Namespace in Imports field not imported from: ‘sparkline’
+  All declared Imports should be used.
+':::' call which should be '::': ‘htmlwidgets:::getDependency’
+  See the note in ?`:::` about the use of this operator.
+Unexported object imported by a ':::' call: ‘shiny:::resolve’
+  See the note in ?`:::` about the use of this operator.
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... [11s/11s] OK
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd line widths ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... WARNING
+Undocumented code objects:
+  ‘addFormatting’ ‘checkVersion’ ‘clone.star’ ‘dwhrMerge’
+  ‘getDimViewPrepData’ ‘getMembers’ ‘getReportName’ ‘getSelectedIds’
+  ‘invalidateCache’ ‘isNa’ ‘isNull’ ‘latexEscape’ ‘navigate’ ‘prepDt’
+  ‘renderDims’ ‘runExampleDwhr’ ‘setDebug’ ‘sparkRelativeChange’
+All user-level objects in a package should have documentation entries.
+See chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... WARNING
+Undocumented arguments in Rd file 'addDimView.Rd'
+  ‘selectParent’ ‘returnPrepData’ ‘selectedIds’
+
+Undocumented arguments in Rd file 'addMeasure.Rd'
+  ‘formatColumn’
+
+Undocumented arguments in Rd file 'addPresentation.Rd'
+  ‘highChartsOpts’ ‘rangeOpts’ ‘...’
+Documented arguments not in \usage in Rd file 'addPresentation.Rd':
+  ‘highChartOpts’
+
+Undocumented arguments in Rd file 'authenticate.Rd'
+  ‘session’ ‘sessionTimeout’
+
+Undocumented arguments in Rd file 'getDimUI.Rd'
+  ‘bodyStyle’
+
+Undocumented arguments in Rd file 'getFacts.Rd'
+  ‘header’
+
+Undocumented arguments in Rd file 'setColumnName.Rd'
+  ‘colFrom’ ‘viewColFrom’ ‘colTo’
+
+Undocumented arguments in Rd file 'setSelection.Rd'
+  ‘selectChange’
+
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking examples ... NONE
+* checking for unstated dependencies in ‘tests’ ... OK
+* checking tests ... OK
+  Running ‘testthat.R’
+* checking for non-standard things in the check directory ... OK
+* checking for detritus in the temp directory ... OK
+* DONE
+Status: 2 WARNINGs, 1 NOTE
