@@ -1,13 +1,25 @@
 Package: dwhr
 Type: Package
-Title: dashboard library for datawarehouse data
+Title: Interactive Shiny Dashboards Over Star-Schema Data Warehouse Data
 Version: 1.6.2
-Author: Pieter Timmerman
-Maintainer: Pieter Timmerman <pieter.timmerman@radboudumc.nl>
-Description: dashboard library for datawarehouse data
-License: Whatever
+Authors@R: c(
+    person("Pieter", "Timmerman", role = "aut",
+           comment = "original author, in memoriam"),
+    person("Howard", "Ching Chung", , "howardchingchung@protonmail.com",
+           role = c("cre", "aut")))
+Description: Provides a framework for building interactive Shiny dashboards
+    over star-schema data warehouse data. Users construct a 'star' object
+    from a facts table, dimension views, measures, and presentation
+    specifications; the package handles the reactive plumbing between
+    drillable hierarchical dimensions and DataTable, Highcharts, and form
+    control presentations.
+License: MIT + file LICENSE
+URL: https://github.com/howardrcc/dwhr
+BugReports: https://github.com/howardrcc/dwhr/issues
 Encoding: UTF-8
 LazyData: true
+Depends:
+    R (>= 4.4)
 Imports:
     shiny (>= 1.0.4),
     shinyjs (>= 2.0),
@@ -21,7 +33,4 @@ Imports:
     rlist (>= 0.4.6.1),
     assertive (>= 0.3-5),
     sparkline (>= 2.0)
-Depends:
-    assertive (>= 0.3-5),
-    data.table (>= 1.10.4-3)
 RoxygenNote: 7.3.1

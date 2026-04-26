@@ -2,7 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-.Rbuildignore
 inst/examples/08DataFromDb/data
 R/tags
 TODO.md
