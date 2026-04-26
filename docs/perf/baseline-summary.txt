@@ -1,0 +1,17 @@
+dwhr performance baseline — generated 2026-04-26 13:46 CEST
+R 4.5.3, OS Darwin, 8 CPU cores
+data.table threads: 4
+
+=== 1,000,000 facts rows ===
+  construction            median = 28.7ms  iters = 5
+  first_render            median = 161ms  iters = 1
+  factsFiltered no-op     median = 1.23ms  iters = 10
+  factsFiltered filter    median = 17.7ms  iters = 10
+  facts in memory         11.4 MB
+
+=== 10,000,000 facts rows ===
+  construction            median = 210ms  iters = 5
+  first_render            median = 766ms  iters = 1
+  factsFiltered no-op     median = 1.96ms  iters = 10
+  factsFiltered filter    median = 163ms  iters = 10
+  facts in memory         114.4 MB

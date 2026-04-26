@@ -14,3 +14,9 @@ dbCred.rds
 # R build / check artifacts
 *.tar.gz
 *.Rcheck/
+
+# Perf benchmark artifacts (regenerable via scripts/perf-baseline.R) —
+# only the .txt summary is committed
+docs/perf/*.html
+docs/perf/*.Rprof
+docs/perf/*_files/

@@ -192,3 +192,14 @@ Append-only. New entries on top.
 - **`lintr` + `covr` CI jobs** (W6 optional follow-up).
 - **`pkgdown` site** for docs hosting.
 - **Migration guide** for users of v1.x → v2.x in `vignettes/`.
+- **W10 — DuckDB-backed facts (performance ceiling lift).** Replace the in-memory `env$facts` data.table with a DuckDB connection so aggregations push down into DuckDB. Lifts the practical scale ceiling from ~10M rows (current, measured in [`docs/PERFORMANCE-BASELINE.md`](PERFORMANCE-BASELINE.md): 163ms `factsFiltered()` per click at 10M) to 100M+ rows comfortably. The dwhr DSL doesn't change; only the backend swaps via a small adapter. Estimated effort: 2-4 weeks. Strongest "lightest touch, biggest scale unlock" upgrade post-CRAN.
+- **W11 — UI modernization (`bslib` refresh).** Bring dwhr's UI vocabulary out of Bootstrap-4 territory using `bslib`'s themed Bootstrap 5 layer. Visible polish improvement without rewriting the framework. Estimated effort: 1-2 weeks. Part of the "modernize the look without leaving R" path framed in [`docs/ARCHITECTURE-FUTURES.md`](ARCHITECTURE-FUTURES.md) §8.
+
+## 10. Reference docs (analysis, not workstreams)
+
+These are companion analyses — input for future scoping conversations,
+not work to be done in this phase.
+
+- [`CHARTING-ALTERNATIVES.md`](CHARTING-ALTERNATIVES.md) — Highcharts licensing + permissive-license replacements (`echarts4r`, `r2d3`, `billboarder`, `plotly`).
+- [`PERFORMANCE-BASELINE.md`](PERFORMANCE-BASELINE.md) — measured server-side R performance at 1M and 10M facts rows (reproducible via `scripts/perf-baseline.R`).
+- [`ARCHITECTURE-FUTURES.md`](ARCHITECTURE-FUTURES.md) — stack-level evaluation of dwhr vs Streamlit, Dash, FastAPI+React/TS, Apache Superset, Evidence/Observable, Metabase. Covers the BI governance loop (write-back + PDF), visual ceiling, and AI-assistability dimensions.
