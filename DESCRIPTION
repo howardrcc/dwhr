@@ -1,7 +1,7 @@
 Package: dwhr
 Type: Package
 Title: Interactive Shiny Dashboards Over Star-Schema Data Warehouse Data
-Version: 1.6.2
+Version: 1.7.0.9000
 Authors@R: c(
     person("Pieter", "Timmerman", role = "aut",
            comment = "original author, in memoriam"),
