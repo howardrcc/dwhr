@@ -67,6 +67,20 @@ The JS/CSS in `inst/www/` (notably `starExtend.js`) is exposed via `shinyjs::ext
 
 `new.star()` requires `session$userData$authenticated == TRUE`, which is set by `authenticate(session)`. Every example's `server.R` calls `authenticate(session)` first — keep that contract intact when modifying session/init code.
 
+### Environment / "TEST" badge
+
+`getReportName(title)` (R/star.R) wraps the report header with a red `TEST` badge unless `glob.env$omgeving == 'PRD'`. The value is decided once during `initGlob()` (R/client.R) in this priority order:
+
+1. **Env var `SHINYPROXY`** — if set, must be one of `'PRD' / 'ACC' / 'LOCAL' / 'NONE'`. Used by ShinyProxy-deployed instances to label themselves.
+2. **Top-level `omgeving` binding in `.GlobalEnv`** — picked up via `isDefinedGlobal('omgeving', …)`.
+3. **Default `'NONE'`** — local dev gets this, which is why `TEST` shows by default.
+
+**Gotcha:** setting `omgeving <- 'PRD'` in an example's `global.R` *also* triggers a credential-loading branch in `initGlob()` (`R/client.R:181`: `if (glob.env$omgeving != 'NONE')` reads `admin/data/dbCred.rds`, opens an RODBC connection, and calls `R.dbo.get_startpunt`). For local demos with no DB / no `dbCred.rds`, this hard-stops the app at startup. Don't set `omgeving` to anything other than `'NONE'` unless you actually have prod credentials.
+
+For demo / screenshot use, the right move is to **bypass `getReportName` at the call site** rather than fight the env logic. `inst/examples/15PdfShowcase/ui.R` does this — it renders `title` directly instead of `getReportName(title)`. Apply the same swap in any other example you want to silence the badge in (currently `inst/examples/16D3Sankey/ui.R:37` is the only other call site). Don't unconditionally change `getReportName` itself — the badge is intentional safety against test instances looking like prod for ShinyProxy-deployed environments.
+
+For full production deployment guidance (SHINYPROXY env var, `dbCred.rds` structure, auth gate, ShinyProxy + Docker shapes), see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
 ## Dependency notes (modernization-relevant)
 
 The `Imports` in `DESCRIPTION` pin some packages that have aged poorly:

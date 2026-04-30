@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 360" width="880" height="360" font-family="Georgia, serif">
+
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2c3e50"/>
+    </marker>
+    <marker id="arr-fb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7f8c8d"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="440" y="28" text-anchor="middle" font-size="20" font-weight="bold" fill="#2c3e50">dwhr · star schema, reactive bus, pluggable presentations</text>
+
+  <!-- Dimensions column (left) -->
+  <g font-size="13" fill="#2c3e50">
+    <rect x="40"  y="80"  width="160" height="38" rx="6" fill="#ecf0f1" stroke="#2c3e50" stroke-width="1.5"/>
+    <text x="120" y="104" text-anchor="middle">dim: kpi (4 levels)</text>
+
+    <rect x="40"  y="130" width="160" height="38" rx="6" fill="#ecf0f1" stroke="#2c3e50" stroke-width="1.5"/>
+    <text x="120" y="154" text-anchor="middle">dim: kpl (3 levels)</text>
+
+    <rect x="40"  y="180" width="160" height="38" rx="6" fill="#ecf0f1" stroke="#2c3e50" stroke-width="1.5"/>
+    <text x="120" y="204" text-anchor="middle">dim: per (3 levels)</text>
+
+    <rect x="40"  y="230" width="160" height="38" rx="6" fill="#ecf0f1" stroke="#2c3e50" stroke-width="1.5"/>
+    <text x="120" y="254" text-anchor="middle">dim: gs (1 level)</text>
+
+    <text x="120" y="294" text-anchor="middle" font-style="italic" fill="#7f8c8d">… more dims</text>
+  </g>
+
+  <!-- Facts table (center) -->
+  <g>
+    <rect x="320" y="140" width="200" height="80" rx="8" fill="#34495e" stroke="#2c3e50" stroke-width="2"/>
+    <text x="420" y="172" text-anchor="middle" font-size="16" font-weight="bold" fill="#ecf0f1">facts</text>
+    <text x="420" y="195" text-anchor="middle" font-size="11" fill="#bdc3c7">data.table — joined on FK,</text>
+    <text x="420" y="210" text-anchor="middle" font-size="11" fill="#bdc3c7">filtered reactively</text>
+  </g>
+
+  <!-- Presentations column (right) -->
+  <g font-size="13" fill="#2c3e50">
+    <rect x="640" y="80"  width="200" height="38" rx="6" fill="#ecf0f1" stroke="#2c3e50" stroke-width="1.5"/>
+    <text x="740" y="104" text-anchor="middle">DataTable + sparklines</text>
+
+    <rect x="640" y="130" width="200" height="38" rx="6" fill="#ecf0f1" stroke="#2c3e50" stroke-width="1.5"/>
+    <text x="740" y="154" text-anchor="middle">Highcharts / Highstock</text>
+
+    <rect x="640" y="180" width="200" height="38" rx="6" fill="#ecf0f1" stroke="#2c3e50" stroke-width="1.5"/>
+    <text x="740" y="204" text-anchor="middle">radio / select / slider</text>
+
+    <rect x="640" y="230" width="200" height="38" rx="6" fill="#ecf0f1" stroke="#2c3e50" stroke-width="1.5"/>
+    <text x="740" y="254" text-anchor="middle">PDF (Sweave + LaTeX)</text>
+  </g>
+
+  <!-- Arrows: dims → facts (filter) -->
+  <g stroke="#2c3e50" stroke-width="1.5" fill="none">
+    <line x1="200" y1="99"  x2="318" y2="158" marker-end="url(#arr)"/>
+    <line x1="200" y1="149" x2="318" y2="170" marker-end="url(#arr)"/>
+    <line x1="200" y1="199" x2="318" y2="190" marker-end="url(#arr)"/>
+    <line x1="200" y1="249" x2="318" y2="200" marker-end="url(#arr)"/>
+  </g>
+  <text x="260" y="320" text-anchor="middle" font-size="11" fill="#7f8c8d" font-style="italic">filter (selection events)</text>
+
+  <!-- Arrows: facts → presentations -->
+  <g stroke="#2c3e50" stroke-width="1.5" fill="none">
+    <line x1="522" y1="158" x2="638" y2="99"  marker-end="url(#arr)"/>
+    <line x1="522" y1="170" x2="638" y2="149" marker-end="url(#arr)"/>
+    <line x1="522" y1="190" x2="638" y2="199" marker-end="url(#arr)"/>
+    <line x1="522" y1="200" x2="638" y2="249" marker-end="url(#arr)"/>
+  </g>
+  <text x="580" y="320" text-anchor="middle" font-size="11" fill="#7f8c8d" font-style="italic">render (filtered + aggregated)</text>
+
+  <!-- Feedback loop: presentations → dims (user click) -->
+  <path d="M 740,270 Q 740,340 440,340 Q 120,340 120,275" stroke="#7f8c8d" stroke-width="1.5" stroke-dasharray="5 4" fill="none" marker-end="url(#arr-fb)"/>
+  <text x="440" y="354" text-anchor="middle" font-size="11" fill="#7f8c8d" font-style="italic">user click → reactive bus → re-filter</text>
+</svg>

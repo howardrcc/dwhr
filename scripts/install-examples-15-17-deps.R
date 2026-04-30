@@ -171,7 +171,28 @@ ensure_from_repo(
     )
 )
 
-# 6. Final summary --------------------------------------------------------
+# 6. PhantomJS — runtime binary, not an R package -------------------------
+# Required by 15PdfShowcase's `.Rnw` templates: when a Highcharter htmlwidget
+# is embedded in a PDF, knitr calls `webshot::webshot()` which shells out to
+# phantomjs to capture the rendered widget as a PNG. Without it, knit2pdf
+# fails inside the chunk with `Error in path.expand(): invalid 'path' argument`.
+# webshot ships an install helper that downloads the binary (~17 MB on macOS)
+# into ~/Library/Application Support/PhantomJS/.
+
+cat_step("PhantomJS (runtime binary for webshot)")
+phantom_path <- tryCatch(webshot:::find_phantom(), error = function(e) "")
+if (nzchar(phantom_path) && file.exists(phantom_path)) {
+    cat_ok(sprintf("phantomjs (already at %s)", phantom_path))
+} else {
+    cat("  → installing phantomjs via webshot::install_phantomjs()...\n")
+    ok <- tryCatch({ webshot::install_phantomjs(); TRUE },
+                   error = function(e) { cat_warn(conditionMessage(e)); FALSE })
+    new_path <- tryCatch(webshot:::find_phantom(), error = function(e) "")
+    if (ok && nzchar(new_path) && file.exists(new_path)) cat_ok("phantomjs")
+    else cat_fail("phantomjs install failed; PDF generation in 15PdfShowcase will not work")
+}
+
+# 7. Final summary --------------------------------------------------------
 
 cat_step("Summary")
 all_pkgs <- unique(c(
@@ -194,6 +215,5 @@ if (missing_n > 0) {
 }
 
 cat_step("Post-install reminders")
-cat("  - Run `webshot::install_phantomjs()` once for 15PdfShowcase PDF rendering.\n")
 cat("  - Install dwhr itself from the repo root: `devtools::install('.', quick=TRUE)`.\n")
 cat("  - 15PdfShowcase also needs a working LaTeX install (e.g. tinytex::install_tinytex()).\n")
