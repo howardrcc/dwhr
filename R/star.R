@@ -849,7 +849,11 @@ getFirstRow <- function(env,dim,tab) {
         }
     }
 
-    if(is.null(firstRow) || is.na(firstRow) || length(firstRow) == 0) {
+    # length(firstRow) == 0 short-circuits before is.na(firstRow[1]) so the
+    # || chain never coerces a length-N logical to logical(1) (R 4.2+ rejects
+    # that). The which() above can return multiple matches when synth-label
+    # collisions or duplicate dim members produce non-unique tab$member.
+    if (length(firstRow) == 0 || is.na(firstRow[1])) {
         firstRow <- 1
     }
 
@@ -1019,11 +1023,20 @@ checkVersion = function(pkg_name, min_version) {
 #'
 #' @export
 #'
+# Wraps the report title with a red "TEST" badge unless we're running in
+# production. Production-ness is decided by glob.env$omgeving == 'PRD',
+# which initGlob() (R/client.R) sets from one of, in order:
+#   1. the SHINYPROXY env var (must be 'PRD'/'ACC'/'LOCAL'/'NONE'), or
+#   2. a top-level `omgeving` binding in .GlobalEnv (e.g. set by an example
+#      app's global.R), or
+#   3. defaults to 'NONE'.
+# Examples that want to hide the badge for screenshots should set
+# `omgeving <- 'PRD'` in their global.R. See CLAUDE.md.
 getReportName <- function(title) {
-    
-    if (glob.env$omgeving != 'PRD') 
+
+    if (glob.env$omgeving != 'PRD')
         return(paste0(title,' <font color="red">TEST</font>'))
-    
+
     return(title)
 }
 

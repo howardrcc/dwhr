@@ -1,186 +1,105 @@
 # dwhr
 
-> Dashboard library for data warehouse data
+> Reactive Shiny dashboards over star-schema data warehouses — drillable
+> hierarchies, sparkline DataTables, Highcharts, and write-back PDF reports.
 
-dwhr is an R package that provides a framework for building interactive data warehouse dashboards using Shiny. It implements a star schema architecture that makes it easy to create hierarchical, drillable visualizations with dimensions, measures, and multiple presentation types.
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 
-## Features
+![dwhr — Westeros Realm Indicators demo](assets/demo.webp)
 
-- **Star Schema Architecture**: Build dashboards around fact tables and dimension views
-- **Hierarchical Navigation**: Drill down and up through dimension levels
-- **Multiple Presentation Types**:
-  - Interactive DataTables with formatting, sparklines, and colorbars
-  - Highcharts/Highstock visualizations
-  - Form controls (select inputs, date ranges, sliders)
-- **Reactive Filtering**: Dimensions automatically filter fact data
-- **Derived Measures**: Custom aggregations (sum, count, median, mean, etc.)
-- **Performance Optimization**: Built-in caching for large datasets
-- **Pipe-Friendly**: Chain operations with magrittr's `%>%` operator
+> **Note on the demo data:** the showcase apps in `inst/examples/15PdfShowcase/`,
+> `16D3Sankey/`, and `17MunicipalShowcase/` are the original framework
+> running over a Game-of-Thrones-anonymized dimension set in place of the
+> real Dutch academic-hospital data it was built for.
+> See [`docs/DEMO-DATA.md`](docs/DEMO-DATA.md) for the rewrite spec.
 
-## Installation
+## What you get
 
-```r
-# Install from local source
-devtools::install()
+- **Star schema you wire up in 5 calls** — `new.star() %>% addDimView() %>% addMeasure() %>% addPresentation() %>% renderDims()`. The package handles the reactive plumbing.
+- **Drillable hierarchies** — dims have N levels; selecting at level *i* re-filters every other dim and presentation in real time.
+- **Pluggable presentations** — DataTables (with conditional formatting + sparklines), Highcharts/Highstock, and form controls (`radioButton`, `selectInput`, `dateRangeInput`, `rangeSliderInput`).
+- **Write-back PDF reports** — Sweave/LaTeX templates fed by reactive selections, generated asynchronously via `future`. Comments persist back to a database.
 
-# Or using R CMD
-R CMD INSTALL .
+## Architecture
+
+![star schema → reactive bus → presentations](assets/architecture.svg)
+
+## Quick start
+
+```sh
+git clone https://github.com/howardrcc/dwhr.git
+cd dwhr
+R -e 'devtools::install(".", quick = TRUE)'
+R -e 'shiny::runApp("inst/examples/01SimpleTable", port = 4815)'
 ```
 
-## Dependencies
-
-Required packages:
-- shiny (>= 1.0.4)
-- shinyjs (>= 2.0)
-- shinyjqui (>= 0.3.2)
-- data.table (>= 1.10.4-3)
-- DT (>= 0.4)
-- highcharter (>= 0.5.0)
-- RODBC (>= 1.3-13)
-
-## Quick Start
-
-### UI (ui.R)
-
-```r
-library(shiny)
-library(dwhr)
-
-fluidPage(
-    dwhrInit(),  # Required: initialize dwhr
-    getDimUI(starId = 's1', dim = 'per')
-)
-```
-
-### Server (server.R)
-
-```r
-library(shiny)
-library(magrittr)
-library(dwhr)
-
-# Load dimension data
-per <- read.csv("data/ds_d_periode.txt",
-                header = FALSE, sep = ";",
-                col.names = c("maandId", "level1Label", "level2Label"))
-
-# Create fact table
-facts <- data.frame(
-    maandId = per$maandId[sample(1:nrow(per), 10000, replace = TRUE)],
-    num1 = runif(10000, 100, 200))
-
-function(input, output, session) {
-
-    authenticate(session)  # Required: authenticate session
-
-    s1 <- new.star(starId = 's1',
-                   session = session,
-                   facts = facts) %>%
-        addDimView(
-            dim = 'per',
-            name = 'Periode',
-            data = per,
-            levelNames = c('Alle perioden', 'Jaar', 'Maand'),
-            initLevel = 2,
-            initParent = '2017',
-            useLevels = c(0, 1, 2)) %>%
-        addMeasure(
-            dim = 'per',
-            factColumn = c('num1', 'num1', 'num1'),
-            viewColumn = c('sum_col', 'count_col', 'median_col'),
-            fun = c('sum', 'dcount', 'median'),
-            as = c('Sum', 'Count', 'Median'),
-            format = c('decimal2', 'decimal2', 'euro2')) %>%
-        addPresentation(
-            dim = 'per',
-            type = 'dataTable',
-            as = 'Table View',
-            isDefault = TRUE,
-            dataTableOpts = list(
-                measures = list(
-                    list(viewColumn = 'sum_col', colorBarColor1 = '#f7fcb9')
-                ))) %>%
-        renderDims(input, output)
-}
-```
-
-## Core Concepts
-
-### Star Schema
-
-A **star object** contains:
-- **Facts**: The central data table with measures and foreign keys
-- **Dimensions**: Hierarchical views that slice and filter the facts
-- **Measures**: Aggregated calculations on fact columns
-- **Presentations**: How data is displayed (tables, charts, controls)
-
-### Workflow
-
-1. Create a star schema with `new.star()`
-2. Add dimension views with `addDimView()`
-3. Define measures with `addMeasure()`
-4. Add visualizations with `addPresentation()`
-5. Start rendering with `renderDims()`
-
-### Dimension Levels
-
-Dimensions support hierarchical levels (e.g., Year → Quarter → Month):
-- Users can drill down/up through levels
-- Selections at higher levels filter lower levels
-- Configurable via `levelNames` and `useLevels`
+Open <http://localhost:4815>. Full setup (macOS / Nix / Docker, system deps,
+LaTeX for PDF rendering): see [`docs/INSTALL.md`](docs/INSTALL.md) and
+[`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md).
 
 ## Examples
 
-The package includes 15 example applications in `inst/examples/`:
+Each app under `inst/examples/<n>/` is a self-contained Shiny app.
+Read the `server.R` of any of them to learn the API by reading.
 
-- `01SimpleTable` - Basic dataTable presentation
-- `02DerrivedMeasure` - Custom aggregation functions
-- `03SortColumn` - Sortable columns
-- `04DataTableStyle 1` - Conditional formatting
-- `05DataTableStyle 2` - Advanced styling
-- `06SelectableLevels` - Level selection controls
-- `07MoreDimViews` - Multiple dimensions
-- `08DataFromDb` - Database integration
-- `09ColumnChart` - Highcharts visualization
-- `10PresentationSplit` - Multiple presentations per dimension
-- And more...
+| Example | Demonstrates |
+|---|---|
+| `01SimpleTable` | Basic `dataTable` presentation — minimal hello-world |
+| `02DerrivedMeasure` | Custom aggregation functions |
+| `03SortColumn` | Sortable columns + per-column ordering |
+| `04DataTableStyle1` | Conditional formatting (color cuts) |
+| `05DataTableStyle2` | Advanced styling |
+| `06SelectableLevels` | Level-selection controls |
+| `07MoreDimViews` | Multiple dimensions |
+| `08DataFromDb` | Database-backed facts (RODBC → DBI in W3) |
+| `09ColumnChart` | Highcharts presentation |
+| `10PresentationSplit` | Multiple presentations per dim |
+| `11PresentationList` | Switching between presentation lists |
+| `12DateRangeInput-1` | Date-range form control as a dim |
+| `13RangeInput` | Numeric range slider as a dim |
+| `14DateRangeInput-2` | Date-range variant |
+| `15PdfShowcase` ⚔️ | The full BI loop: drill, comment, write-back, async PDF generation |
+| `16D3Sankey` ⚔️ | networkD3 / Sankey integration |
+| `17MunicipalShowcase` ⚔️ | sf / leaflet / ggplot geospatial maps |
+| `20Clone` | `clone.star()` for printing parallel state |
 
-Run an example:
+⚔️ = uses the GoT-anonymized demo data set.
+
+Run any example:
+
 ```r
 shiny::runApp("inst/examples/01SimpleTable")
 ```
 
 ## Documentation
 
-View function documentation in R:
+| Doc | What's in it |
+|---|---|
+| [`CLAUDE.md`](CLAUDE.md) | Architecture orientation — `star` is an environment, reactive bus, file map |
+| [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md) | macOS dev setup |
+| [`docs/INSTALL.md`](docs/INSTALL.md) | Homebrew + Nix install paths; Linux/Windows deferred |
+| [`docs/DOCKER.md`](docs/DOCKER.md) | Dev container spec (image, compose, .devcontainer/) — implementation pending |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Production deployment contract — SHINYPROXY env var, dbCred.rds, TEST badge, auth gate |
+| [`docs/DEMO-DATA.md`](docs/DEMO-DATA.md) | GoT anonymization spec for `15PdfShowcase` |
+| [`docs/MODERNIZATION.md`](docs/MODERNIZATION.md) | CRAN-bound modernization plan + append-only decision log |
+| [`docs/ARCHITECTURE-FUTURES.md`](docs/ARCHITECTURE-FUTURES.md) | Stack-level evaluation: dwhr vs Streamlit / Dash / Superset / etc. |
+| [`docs/PERFORMANCE-BASELINE.md`](docs/PERFORMANCE-BASELINE.md) | Measured server-side R performance at 1M and 10M facts rows |
+
+## Function reference
+
 ```r
 ?new.star
 ?addDimView
 ?addMeasure
 ?addPresentation
-```
-
-## Development
-
-```r
-# Load package for development
-devtools::load_all()
-
-# Generate documentation
-devtools::document()
-
-# Build package
-R CMD build .
+?renderDims
 ```
 
 ## License
 
-MIT License - see [LICENSE.md](LICENSE.md) for details
+MIT — see [LICENSE.md](LICENSE.md).
 
 ## In Memory of Pieter Timmerman
+
 This library is dedicated to the memory of Pieter Timmerman, a mentor who taught by example rather than instruction. When I was starting out, Pieter showed me what it meant to be a principled developer—someone who remained steadfast in their commitment to open source even as the tech world grew increasingly complex and corporate. He wasn't impressed by big tech; he was guided by his values. This project is open sourced in his honor, carrying forward the spirit of generosity and integrity he embodied. Thank you, Pieter, for being there.
-
-## Version
-
-Current version: 1.6.2
-
