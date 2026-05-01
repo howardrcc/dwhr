@@ -1,0 +1,176 @@
+\documentclass[twoside,a4paper,12pt]{article}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}  
+
+\usepackage{fancyhdr}
+\usepackage[basic]{wordlike}
+\usepackage{float}
+\usepackage{lastpage}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage[table]{xcolor}
+\usepackage{wrapfig}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{soulutf8}
+\usepackage[normalem]{ulem}
+\usepackage{sparklines}
+\usepackage{threeparttablex}
+\usepackage{enumitem}
+
+\DeclareUnicodeCharacter{64257}{fi}
+\DeclareUnicodeCharacter{64258}{fi}
+\DeclareUnicodeCharacter{8208}{-}
+
+\addtolength{\textwidth}{3cm}
+\addtolength{\oddsidemargin}{-1.5cm}
+\addtolength{\evensidemargin}{-1.5cm}
+
+\pagestyle{fancy}
+\graphicspath{{\Sexpr{reportVars$wwwDir}}}
+\setlength{\headheight}{4\baselineskip}
+\setlength{\parindent}{0pt}
+
+\definecolor{light-gray}{gray}{0.95}
+\definecolor{light-gray2}{gray}{0.90}
+\definecolor{light-green}{HTML}{90EE90}
+\definecolor{orange2}{HTML}{FECE00}
+\definecolor{tomato}{HTML}{FF6347}
+\sethlcolor{light-gray2}
+
+\setlength\sparklinethickness{0.7pt}
+
+<<init, echo = FALSE>>=
+knitr::opts_chunk$set(echo = FALSE, fig.align = "left")
+
+data <- reportVars$tbl
+cmnts <- reportVars$cmnts
+scr <- reportVars$scr
+
+@
+
+
+\fancyhf{}  % clear header en footer
+
+\fancyhead[RE,LO]{
+\setlength{\extrarowheight}{0pt}
+\begin{tabular}{ l l l } 
+ \textbf{Maand:} & \Sexpr{reportVars$periode} \\ 
+ \textbf{Bestuurder:} & \Sexpr{reportVars$bestuurder} \\ 
+  &  \\ 
+\end{tabular}}
+
+\fancyhead[LE,RO]{
+\raisebox{-3mm}{\includegraphics[trim=-0 1cm 0 0,height=2.5\baselineskip]{bia.png}}
+}
+
+\fancyfoot[LE,RO]{\thepage\ van \pageref{LastPage}}
+\fancyfoot[RE,LO]{\Sexpr{reportVars$printDatum}}
+
+\newcommand{\vcenteredincludeup}[1]{\begingroup
+\setbox0=\hbox{\includegraphics[angle=-45,totalheight=1.2\baselineskip]{#1}}%
+\parbox{\wd0}{\box0}\endgroup}
+
+\newcommand{\vcenteredincludedown}[1]{\begingroup
+\setbox0=\hbox{\includegraphics[angle=45,totalheight=1.2\baselineskip]{#1}}%
+\parbox{\wd0}{\box0}\endgroup}
+
+\begin{document}
+
+\section{Samenvatting portefeuille \Sexpr{reportVars$bestuurder}}
+<<samenvatting,  echo = FALSE, fig.cap='', fig.pos = 'H', results = 'asis'>>=
+
+data$Score <- paste0('\\textcolor{',data$Score,'}{\\colorbox{',data$Score,'}{A}} ')
+
+data$Naam[nrow(data)] <- paste0('\\textbf{',data$Naam[nrow(data)],'}')
+data$Verschil1[nrow(data)] <- paste0('\\textbf{',data$Verschil1[nrow(data)],'}')
+data$Verschil2[nrow(data)] <- paste0('\\textbf{',data$Verschil2[nrow(data)],'}')
+data$Verschil3[nrow(data)] <- paste0('\\textbf{',data$Verschil3[nrow(data)],'}')
+      
+names(data) <- c('Afdeling','Afwijking','Trend','Afwijking','Trend','Afwijking','Trend','')
+
+kbl(
+  data,
+  format = 'latex', 
+  row.names = FALSE, booktabs = TRUE, longtable = TRUE, escape = FALSE, 
+  linesep = "",
+  align = c('l','r','l','r','l','r','l','l')) %>%
+  add_header_above(c(" " = 1, "Resultaat" = 2, "Personeel" = 2, "Productie" = 2, " " = 1)) %>%
+  kable_styling(
+    latex_options = c("striped","hold_position","repeat_header"),
+    full_width = FALSE,
+    font_size = 10,
+    repeat_header_text = "\\textit{vervolg samenvatting}") %>%
+  footnote(
+    general_title = '',
+    general = "Afwijking: Resultaat t/m de maand ten opzichte van begroting t/m de maand, in euro’s (duizendtallen), of fte’s (1e geldstroom). Een positief bedrag bij Productie betekent overproductie. De trendindicator toont de trend van de realisatie van de afgelopen 4 maand.",
+    threeparttable = TRUE) %>%
+  column_spec(1, width = "7cm") %>%
+  column_spec(c(3,5,7), width = "1cm") %>%
+  column_spec(8, width = "0.3cm") %>%
+  row_spec(nrow(data) - 1,extra_latex_after = '\\addlinespace[0.25em] \\hline \\addlinespace[0.25em] \\hline \\addlinespace[0.25em]') 
+
+@
+
+\setlength{\extrarowheight}{4pt}
+
+<<advies,  eval = nrow(cmnts) > 0, echo = FALSE, fig.cap='', fig.pos = 'H', results = 'asis'>>=
+
+cmnts <- dcast(cmnts, Naam + updatedBy + lastUpdateDate ~ type, value.var = 'txt')
+
+if (is.null(cmnts$conc1)) cmnts$conc1 <- ''
+if (is.null(cmnts$conc2)) cmnts$conc2 <- ''
+if (is.null(cmnts$conc3)) cmnts$conc3 <- ''
+
+cmnts$conc1[is.na(cmnts$conc1)] <- ''
+cmnts$conc2[is.na(cmnts$conc2)] <- ''
+cmnts$conc3[is.na(cmnts$conc3)] <- ''
+
+cmnts <- cmnts[trimws(cmnts$conc1) != '' | trimws(cmnts$conc2) != '' | trimws(cmnts$conc3) != '']
+
+cmnts$txt <- paste0('\\begin{itemize}[topsep=0pt]',
+                    ifelse(trimws(cmnts$conc1) == '','',paste0('\\item Advies: ', cmnts$conc1)), 
+                    ifelse(trimws(cmnts$conc2) == '','',paste0('\\item Argumenten: ', cmnts$conc2)), 
+                    ifelse(trimws(cmnts$conc3) == '','',paste0( '\\item Risico\'s: ', cmnts$conc3)), '\\end{itemize}')
+
+if ('conc1' %in% names(cmnts)) cmnts$conc1 <- NULL    
+if ('conc2' %in% names(cmnts)) cmnts$conc2 <- NULL    
+if ('conc3' %in% names(cmnts)) cmnts$conc3 <- NULL    
+
+#cmnts$txt <- paste0('\\hl{\\textit{\\scriptsize ',cmnts$updatedBy,' / ',as.character(cmnts$lastUpdateDate,format = '%Y-%m-%d'),':}} ',cmnts$txt)
+cmnts <- cmnts[order(cmnts$Naam),c('Naam','txt')]
+
+cmnts <- scr[cmnts, on = c('Naam')][,c('Naam','txt','Score')]
+cmnts$Score <- ifelse(is.na(cmnts$Score),'white',
+                      ifelse(cmnts$Score == 'Rood','red',
+                             ifelse(cmnts$Score == 'Groen', 'light-green','orange2')))
+
+cmnts$Naam <- latexEscape(cmnts$Naam)
+cmnts$Naam <- paste0('\\textcolor{',cmnts$Score,'}{\\colorbox{',cmnts$Score,'}{A}} ',cmnts$Naam)
+cmnts$Score <- NULL
+
+names(cmnts) <- c('Afdeling','Advies')
+        
+cat('\\newpage')
+cat('\\section{Advies Staven}')
+kbl(
+  cmnts,
+  format = 'latex', 
+  row.names = FALSE, booktabs = TRUE, longtable = TRUE, escape = FALSE, 
+  align = c('l','l')) %>%
+  kable_styling(
+    latex_options = c("striped","hold_position","repeat_header"),
+    full_width = FALSE,
+    font_size = 9,
+    repeat_header_text = "\\textit{vervolg advies}") %>%
+  column_spec(1, width = "4cm") %>%
+  column_spec(2, width = "13cm")
+
+@
+
+\end{document}
