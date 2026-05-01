@@ -1,0 +1,299 @@
+\documentclass[twoside,a4paper,12pt]{article}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}  
+
+\usepackage{fancyhdr}
+\usepackage[basic]{wordlike}
+\usepackage{float}
+\usepackage{lastpage}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{needspace}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage[table]{xcolor}
+\usepackage{colortbl}
+\usepackage{tabu}
+\usepackage{soulutf8}
+\usepackage[normalem]{ulem}
+
+\DeclareUnicodeCharacter{64257}{fi}
+\DeclareUnicodeCharacter{64258}{fi}
+\DeclareUnicodeCharacter{8208}{-}
+
+\addtolength{\textwidth}{1.6cm}
+\addtolength{\oddsidemargin}{-0.8cm}
+\addtolength{\evensidemargin}{-0.8cm}
+
+\pagestyle{fancy}
+\graphicspath{{\Sexpr{reportVars$wwwDir}}}
+\setlength{\headheight}{4\baselineskip}
+\setlength{\parindent}{0pt}
+
+\definecolor{light-gray}{gray}{0.95}
+\definecolor{light-green}{HTML}{90EE90}
+\sethlcolor{light-gray}
+
+<<init, echo = FALSE>>=
+knitr::opts_chunk$set(echo = FALSE, fig.align = "left")
+
+data <- reportVars$overzicht$data
+widgets <- reportVars$overzicht$widgets
+statusOk <- reportVars$overzicht$statusOk
+
+if (statusOk[[1]])
+    widgets[[1]]$parent <- 'Resultaat'
+
+i <- 1
+
+getConc <- function() {
+    conc <- '\\section{Advies Staven}'    
+    df <- data[itemNr == 9 & type %in% c('conc','conc1','conc2','conc3')]
+    
+    if ('conc' %in% df$type) {
+        conc <- paste0(conc,latexEscape(data[itemNr == 9 & type == 'conc'][1]$txt))
+    } else {
+        if ('conc1' %in% df$type) {
+            conc <- paste0(conc,'\\paragraph*{Advies}')
+            conc <- paste0(conc,latexEscape(data[itemNr == 9 & type == 'conc1'][1]$txt))
+        }
+        if ('conc2' %in% df$type) {
+            conc <- paste0(conc,'\\paragraph*{Argumenten}')
+            conc <- paste0(conc,latexEscape(data[itemNr == 9 & type == 'conc2'][1]$txt))
+        }
+        if ('conc3' %in% df$type) {
+            conc <- paste0(conc,'\\paragraph*{Risico\'s}')
+            conc <- paste0(conc,latexEscape(data[itemNr == 9 & type == 'conc3'][1]$txt))
+        }
+    }
+    cat(conc)
+}
+
+getMaatrTab <- function(dt) {
+
+    dt <- dt[!(type == 'maatrOpm' & trimws(txt) == ''),]
+    dt$usr <- dt$updatedBy
+    dt[reportVars$adUser, updatedBy := latexEscape(paste0(naam,' (',functie,')')), on = 'usr']
+    dt$txt <- paste0('\\hl{\\textit{\\scriptsize ',dt$updatedBy,' / ',format(dt$lastUpdateDate,format = '%Y-%m-%d'),':}} ',latexEscape(dt$txt))
+    dt$opmBC <- ''
+    headerOpm <- 'opmerking BC'
+    
+    for (x in sort(unique(dt$volgnr))) {
+        
+        opm1 <- dt$txt[dt$volgnr == x & dt$subVolgnr == 1]
+        opm2 <- dt$txt[dt$volgnr == x & dt$subVolgnr == 2]
+        
+        if (length(opm1) > 0)
+            dt$opmBC[dt$volgnr == x & dt$subVolgnr == 0] <- opm1    
+        
+        if (length(opm2) > 0) {
+            headerOpm <- 'opmerking BC/HR'
+            if (length(opm1 > 0))
+                dt$opmBC[dt$volgnr == x & dt$subVolgnr == 0] <- paste0(opm1,'\\newline ',opm2)    
+            else 
+                dt$opmBC[dt$volgnr == x & dt$subVolgnr == 0] <- opm2    
+        }
+    }
+    
+    dt <- dt[order(dt$volgnr),]
+    dt <- dt[type == 'maatr',c('volgnr','txt','status','endDate','opmBC')]
+    dt$volgnr <- as.character(1:length(unique(dt$volgnr)))
+    
+    names(dt) <- c('','tekst','status','gereed', headerOpm)
+    dt
+    
+}
+
+getTab <- function(i,subsubtxt = 'Cijfers') {
+    cat(paste0('\\subsubsection{',subsubtxt,'}'))
+    vc <- widgets[[i]]$visCols + 1
+    dt <- widgets[[i]]$tab[,vc]
+    dt$posneg <-  widgets[[i]]$tab$posneg
+    
+    f <- widgets[[i]]$footer[vc - 1]
+    
+    if (!all(is.na(f))) {
+        f <- c(f,0)
+        names(f) <- names(dt)
+        dt <- rbind(dt,f)
+    }
+    
+    for (cc in 1:length(dt))
+        dt[,cc] <- latexEscape(dt[,cc])
+    
+    background <- 'white'
+    
+    if (!all(dt$posneg == 0)) {
+        dt$rownum <- 1:nrow(dt)
+        if (!all(is.na(f))) {
+            dt$rownum[nrow(dt)] <- 0
+        }
+        dt$rownum <- NULL
+        
+        background <- ifelse(dt$posneg == -1, 'pink', 
+                             ifelse(dt$posneg == 1, 'light-green','white'))
+        
+        dt[,5] <- paste0('\\colorbox{',background,'}{',dt[,5],'}')
+        
+    }
+    
+    dt$posneg <- NULL
+    dt[,1] <- trimws(dt[,1])
+    
+    if (!all(is.na(f))) {
+    
+        kbl(dt,'latex', row.names = FALSE, booktabs = TRUE, escape = FALSE, align = c('l','r','r','r','r','r','r'), linesep = "") %>%
+            column_spec(1, width = "5cm") %>%
+            kable_styling(latex_options = c("striped","HOLD_position"),full_width = FALSE,font_size = 9) %>%
+            row_spec(nrow(dt) - 1,extra_latex_after = '\\addlinespace[0.25em] \\hline \\hline \\addlinespace[0.25em]') %>%
+            row_spec(nrow(dt), background = 'white', bold = TRUE, extra_latex_after = '\\arrayrulecolor{white}')
+        
+    } else {
+        
+        kbl(dt,'latex', row.names = FALSE, booktabs = TRUE, escape = FALSE, align = c('l','r','r','r','r','r','r'), linesep = "") %>%
+            column_spec(1, width = "5cm") %>%
+            kable_styling(latex_options = c("striped","HOLD_position"),full_width = FALSE,font_size = 9) 
+    }
+}
+
+genPre <- function(i) {
+    cat(paste0('\\subsection{',widgets[[i]]$parent,'}'))
+    if (nrow(data[itemNr == i & type == 'alg']) > 0) {
+        cat('\\subsubsection{Toelichting}')
+        cat(latexEscape(data[itemNr == i & type == 'alg'][1]$txt))
+        #cat(paste0('\\texttt{',data[itemNr == i & type == 'alg'][1]$txt,'}'))
+    }
+}
+
+genPost <- function(i) {
+    
+    if (nrow(data[itemNr == i & type == 'maatr']) > 0) {
+        cat('\\Needspace{20\\baselineskip}')
+        cat('\\subsubsection{Maatregelen}')
+        dt <- getMaatrTab(data[itemNr == i,])
+        dt$gereed <- cell_spec(dt$gereed, "latex", color = ifelse(dt$status == 'Open' & dt$gereed < reportVars$laatstGeslotenId, "red", "black"))
+        
+        kable(dt,'latex', booktabs = TRUE, longtable = TRUE, escape = FALSE, linesep = "") %>%
+            kable_styling(latex_options = c("striped","HOLD_position","repeat_header"), full_width = FALSE, font_size = 9, repeat_header_text = "\\textit{vervolg maatregelen}") %>%
+            column_spec(1, width = "0.3cm") %>%
+            column_spec(2, width = "7.0cm") %>%
+            column_spec(3, width = "0.8cm") %>%
+            column_spec(4, width = "0.8cm") %>%
+            column_spec(5, width = "7.0cm") 
+
+    }
+    
+}
+@
+
+\fancyhf{}  % clear header en footer
+
+\fancyhead[RE,LO]{
+\begin{tabular}{ l l l } 
+ \textbf{Maand:} & \Sexpr{reportVars$periode} \\ 
+ \textbf{Afdeling:} & \Sexpr{latexEscape(reportVars$afdeling)} \\ 
+ \textbf{Soort periode:} & \Sexpr{reportVars$maand} \\ 
+\end{tabular}}
+
+\fancyhead[LE,RO]{
+\raisebox{-3mm}{\includegraphics[trim=-0 1cm 0 0,height=2.5\baselineskip]{bia.png}}
+}
+
+\fancyfoot[LE,RO]{\thepage\ van \pageref{LastPage}}
+\fancyfoot[RE,LO]{\Sexpr{reportVars$printDatum}}
+
+\begin{document}
+
+<<conclusie, eval = nrow(data[itemNr == 9 & type %in% c('conc','conc1','conc2','conc3')]) > 0, echo = FALSE, fig.cap='', fig.pos = 'H', results = 'asis'>>=
+getConc()
+@
+
+
+\section{Overzicht indicatoren \Sexpr{latexEscape(reportVars$afdeling)}}
+
+<<widget1a, eval = statusOk[[i]], echo = FALSE, fig.cap='', fig.pos = 'H', results = 'asis'>>=
+genPre(i)
+getTab(i)
+@
+
+<<widget1b, message = FALSE, eval = statusOk[[i]], echo = FALSE, fig.cap='', fig.pos = 'H', screenshot.opts=list(cliprect = 'viewport', vwidth = 800, vheight=290, zoom = 1), results = 'asis' >>=
+cat('\\subsubsection{Tijdlijn Resultaat}')
+cat('\\vspace*{-1\\baselineskip}')
+widgets[[i]]$hc
+@
+
+<<inc1, echo = FALSE>>=
+i <- i + 1
+@
+
+<<widget2, eval = statusOk[[i]], echo = FALSE, fig.cap='', fig.pos = 'H', results = 'asis'>>=
+genPre(i)
+getTab(i)
+genPost(i)    
+@
+
+<<inc2, echo = FALSE>>=
+i <- i + 1
+@
+
+<<widget3, eval = statusOk[[i]], echo = FALSE, fig.cap='', fig.pos = 'H', results = 'asis'>>=
+genPre(i)
+getTab(i)
+genPost(i)    
+@
+
+<<inc3, echo = FALSE>>=
+i <- i + 1
+@
+
+<<widget4, eval = statusOk[[i]], echo = FALSE, fig.cap='', fig.pos = 'H', results = 'asis'>>=
+cat(paste0('\\subsection{Productieplan}'))
+if (nrow(data[itemNr == i & type == 'alg']) > 0) {
+        cat('\\subsubsection{Toelichting}')
+        cat(latexEscape(data[itemNr == i & type == 'alg'][1]$txt))
+}
+getTab(i,'Productieplan - bedrijfsdrukte')
+@
+
+
+<<inc4, echo = FALSE>>=
+i <- i + 1
+@
+
+<<widget5, eval = statusOk[[i]], echo = FALSE, fig.cap='', fig.pos = 'H', results = 'asis'>>=
+getTab(i,'Productieplan - proces (top 5)')
+@
+
+
+<<inc5, echo = FALSE>>=
+i <- i + 1
+@
+
+<<widget6, eval = statusOk[[i]], echo = FALSE, fig.cap='', fig.pos = 'H', results = 'asis'>>=
+getTab(i,'Productieplan - ziektebeeld (top 10)')
+genPost(i)    
+@
+
+<<inc6, echo = FALSE>>=
+i <- i + 1
+@
+
+<<widget7, eval = statusOk[[i]], echo = FALSE, fig.cap='', fig.pos = 'H', results = 'asis'>>=
+genPre(i)
+getTab(i)
+genPost(i)    
+@
+
+<<inc7, echo = FALSE>>=
+i <- i + 1
+@
+
+<<widget8, eval = statusOk[[i]], echo = FALSE, fig.cap='', fig.pos = 'H', results = 'asis'>>=
+genPre(i)
+getTab(i)
+genPost(i)    
+@
+
+\end{document}

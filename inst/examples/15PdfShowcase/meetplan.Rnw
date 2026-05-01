@@ -1,0 +1,211 @@
+\documentclass[twoside,a4paper,12pt]{article}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}  
+
+\usepackage{fancyhdr}
+\usepackage[basic]{wordlike}
+\usepackage{float}
+\usepackage{lastpage}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{needspace}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage[table]{xcolor}
+\usepackage{colortbl}
+\usepackage{tabu}
+\usepackage{soulutf8}
+\usepackage[normalem]{ulem}
+\usepackage{caption}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+
+\DeclareUnicodeCharacter{64257}{fi}
+\DeclareUnicodeCharacter{8208}{-}
+
+\addtolength{\textwidth}{1.6cm}
+\addtolength{\oddsidemargin}{-0.8cm}
+\addtolength{\evensidemargin}{-0.8cm}
+
+\pagestyle{fancy}
+\setlength{\headheight}{4\baselineskip}
+\setlength{\parindent}{0pt}
+
+\definecolor{light-gray}{gray}{0.95}
+\definecolor{orange2}{HTML}{FECE00}
+\definecolor{light-green}{HTML}{90EE90}
+\definecolor{pink}{HTML}{FFC0CB}
+\sethlcolor{light-gray}
+
+<<init, echo = FALSE, include = FALSE>>=
+knitr::opts_chunk$set(echo = FALSE, fig.align = "left")
+
+ovzItems <- reportVars$ovzItems
+mcmnts <- reportVars$mcmnts
+widgets <- reportVars$rapData
+afdeling <- reportVars$afdeling
+periode <- reportVars$periode
+tbl <- reportVars$tbl
+score <- reportVars$scr
+realNaam <- reportVars$realNaam
+
+i <- 1
+
+genPre <- function(grp,grpCode) {
+    
+    color <- score$score[score$kpiCode == grpCode]
+    ret  <- paste0('\\subsection{',grp,'}')
+    
+    if (length(color) > 0)
+        ret <- paste0(ret,'Aandacht:\\hspace{0.2cm}\\textcolor{', color, '}{\\colorbox{', color, '}{A}}')
+    
+    if (length(mcmnts$txt[mcmnts$kpiCode == grpCode & mcmnts$type == 'meetp1']) > 0) {
+        ret <- paste0(ret, '\\subsubsection{Aanleiding}')
+        ret <- paste0(ret, mcmnts$txt[mcmnts$kpiCode == grpCode & mcmnts$type == 'meetp1'])
+    }
+    
+    if (length(mcmnts$txt[mcmnts$kpiCode == grpCode & mcmnts$type == 'meetp2']) > 0) {
+        ret <- paste0(ret, '\\subsubsection{Doelstelling}')
+        ret <- paste0(ret, mcmnts$txt[mcmnts$kpiCode == grpCode & mcmnts$type == 'meetp2'])
+    }
+    
+    if (length(mcmnts$txt[mcmnts$kpiCode == grpCode & mcmnts$type == 'meetp3']) > 0) {
+        ret <- paste0(ret, '\\subsubsection{Voortgang}')
+        ret <- paste0(ret, mcmnts$txt[mcmnts$kpiCode == grpCode & mcmnts$type == 'meetp3'])
+    }
+    
+    if (length(mcmnts$txt[mcmnts$kpiCode == grpCode & mcmnts$type == 'meetp4']) > 0) {
+        ret <- paste0(ret, '\\subsubsection{Bijstellen (Act)}')
+        ret <- paste0(ret, mcmnts$txt[mcmnts$kpiCode == grpCode & mcmnts$type == 'meetp4'])
+    }
+    
+    ret
+}
+@
+
+\graphicspath{{\Sexpr{reportVars$wwwDir}}}
+
+\fancyhf{}  % clear header en footer
+
+\fancyhead[RE,LO]{
+\begin{tabular}{ l l l } 
+ \textbf{Periode:} & \Sexpr{periode} \\ 
+ \textbf{Afdeling:} & \Sexpr{latexEscape(afdeling)} \\ 
+ \textbf{Soort periode:} & In de periode \\ 
+\end{tabular}}
+
+\fancyhead[LE,RO]{
+\raisebox{-3mm}{\includegraphics[trim=-0 1cm 0 0,height=2.5\baselineskip]{bia.png}}
+}
+
+\fancyfoot[LE,RO]{\thepage\ van \pageref{LastPage}}
+\fancyfoot[RE,LO]{\Sexpr{reportVars$printDatum}}
+
+\renewcommand{\contentsname}{Inhoudsopgave}
+
+\begin{document}
+
+\tableofcontents
+\newpage
+
+<<conclusie, echo = FALSE, fig.cap='', fig.pos = 'H', results = 'asis'>>=
+cat(paste0('\\section{Management samenvatting}'))
+cat(mcmnts$txt[mcmnts$kpiCode == 'MP' & mcmnts$type == 'conc'])
+@
+
+\newpage
+\section{Overzicht Kwaltiteit en Veiligheid indicatoren \Sexpr{latexEscape(afdeling)}}
+
+<<overzicht, echo = FALSE, resuls = 'asis'>>=
+
+for (cc in 1:length(tbl))
+  tbl[,cc] <- latexEscape(tbl[,cc])
+
+tbl$rownum <- 1:nrow(tbl)
+
+if (!all(tbl$posneg == 0)) {
+  
+  background = ifelse(tbl$posneg == -1, 'pink', 
+                      ifelse(tbl$posneg == 1, 'light-green', 'white'))
+  
+  tbl$Verschil <- paste0('\\colorbox{',background,'}{',tbl$Verschil,'}')
+}
+
+tbl$posneg <- NULL
+
+tbl$Naam <- cell_spec(
+  x = tbl$Naam,
+  format = "latex",
+  background = ifelse(tbl$rownum %% 2 != 1, 'white','light-gray'),
+  escape = FALSE)
+
+tbl$rownum <- NULL
+
+names(tbl) <- c(' ','Naam', realNaam, 'Groen','Rood', 'Norm', 'Verschil')
+
+kbl(
+    tbl,
+    format = 'latex',
+    row.names = FALSE, 
+    booktabs = TRUE,
+    longtable = TRUE,
+    escape = FALSE, 
+    align = c('l','l','r','r','r','r','r','r'), 
+    linesep = "") %>%
+    kable_styling(
+        latex_options = c("hold_position","repeat_header"),
+        full_width = FALSE,
+        font_size = 10,
+        repeat_header_text = "\\textit{vervolg indicatoren}") %>%
+    column_spec(
+        1, 
+        width = "0.1cm") %>%
+    column_spec(
+        2, 
+        width = "8cm") %>%
+    collapse_rows(columns = c(1,2), latex_hline = 'none', row_group_label_position = 'stack')
+
+@
+
+
+<<build-src, include=FALSE>>=
+src <- ""
+for (grp in unique(ovzItems$ovzGrp)) {
+    
+    grpCode <- unique(ovzItems$ovzGrpCode[ovzItems$ovzGrp == grp])
+    src <- paste0(src,genPre(grp,grpCode))
+    
+    src <- paste0(src,"\\subsubsection{Indicatoren ",grp,"}")
+    
+    for (kpi in unique(ovzItems$kpiLabel[ovzItems$ovzGrpCode == grpCode])) {
+        src <- paste0(src,"\\paragraph*{",latexEscape(kpi),"}")
+        
+        src <- paste0(src,"\n
+\\begin{figure}[H]
+  \\centering
+  \\includegraphics[width=.9\\textwidth]{",widgets[[i]],"}%
+\\end{figure}
+\\begin{figure}[H]
+  \\centering
+  \\includegraphics[width=.9\\textwidth]{",widgets[[i + 1]],"}%
+\\end{figure}")
+        
+        i <- i + 2
+    }
+    
+}
+@
+
+% write the results now
+\Sexpr{knit(text = src)}
+
+\end{document}
