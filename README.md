@@ -5,11 +5,10 @@
 
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
-
-<video src="assets/demo.webm" controls autoplay loop muted playsinline width="100%"></video>
-
-> **Note on the demo data:** the showcase apps in `inst/examples/15PdfShowcase/`,
-> `16D3Sankey/`, and `17MunicipalShowcase/` are the original framework
+ 
+<video src="https://github.com/howardrcc/dwhr/raw/main/assets/demo.webm" width="100%" controls autoplay loop muted playsinline></video>
+         
+> **Note on the demo data:** the showcase apps in `inst/examples/15PdfShowcase/` is the dwhr framework
 > running over a Game-of-Thrones-anonymized dimension set in place of the
 > real Dutch academic-hospital data it was built for.
 > See [`docs/DEMO-DATA.md`](docs/DEMO-DATA.md) for the rewrite spec.
