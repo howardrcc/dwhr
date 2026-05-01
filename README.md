@@ -5,9 +5,9 @@
 
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
- 
-<video src="https://github.com/howardrcc/dwhr/raw/main/assets/demo.webm" width="100%" controls autoplay loop muted playsinline></video>
-         
+
+[demo.webm](https://github.com/user-attachments/assets/c7565aec-0549-4568-82c2-8ad70500f86a)
+
 > **Note on the demo data:** the showcase apps in `inst/examples/15PdfShowcase/` is the dwhr framework
 > running over a Game-of-Thrones-anonymized dimension set in place of the
 > real Dutch academic-hospital data it was built for.
