@@ -1,0 +1,42 @@
+{
+  "name": "dwhr",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": ".."
+  },
+  "workspaceFolder": "/workspaces/dwhr",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/dwhr,type=bind,consistency=cached",
+  "forwardPorts": [4815],
+  "portsAttributes": {
+    "4815": {
+      "label": "dwhr Shiny app",
+      "onAutoForward": "notify"
+    }
+  },
+  "containerEnv": {
+    "DWHR_DIR": "/workspaces/dwhr",
+    "_ZO_DOCTOR": "0"
+  },
+  "remoteUser": "root",
+  "overrideCommand": true,
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "reditorsupport.r",
+        "REditorSupport.r-syntax",
+        "Posit.shiny"
+      ],
+      "settings": {
+        "r.bracketedPaste": true,
+        "r.lsp.diagnostics": true,
+        "r.alwaysUseActiveTerminal": true,
+        "files.exclude": {
+          "**/.Rhistory": true,
+          "**/.Rproj.user": true,
+          "**/*.Rout": true
+        }
+      }
+    }
+  },
+  "postCreateCommand": "Rscript -e 'cat(\"R\", as.character(getRversion()), \"ready.\\n\"); devtools::load_all(\"/workspaces/dwhr\", quiet=TRUE); cat(\"dwhr loaded.\\n\")'"
+}

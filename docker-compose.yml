@@ -1,0 +1,47 @@
+# dwhr-runtime — demo container wrapper.
+# Spec: docs/DOCKER.md.
+#
+# Quick start:
+#   docker compose up                              # default = 15PdfShowcase on :4815
+#   EXAMPLE=16D3Sankey docker compose up           # any other example
+#   EXAMPLE=01SimpleTable PORT=4900 docker compose up
+#
+# Stop:
+#   docker compose down
+
+services:
+  runtime:
+    # Force amd64 for both build and run. PhantomJS has no Linux arm64
+    # binary, so the Dockerfile is amd64-only by design. On Apple Silicon
+    # this runs through Rosetta 2 inside Colima (`--vm-type vz --vz-rosetta`),
+    # which is far faster than QEMU's full emulation.
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+    image: dwhr-runtime:0.1.0
+    # Local-only image — never published to a registry. Without this,
+    # `docker compose up` tries Docker Hub first and fails with
+    # "pull access denied for dwhr-runtime" before reaching the build step.
+    pull_policy: build
+    container_name: dwhr-${EXAMPLE:-15PdfShowcase}
+    ports:
+      - "${PORT:-4815}:${PORT:-4815}"
+    volumes:
+      # dwhr source — devtools::load_all() reads from here.
+      - .:/workspaces/dwhr:cached
+      # Chosen example app — the entrypoint shiny::runApp's this dir.
+      - ./inst/examples/${EXAMPLE:-15PdfShowcase}:/app:cached
+    environment:
+      PORT: ${PORT:-4815}
+      HOST: "0.0.0.0"
+      APP_DIR: /app
+      DWHR_DIR: /workspaces/dwhr
+      SHINY_AUTORELOAD: ${SHINY_AUTORELOAD:-true}
+      # Disable startup-banner zoxide chatter inside the container shell.
+      _ZO_DOCTOR: "0"
+    # tty/stdin so Ctrl-C cleanly stops the Shiny process.
+    stdin_open: true
+    tty: true
