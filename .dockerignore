@@ -1,0 +1,41 @@
+# Build context exclusions for `docker build`.
+# Anything listed here is NOT copied into the build context, which speeds the
+# initial transfer. Bind-mounted files at runtime aren't affected.
+
+# VCS + IDE
+.git
+.gitignore
+.github
+.idea
+.vscode
+
+# R session artifacts
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rout
+
+# Heavy on-disk demo data — bind-mounted at runtime, not needed at build time
+inst/examples/*/data/
+inst/examples/*/tmp/
+inst/examples/*/out/
+inst/examples/*/log/
+inst/examples/*/archief/
+inst/examples/*/script/batchArgs.rds
+
+# Demo media (large, regenerable from source recordings)
+assets/clips/
+assets/demo.webm
+assets/hero.png
+assets/hero.webp
+
+# Docs not needed in the runtime
+docs/perf/
+docs/baseline-check.log
+docs/w*-check.log
+NEWS.html
+
+# OS junk
+.DS_Store
+Thumbs.db
