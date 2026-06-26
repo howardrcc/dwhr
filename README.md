@@ -26,6 +26,59 @@
 
 ## Quick start
 
+### Docker (no R installation required)
+
+```sh
+git clone https://github.com/howardrcc/dwhr.git
+cd dwhr
+```
+
+**macOS / Linux with `make`:**
+
+```sh
+make build          # build the image (~10 min cold, <1 min cached)
+make demo           # runs 15PdfShowcase at http://localhost:4815
+make demo EXAMPLE=01SimpleTable PORT=4900   # different example / port
+make shell          # interactive bash inside the container
+make check          # R CMD check without a host R install
+make stop           # stop the stack
+```
+
+**Linux / Windows without `make`** (raw Docker Compose commands):
+
+```sh
+# Build
+docker buildx build --tag dwhr-runtime:0.1.0 --tag dwhr-runtime:latest --load .
+
+# Run (default example 15PdfShowcase on port 4815)
+docker compose up
+
+# Run a different example or port
+EXAMPLE=01SimpleTable PORT=4900 docker compose up        # Linux / macOS
+$env:EXAMPLE="01SimpleTable"; $env:PORT="4900"; docker compose up   # Windows PowerShell
+
+# Interactive shell
+docker compose run --rm --service-ports runtime bash
+
+# R CMD check
+docker compose run --rm runtime Rscript -e 'devtools::check("/workspaces/dwhr", error_on = "warning")'
+
+# Stop
+docker compose down
+```
+
+Open <http://localhost:4815> after starting.
+
+> **Apple Silicon:** The image is `linux/amd64` only (PhantomJS has no `arm64` binary).
+> Use [Colima](https://github.com/abiosoft/colima) with `--vm-type vz --vz-rosetta`
+> for Rosetta 2 acceleration instead of full QEMU emulation.
+> See [`docs/DOCKER.md`](docs/DOCKER.md) for full details.
+>
+> **Auth:** the container bypasses `authenticate()` for local demo use.
+> Do not expose port 4815 externally.
+
+### Native R (macOS / Linux)
+
 ```sh
 git clone https://github.com/howardrcc/dwhr.git
 cd dwhr
@@ -33,8 +86,8 @@ R -e 'devtools::install(".", quick = TRUE)'
 R -e 'shiny::runApp("inst/examples/01SimpleTable", port = 4815)'
 ```
 
-Open <http://localhost:4815>. Full setup (macOS / Nix / Docker, system deps,
-LaTeX for PDF rendering): see [`docs/INSTALL.md`](docs/INSTALL.md) and
+Open <http://localhost:4815>. Full setup (system deps, LaTeX for PDF
+rendering): see [`docs/INSTALL.md`](docs/INSTALL.md) and
 [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md).
 
 ## Examples
@@ -78,7 +131,7 @@ shiny::runApp("inst/examples/01SimpleTable")
 | [`CLAUDE.md`](CLAUDE.md) | Architecture orientation — `star` is an environment, reactive bus, file map |
 | [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md) | macOS dev setup |
 | [`docs/INSTALL.md`](docs/INSTALL.md) | Homebrew + Nix install paths; Linux/Windows deferred |
-| [`docs/DOCKER.md`](docs/DOCKER.md) | Dev container spec (image, compose, .devcontainer/) — implementation pending |
+| [`docs/DOCKER.md`](docs/DOCKER.md) | Docker setup — image, compose, Makefile targets, VS Code Dev Containers |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Production deployment contract — SHINYPROXY env var, dbCred.rds, TEST badge, auth gate |
 | [`docs/DEMO-DATA.md`](docs/DEMO-DATA.md) | GoT anonymization spec for `15PdfShowcase` |
 | [`docs/MODERNIZATION.md`](docs/MODERNIZATION.md) | CRAN-bound modernization plan + append-only decision log |
